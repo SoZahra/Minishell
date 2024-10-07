@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 10:24:47 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 11:33:25 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/07 19:18:05 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,5 +138,16 @@ int					ft_putstr_printf(const char *str);
 int					ft_aff_p(va_list args);
 int					ft_printf(const char *format, ...);
 int					ft_putchar_printf(char c);
+
+////printf fd
+
+int	ft_putnbr_unsigned_printf_fd(unsigned int n, int fd);
+int	ft_aff_p_fd(va_list args, int fd);
+int	ft_check_format_fd(char str, va_list args, int fd);
+int	ft_printf_fd(int fd, const char *format, ...);
+int	ft_putchar_printf_fd(char c, int fd);
+int	ft_putstr_printf_fd(const char *str, int fd);
+int	ft_putnbr_base_printf_fd(unsigned long nbr, const char *base, int fd);
+int	ft_putnbr_printf_fd(int n, int fd);
 
 #endif

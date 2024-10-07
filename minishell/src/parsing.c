@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 17:34:21 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 17:58:41 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/07 16:05:57 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,13 +171,45 @@ t_token *parse_command(const char *input)
     return tokens;
 }
 
+// void process_tokens(t_token *tokens)
+// {
+//     int i = 0;
+//     while (tokens[i].type != T_END)  // Comparer avec T_END au lieu de -1
+//     {
+//         printf("Token type: %d, value: %s\n", tokens[i].type, tokens[i].value);
+//         i++;
+//     }
+// }
+
+const char *token_type_to_string(t_token_type type)
+{
+    switch (type)
+    {
+        case T_WORD:           return "WORD";
+        case T_PIPE:           return "PIPE";
+        case T_REDIRECT_IN:    return "REDIRECT_IN";
+        case T_REDIRECT_OUT:   return "REDIRECT_OUT";
+        case T_APPEND_OUT:     return "APPEND_OUT";
+        case T_HEREDOC:        return "HEREDOC";
+        case T_ENV_VAR:        return "ENV_VAR";
+        case T_SINGLE_QUOTE:   return "SINGLE_QUOTE";
+        case T_DOUBLE_QUOTE:   return "DOUBLE_QUOTE";
+        case T_WHITESPACE:     return "WHITESPACE";
+        case T_END:            return "END";
+        default:               return "UNKNOWN";
+    }
+}
+
 void process_tokens(t_token *tokens)
 {
     int i = 0;
-    while (tokens[i].type != T_END)  // Comparer avec T_END au lieu de -1
+    while (tokens[i].type != T_END)
     {
-        printf("Token type: %d, value: %s\n", tokens[i].type, tokens[i].value);
+        // Afficher un type de token lisible par l'humain
+        printf("Token type: %s, value: %s\n", token_type_to_string(tokens[i].type), tokens[i].value);
         i++;
     }
 }
+
+// Fonction pour convertir le type de token en chaîne lisible
 

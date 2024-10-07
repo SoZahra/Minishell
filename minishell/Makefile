@@ -6,7 +6,7 @@
 #    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/04 17:50:31 by fzayani          ###   ########.fr        #
+#    Updated: 2024/10/07 17:55:41 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ SRCS		=	$(addprefix $(SRCS_PATH), $(SRCS_FILES))
 OBJS		=	$(addprefix $(OBJS_PATH), $(SRCS:$(SRCS_PATH)%.c=%.o))
 
 CC			=	cc
-CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH)
+CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
 LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline
 RM			=	rm -rf
 

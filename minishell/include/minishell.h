@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 17:49:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/07 16:12:02 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ typedef struct s_token
 /// read
 void loop(void);
 
-
 /// signal
 
 void handle_sigint(int sig);
@@ -65,9 +64,12 @@ t_token *parse_command(const char *input);
 t_token_type identify_token(const char *str);
 void process_tokens(t_token *tokens);
 
-
 /// lexer
 t_token *lexer(const char *input);
+
+///free
+
+void ft_free(void);
 
 
 #endif

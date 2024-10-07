@@ -6,54 +6,62 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 17:58:03 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/07 19:00:02 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// t_token *lexer(const char *input)
+// t_token *l_double_q(const char *input)
 // {
-// 	int bufsize;
-// 	t_token *tokens;
-// 	int token_i;
-// 	const char *start;
 
-// 	bufsize = count_tokens(input);
-// 	tokens = malloc((bufsize + 1) * sizeof(t_token));
-// 	token_i = 0;
-// 	start = input;
-
-// 	while(*input)
-// 	{
-// 		t_token_type token_type = identify_token(input);
-// 		if(token_type == T_WHITESPACE)
-// 		{
-// 			while(ft_isspace(*input))
-// 				input++;
-// 			start = input;
-// 			continue;
-// 		}
-// 		else if(token_type != T_WORD) //pour les autres types de tokens comme pipe, redirection,...
-// 		{
-// 			tokens[token_i].type = token_type;
-// 			tokens[token_i].value = copy_token(input, input + 1);
-// 			input++;
-// 			token_i++;
-// 		}
-// 		else //pour les mots ou les sequences
-// 		{
-// 			while(*input && !ft_isspace(*input) && !identify_token(input))
-// 				input++;
-// 			tokens[token_i].type = T_WORD;
-// 			tokens[token_i].value = copy_token(start, input);
-// 			token_i++;
-// 		}
-// 	}
-// 	tokens[token_i].type = -1; //fin des tokens
-// 	tokens[token_i].value = NULL;
-// 	return (tokens);
 // }
+
+int handle_output_redic(const char **input, t_token *tokens, int *token_i)
+{
+    const char *current = *input;
+
+    if(*current == '>')
+    {
+        if(*(current + 1) == '>') //double >>
+        {
+            tokens[*token_i].type = T_APPEND_OUT;
+            tokens[*token_i].value = copy_token(current, current + 2);
+            *input += 2;
+        }
+        else // dans le cas d'un simple >
+            return (write(2, "syntax error near\n", 18), -1);
+        (*token_i)++;
+        return (0);
+    }
+    return (1);
+}
+
+int handle_input_redic(const char **input, t_token *tokens, int *token_i)
+{
+    const char *current = *input;
+
+    if(*current == '<')
+    {
+        if(*(current + 1) == '<') //double <<
+        {
+            tokens[*token_i].type = T_HEREDOC;
+            tokens[*token_i].value = copy_token(current, current + 2);
+            *input += 2;
+        }
+        else if (*(current + 1) == '\0')// dans le cas d'un simple <
+            return ( write(2, "unexpected token 'newline'\n", 27), -1);
+        else //simple <
+        {
+            tokens[*token_i].type = T_REDIRECT_IN;
+            tokens[*token_i].value = copy_token(current, current + 1);
+            *input += 1;
+        }
+        (*token_i)++;
+        return (0);
+    }
+    return(1);
+}
 
 t_token *lexer(const char *input)
 {
@@ -74,14 +82,49 @@ t_token *lexer(const char *input)
     start = input;
     while (*input)
     {
-        // Gérer les guillemets
-        if (*input == '\'' && !in_double_quote)
+        if (*input == '\'' && !in_double_quote)// Gérer les guillemets simples
+        {
+            tokens[token_i].type = T_SINGLE_QUOTE;
+            tokens[token_i].value = copy_token(input, input + 1);  // Copier le guillemet simple
+            token_i++;
             in_single_quote = !in_single_quote;
-        else if (*input == '"' && !in_single_quote)
+            input++;
+            start = input;
+            continue;
+        }
+        else if (*input == '"' && !in_single_quote)// Gérer les guillemets doubles
+        {
+            tokens[token_i].type = T_DOUBLE_QUOTE;
+            tokens[token_i].value = copy_token(input, input + 1);  // Copier le guillemet double
+            token_i++;
             in_double_quote = !in_double_quote;
-
-        // Si on est en dehors des guillemets et on rencontre un espace ou un token spécial
-        if (ft_isspace(*input) && !in_single_quote && !in_double_quote)
+            input++;
+            start = input;
+            continue;
+        }
+        if(*input == '>' || *input == '<')
+        {
+            if(handle_output_redic(&input, tokens, &token_i) == -1
+                || handle_input_redic(&input, tokens, &token_i) == -1)
+                return(free(tokens), NULL);
+            start = input;
+            continue;
+        }
+        if (in_single_quote || in_double_quote)// Si on est dans des guillemets doubles ou simples
+        {
+            // Chercher la fin du mot jusqu'à la fermeture des guillemets
+            start = input;
+            while (*input && ((*input != '\'' && in_single_quote) || (*input != '"' && in_double_quote)))
+                input++;
+            if (input > start)   // recup le mot entre les guillemets
+            {
+                tokens[token_i].type = T_WORD;
+                tokens[token_i].value = copy_token(start, input);
+                token_i++;
+            }
+            continue;
+        }
+        if (ft_isspace(*input) && !in_single_quote && !in_double_quote)// Si on est en dehors des guillemets et on rencontre un espace ou un token spécial
         {
             if (input > start)
             {
@@ -101,13 +144,12 @@ t_token *lexer(const char *input)
             input++;
             start = input;
         }
-        // Ajouter la gestion d'autres types de tokens (redirections, etc.)
+        // Ajouter la gestion d'autres types de tokens plus tard (redirections, etc.)
         else
         {
             input++;
         }
     }
-
     // Ajouter le dernier token si nécessaire
     if (start < input)
     {
@@ -115,10 +157,8 @@ t_token *lexer(const char *input)
         tokens[token_i].value = copy_token(start, input);
         token_i++;
     }
-
     // Terminer avec T_END
     tokens[token_i].type = T_END;
     tokens[token_i].value = NULL;
-
     return tokens;
 }
