@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/07 16:12:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/08 13:53:30 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,17 +24,20 @@
 # include <readline/readline.h>
 # include <readline/history.h>
 # include "../libft/libft.h"
+# include <errno.h>
 
+
+#define PROMPT "MiniBG🌝> "
 
 typedef enum token_type
 {
 	T_WORD,
     T_PIPE,
-    T_REDIRECT_IN,
-    T_REDIRECT_OUT,
-    T_APPEND_OUT,
-    T_HEREDOC,
-    T_ENV_VAR,
+    T_REDIRECT_IN, //<
+    T_REDIRECT_OUT, //>
+    T_APPEND_OUT, //>>
+    T_HEREDOC,// <<
+    T_ENV_VAR, // $
     T_SINGLE_QUOTE,
     T_DOUBLE_QUOTE,
     T_WHITESPACE,

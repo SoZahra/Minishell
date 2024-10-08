@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/07 19:00:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/08 14:16:29 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,14 @@ int handle_output_redic(const char **input, t_token *tokens, int *token_i)
             tokens[*token_i].value = copy_token(current, current + 2);
             *input += 2;
         }
-        else // dans le cas d'un simple >
-            return (write(2, "syntax error near\n", 18), -1);
+        else if(*(current + 1) == '\0' ) // dans le cas d'un simple > sans rien derriere
+			return (ft_printf_fd(2, "%ssyntax error near unexpected token `newline'\n", PROMPT), -1);
+		else //simple >
+        {
+            tokens[*token_i].type = T_REDIRECT_OUT;
+            tokens[*token_i].value = copy_token(current, current + 1);
+            *input += 1;
+        }
         (*token_i)++;
         return (0);
     }
@@ -49,8 +55,8 @@ int handle_input_redic(const char **input, t_token *tokens, int *token_i)
             tokens[*token_i].value = copy_token(current, current + 2);
             *input += 2;
         }
-        else if (*(current + 1) == '\0')// dans le cas d'un simple <
-            return ( write(2, "unexpected token 'newline'\n", 27), -1);
+        else if (*(current + 1) == '\0')// dans le cas d'un simple < sans rien derriere
+			return (ft_printf_fd(2, "%ssyntax error near unexpected token `newline'\n", PROMPT), -1);
         else //simple <
         {
             tokens[*token_i].type = T_REDIRECT_IN;
@@ -75,7 +81,8 @@ t_token *lexer(const char *input)
     tokens = malloc((bufsize + 1) * sizeof(t_token));  // Correct allocation
     if (!tokens)
     {
-        perror("malloc");
+        // perror("malloc");
+		ft_printf_fd(2, "%s%s\n", PROMPT, strerror(errno));
         exit(EXIT_FAILURE);
     }
     token_i = 0;

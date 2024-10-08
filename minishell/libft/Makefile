@@ -6,7 +6,7 @@
 #    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/21 16:32:06 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/07 19:08:01 by fzayani          ###   ########.fr        #
+#    Updated: 2024/10/08 10:38:59 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,8 @@ SRC = ft_atoi.c \
 	  ft_single_chara.c\
 	  ft_isspace.c\
 	  ft_printf_fd.c\
-	  ft_printf_utils.c
+	  ft_printf_utils.c\
+	  ft_itoa_unsig.c
 
 
 src_bonus = ft_lstnew_bonus.c \

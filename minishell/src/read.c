@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 18:19:01 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/08 11:43:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void loop(void)
 
     while (1)
     {
-        input = readline("MiniBG🌝>");
+        input = readline(PROMPT);
         if (!input)
         {
             printf("exit\n");
