@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/08 11:43:56 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/09 11:59:03 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,11 @@ void loop(void)
             add_history(input);
 
         tokens = lexer(input);
+        if (!tokens)  // Si une erreur est survenue pendant l'analyse (comme l'erreur de syntaxe)
+        {
+            free(input);  // Libérer l'entrée avant de recommencer
+            continue;  // Retourne au début de la boucle, afficher le prompt à nouveau
+        }
         process_tokens(tokens);
 
         free(input);

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/08 14:16:29 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/09 11:35:39 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,27 +21,28 @@ int handle_output_redic(const char **input, t_token *tokens, int *token_i)
 {
     const char *current = *input;
 
-    if(*current == '>')
+    if (*current == '>')
     {
-        if(*(current + 1) == '>') //double >>
+        if (*(current + 1) == '>') // double >>
         {
             tokens[*token_i].type = T_APPEND_OUT;
-            tokens[*token_i].value = copy_token(current, current + 2);
-            *input += 2;
+            tokens[*token_i].value = copy_token(current, current + 2);  // copie ">>"
+            *input += 2;  // avance de 2 caractères
         }
-        else if(*(current + 1) == '\0' ) // dans le cas d'un simple > sans rien derriere
-			return (ft_printf_fd(2, "%ssyntax error near unexpected token `newline'\n", PROMPT), -1);
-		else //simple >
+        else if (*(current + 1) == '\0') // simple > sans rien derrière
+            return (ft_printf_fd(2, "%ssyntax error near unexpected token `newline'\n", PROMPT), -1);
+        else // simple > suivi d'un autre token (mot, autre caractère)
         {
             tokens[*token_i].type = T_REDIRECT_OUT;
-            tokens[*token_i].value = copy_token(current, current + 1);
-            *input += 1;
+            tokens[*token_i].value = copy_token(current, current + 1);  // copie ">"
+            *input += 1;  // avance de 1 caractère
         }
-        (*token_i)++;
+        (*token_i)++;  // incrémente l'index des tokens
         return (0);
     }
-    return (1);
+    return (1);  // renvoie 1 si ce n'est pas une redirection
 }
+
 
 int handle_input_redic(const char **input, t_token *tokens, int *token_i)
 {
