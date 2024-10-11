@@ -6,13 +6,13 @@
 #    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/11 13:52:21 by fzayani          ###   ########.fr        #
+#    Updated: 2024/10/11 15:41:27 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	minishell
 
-SRCS_FILES	=	main.c read.c signal.c parsing.c lexer.c token.c lexer_utils.c\
+SRCS_FILES	=	main.c read.c signal.c parsing.c lexer.c lexer_utils.c\
 				free.c
 
 SRCS_PATH	=	src/

@@ -6,103 +6,130 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/11 14:35:36 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/11 18:13:12 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// void	loop(void)
-// {
-// 	char *input;
-// 	t_token *tokens;
+void process_tokens(t_token *tokens) {
+    t_token *current = tokens;
+    int token_count = 0;
+    pid_t pid;
+    int status;
 
-// 	while (1)
-// 	{
-// 		input = readline(PROMPT);
-// 		if (!input)
-// 		{
-// 			printf("exit\n");
-// 			break ;
-// 		}
-// 		if (*input)
-// 			add_history(input);
+    int saved_stdout = dup(STDOUT_FILENO); // Sauvegarder la sortie standard
+    int saved_stdin = dup(STDIN_FILENO);   // Sauvegarder l'entrée standard
 
-// 		tokens = lexer(input);
-// 		if (!tokens)
-// 		{ // Si une erreur est survenue pendant l'analyse
-// 			free(input);
-// 			continue ; // Retourne au début de la boucle
-// 		}
-//         print_tokens(tokens);
-// 		// Traitement des tokens (à implémenter)
-// 		free_tokens(tokens);
-// 		free(input);
-// 	}
-// }
+    // Compter le nombre de tokens pour allouer dynamiquement `args`
+    while (current) {
+        token_count++;
+        current = current->next;
+    }
 
-
-void process_tokens(t_token *tokens)
-{
-    // Si la liste des tokens est vide, retourner
-    if (!tokens) {
-        printf("No tokens to process.\n");
+    // Allouer dynamiquement un tableau pour les arguments
+    char **args = malloc((token_count + 1) * sizeof(char *));
+    if (!args) {
+        perror("malloc failed");
         return;
     }
-    // Convertir les tokens en tableau de chaînes
-    int count = 0;
-    t_token *current = tokens;
-    while (current) {
-        count++;
-        current = current->next;
-    }
-    // Afficher le nombre de tokens
-    printf("Number of tokens: %d\n", count);
-    // Allouer un tableau pour les arguments
-    char **args = malloc((count + 1) * sizeof(char *));
-    if (!args) {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-    current = tokens;
-    for (int i = 0; i < count; i++) {
-        args[i] = strdup(current->value);  // Copier la valeur du token
-        current = current->next;
-    }
-    args[count] = NULL;  // Le dernier élément doit être NULL
-    // Afficher les arguments pour débogage
-    for (int i = 0; i < count; i++) {
-        printf("args[%d]: %s\n", i, args[i]);
-    }
-    // Créer un processus fils pour exécuter la commande
-    pid_t pid = fork();
-    if (pid < 0) {
-        perror("fork");
-        free(args);
-        exit(EXIT_FAILURE);
-    }
-    if (pid == 0) {  // Processus fils
-        // Exécuter la commande
-        if (execvp(args[0], args) == -1) {
-            perror("execvp");
-            free(args);
-            exit(EXIT_FAILURE);
-        }
-    } else {  // Processus père
-        int status;
-        waitpid(pid, &status, 0);  // Attendre que le fils se termine
 
-        // Afficher le statut de la commande
-        if (WIFEXITED(status)) {
-            printf("Command exited with status %d\n", WEXITSTATUS(status));
-        } else {
-            printf("Command terminated abnormally\n");
+    // Réinitialiser `current` pour commencer à ajouter des arguments
+    current = tokens;
+    int i = 0;
+    while (current) // Préparer les arguments et gérer les redirections
+    {
+        if (current->type == TOKEN_COMMAND) {
+            args[i++] = current->value; // Ajouter la commande/argument
+        } else if (current->type == TOKEN_REDIRECT_OUTPUT)
+        {
+            current = current->next; // Vérifier s'il y a un token suivant
+            if (!current || current->type != TOKEN_FILENAME) {
+                fprintf(stderr, "syntax error near unexpected token `newline'\n");
+                break;
+            }
+            int fd = open(current->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (fd == -1) {
+                perror("open failed");
+                free(args);
+                return;
+            }
+            dup2(fd, STDOUT_FILENO); // Rediriger la sortie standard vers le fichier
+            close(fd);
         }
+        else if (current->type == TOKEN_REDIRECT_INPUT)
+        {
+            current = current->next;// Vérifier s'il y a un token suivant
+            if (!current || current->type != TOKEN_FILENAME) {
+                fprintf(stderr, "syntax error near unexpected token `newline'\n");
+                break;
+            }
+            int fd = open(current->value, O_RDONLY);
+            if (fd == -1) {
+                perror("open failed");
+                free(args);
+                return;
+            }
+            dup2(fd, STDIN_FILENO); // Rediriger l'entrée standard
+            close(fd);
+        }
+        else if (current->type == TOKEN_REDIRECT_APPEND)
+        {
+            // Vérifier s'il y a un token suivant
+            current = current->next;
+            if (!current || current->type != TOKEN_FILENAME)
+            {
+                fprintf(stderr, "syntax error near unexpected token `newline'\n");
+                break;
+            }
+            int fd = open(current->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            if (fd == -1) {
+                perror("open failed");
+                free(args);
+                return;
+            }
+            dup2(fd, STDOUT_FILENO); // Rediriger la sortie en mode append
+            close(fd);
+        } else if (current->type == TOKEN_REDIRECT_HEREDOC) {
+            // Vérifier s'il y a un token suivant (le délimiteur du heredoc)
+            current = current->next;
+            if (!current || current->type != TOKEN_FILENAME) {
+                fprintf(stderr, "syntax error near unexpected token `newline'\n");
+                break;
+            }
+        }// Ici tu devrais gérer le << (heredoc) en fonction de ton implémentation
+        current = current->next;
     }
-    // Libérer la mémoire
-    for (int i = 0; i < count; i++) {
-        free(args[i]);
+    args[i] = NULL; // Terminer le tableau d'arguments avec NULL
+    pid = fork();// Créer un processus enfant pour exécuter la commande
+    if (pid == -1) {
+        perror("fork failed");
+        free(args);  // Libérer la mémoire
+        return;
     }
+    else if (pid == 0)
+    {
+        if (execvp(args[0], args) == -1)// Code du processus enfant : exécuter la commande
+        {
+            perror("execvp failed");
+            free(args);  // Libérer la mémoire avant de quitter
+            exit(EXIT_FAILURE); // Si l'exécution échoue, quitter avec une erreur
+        }
+    } else {
+        // Code du processus parent : attendre que le processus enfant termine
+        waitpid(pid, &status, 0);
+        printf("Command exited with status %d\n", WEXITSTATUS(status));
+    }
+
+    // Restaurer la sortie standard et l'entrée standard
+    dup2(saved_stdout, STDOUT_FILENO);
+    dup2(saved_stdin, STDIN_FILENO);
+
+    // Fermer les descripteurs de fichiers sauvegardés
+    close(saved_stdout);
+    close(saved_stdin);
+
+    // Libérer la mémoire allouée pour `args`
     free(args);
 }
 
@@ -111,48 +138,47 @@ void loop(void)
     char *input;
     t_token *tokens;
 
-    while (1) {
+    while (1)
+    {
         input = readline(PROMPT);
         if (!input) {
             printf("exit\n");
             break;
         }
-        if (*input) {
+        if (*input)
             add_history(input);
-        }
-
-        // Commande pour activer l'affichage des tokens
-        if (strcmp(input, "test") == 0) {
+        if (strcmp(input, "test") == 0)// Commande pour activer l'affichage des tokens
+        {
             printf("Enter command to test lexer (or type 'exit' to return to prompt):\n");
-            while (1) {
+            while (1)
+            {
                 char *test_input = readline("Test> ");
-                if (!test_input || strcmp(test_input, "exit") == 0) {
+                if (!test_input || strcmp(test_input, "exit") == 0)
+                {
                     free(test_input);
                     break;
                 }
-
                 tokens = lexer(test_input);
-                if (!tokens) {
+                if (!tokens)
                     printf("Lexer error: invalid syntax\n");
-                } else {
+                else
+                {
                     print_tokens(tokens);
                     free_tokens(tokens);
                 }
                 free(test_input);
             }
-        } else {
-            // Tokenisation de l'entrée normale
+        }
+        else// Tokenisation de l'entrée normale
+        {
             tokens = lexer(input);
             if (!tokens) {
                 free(input);
                 continue;
             }
-
-            // Traitement des tokens (à implémenter)
-            process_tokens(tokens);
+            process_tokens(tokens);// Traitement des tokens (à implémenter)
             free_tokens(tokens);
         }
-
         free(input);
     }
 }
