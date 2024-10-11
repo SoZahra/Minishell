@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/04 18:17:41 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/11 13:56:22 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,16 @@ int main(void)
 	loop();
 	return(0);
 }
+
+void print_tokens(t_token *tokens)
+{
+    while (tokens) {
+        printf("Token: '%s'\n", tokens->value);
+        tokens = tokens->next;
+    }
+}
+
+
 
 // test
 //MiniBG> echo "Hello World" | grep Hello

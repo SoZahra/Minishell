@@ -6,17 +6,20 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 16:07:57 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/07 16:11:06 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/11 13:49:33 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-void ft_free(void)
+void	free_tokens(t_token *tokens)
 {
-	char *input;
-	t_token *tokens;
-
-	free(input);
-    free(tokens);
+	t_token *tmp;
+	while (tokens)
+	{
+		tmp = tokens;
+		tokens = tokens->next;
+		free(tmp->value);
+		free(tmp);
+	}
 }

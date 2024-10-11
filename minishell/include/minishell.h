@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/09 11:37:58 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/11 15:34:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,33 +25,31 @@
 # include <readline/history.h>
 # include "../libft/libft.h"
 # include <errno.h>
+# include <sys/types.h>
+# include <sys/wait.h>
 
 
 #define PROMPT "MiniBG🌝> "
 
 typedef enum token_type
 {
-	T_WORD,
-    T_PIPE,
-    T_REDIRECT_IN, //<
-    T_REDIRECT_OUT, //>
-    T_APPEND_OUT, //>>
-    T_HEREDOC,// <<
-    T_ENV_VAR, // $
-    T_SINGLE_QUOTE,
-    T_DOUBLE_QUOTE,
-    T_WHITESPACE,
-    T_END
+    TOKEN_COMMAND,
+    TOKEN_REDIRECT_OUTPUT,
+    TOKEN_REDIRECT_INPUT,
+    TOKEN_REDIRECT_APPEND,
+    TOKEN_HEREDOC,
 }	t_token_type;
 
 typedef struct s_token
 {
 	char	*value;
 	t_token_type type;
+    struct s_token *next;
 }	t_token;
 
 /// read
 void loop(void);
+void process_tokens(t_token *tokens);
 
 /// signal
 
@@ -59,20 +57,20 @@ void handle_sigint(int sig);
 
 ///parsing
 
-int c_tokens(const char *input);
-int toggle_quote(int in_quote, char quote_char, char current_char);
-int count_tokens(const char *input);
-char *copy_token(const char *start, const char *end);
-t_token *parse_command(const char *input);
-t_token_type identify_token(const char *str);
-void process_tokens(t_token *tokens);
 
 /// lexer
+t_token	*create_token(const char *value);
 t_token *lexer(const char *input);
+
+///lexer_utils
+
 
 ///free
 
-void ft_free(void);
+void	free_tokens(t_token *tokens);
 
+///main
+
+void print_tokens(t_token *tokens);
 
 #endif
