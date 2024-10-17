@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/11 17:50:29 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/17 18:33:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
+extern char **environ;
 
 #define PROMPT "MiniBG🌝> "
 
@@ -53,7 +54,9 @@ typedef struct s_token
 
 /// read
 void loop(void);
-void process_tokens(t_token *tokens);
+// void process_tokens(t_token *tokens);
+void process_tokens(t_token *cmd_tokens, int num_pipes);
+char **prepare_args(t_token *tokens);
 
 /// signal
 
@@ -63,12 +66,9 @@ void handle_sigint(int sig);
 
 
 /// lexer
-// t_token	*create_token(const char *value);
+
 t_token	*create_token(t_token_type type, const char *value);
 t_token *lexer(const char *input);
-
-///lexer_utils
-
 
 ///free
 
@@ -77,5 +77,28 @@ void	free_tokens(t_token *tokens);
 ///main
 
 void print_tokens(t_token *tokens);
+
+//exc_pipe
+
+// int validate_pipe_syntax(t_token *tokens);
+// int valide_pipes(t_token *tokens);
+// void exc_error(t_token *tokens);
+// void exc_pipe(t_token *tokens);
+
+//pipex
+
+void	exec(t_token *cmd_tokens, char **env);
+void	child(t_token *tokens, int *pipe_fd, char **env);
+void	parent(t_token *tokens, int *pipe_fd, char **env);
+size_t	ft_strlen(const char *c);
+char	*my_getenv(char *name, char **env);
+char	*get_path(char *cmd, char **env);
+char	*join_path_cmd(char *path, char *cmd);
+char	*find_in_env(char *name, char **env);
+void	*free_tab(char **tab);
+void	exit_error(void);
+char **prepare_args_p(t_token *tokens);
+t_token *extract_command(t_token *tokens);
+t_token *extract_command_after(t_token *tokens);
 
 #endif

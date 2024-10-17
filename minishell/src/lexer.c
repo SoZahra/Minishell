@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/11 15:40:38 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/17 17:47:34 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,23 +32,55 @@ t_token *lexer(const char *input) {
     t_token *head = NULL;
     t_token *tail = NULL;
     char *input_copy = strdup(input);
-    char *token = strtok(input_copy, " ");
+    char *ptr = input_copy;
 
-    while (token) {
+    while (*ptr) {
+        // Ignorer les espaces
+        if (*ptr == ' ') {
+            ptr++;
+            continue;
+        }
+
+        // Identifier le pipe
+        if (*ptr == '|') {
+            t_token *new_token = create_token(TOKEN_PIPE, "|");
+            if (!new_token) {
+                free(input_copy);
+                return NULL; // Gestion d'erreur
+            }
+            if (!head) {
+                head = new_token;
+                tail = new_token;
+            } else {
+                tail->next = new_token;
+                tail = new_token;
+            }
+            ptr++; // Passer au prochain caractère
+            continue;
+        }
+
+        // Traiter les autres tokens (commandes et redirections)
+        char *start = ptr;
+        while (*ptr && *ptr != ' ' && *ptr != '|') { // Arreter aux espaces et pipes
+            ptr++;
+        }
+        char *token_str = strndup(start, ptr - start); // Extraire le token
         t_token *new_token = NULL;
 
         // Identifier le type de token
-        if (strcmp(token, ">") == 0) {
-            new_token = create_token(TOKEN_REDIRECT_OUTPUT, token);
-        } else if (strcmp(token, "<") == 0) {
-            new_token = create_token(TOKEN_REDIRECT_INPUT, token);
-        } else if (strcmp(token, ">>") == 0) {
-            new_token = create_token(TOKEN_REDIRECT_APPEND, token);
-        } else if (strcmp(token, "<<") == 0) {
-            new_token = create_token(TOKEN_HEREDOC, token);
+        if (strcmp(token_str, ">") == 0) {
+            new_token = create_token(TOKEN_REDIRECT_OUTPUT, token_str);
+        } else if (strcmp(token_str, "<") == 0) {
+            new_token = create_token(TOKEN_REDIRECT_INPUT, token_str);
+        } else if (strcmp(token_str, ">>") == 0) {
+            new_token = create_token(TOKEN_REDIRECT_APPEND, token_str);
+        } else if (strcmp(token_str, "<<") == 0) {
+            new_token = create_token(TOKEN_HEREDOC, token_str);
         } else {
-            new_token = create_token(TOKEN_COMMAND, token);
+            new_token = create_token(TOKEN_COMMAND, token_str);
         }
+        free(token_str); // Libérer la chaîne du token
+
         // Gestion d'erreur pour la création de tokens
         if (!new_token) {
             while (head) {
@@ -68,27 +100,37 @@ t_token *lexer(const char *input) {
             tail->next = new_token;
             tail = new_token;
         }
-        token = strtok(NULL, " ");
     }
+
     free(input_copy);
     return head;
 }
 
+
 // t_token *lexer(const char *input) {
 //     t_token *head = NULL;
 //     t_token *tail = NULL;
-//     char *input_copy = ft_strdup(input); // Utiliser une copie pour la tokenisation
+//     char *input_copy = strdup(input);
 //     char *token = strtok(input_copy, " ");
-//     int token_count = 0;
 
 //     while (token) {
-//         printf("Token found: '%s'\n", token); // Debug print
+//         t_token *new_token = NULL;
 
-//         t_token *new_token = create_token(token);
+//         // Identifier le type de token
+//         if (strcmp(token, ">") == 0) {
+//             new_token = create_token(TOKEN_REDIRECT_OUTPUT, token);
+//         } else if (strcmp(token, "<") == 0) {
+//             new_token = create_token(TOKEN_REDIRECT_INPUT, token);
+//         } else if (strcmp(token, ">>") == 0) {
+//             new_token = create_token(TOKEN_REDIRECT_APPEND, token);
+//         } else if (strcmp(token, "<<") == 0) {
+//             new_token = create_token(TOKEN_HEREDOC, token);
+//         } else {
+//             new_token = create_token(TOKEN_COMMAND, token);
+//         }
+//         // Gestion d'erreur pour la création de tokens
 //         if (!new_token) {
-//             // Gestion des erreurs (libération des tokens précédents)
-//             while (head)
-// 			{
+//             while (head) {
 //                 t_token *tmp = head;
 //                 head = head->next;
 //                 free(tmp->value);
@@ -97,20 +139,17 @@ t_token *lexer(const char *input) {
 //             free(input_copy);
 //             return NULL;
 //         }
-//         if (!head)// Ajout du token à la liste
-// 		{
+//         // Ajout du token à la liste
+//         if (!head) {
 //             head = new_token;
 //             tail = new_token;
-//         }
-// 		else
-// 		{
+//         } else {
 //             tail->next = new_token;
 //             tail = new_token;
 //         }
 //         token = strtok(NULL, " ");
-//         token_count++;
 //     }
-//     printf("Total tokens: %d\n", token_count); // Debug print
-//     free(input_copy); // Libérer la copie d'entrée
+//     free(input_copy);
 //     return head;
 // }
+
