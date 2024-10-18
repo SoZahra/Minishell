@@ -6,83 +6,88 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:07:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 18:20:42 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 14:22:58 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// char **prepare_args_p(t_token *tokens)
-// {
-// 	int count;
-// 	t_token *current;
-// 	char **args;
-// 	int i;
-
-// 	count = 0;
-// 	current = tokens;
-// 	i = 0;
-// 	while(current && current->type != TOKEN_PIPE)
-// 	{
-// 		count++;
-// 		current = current->next;
-// 	}
-// 	args = malloc((count + 1) * sizeof(char *));
-// 	if(!args)
-// 		return(perror("malloc failed"), NULL);
-// 	current = tokens;
-// 	while(current && current->type != TOKEN_PIPE)
-// 	{
-// 		args[i++] = current->value;
-// 		current = current->next;
-// 	}
-// 	args[i] = NULL;
-// 	return (args);
-// }
-
-char **prepare_args_p(t_token *cmd_tokens) {
+char **prepare_args(t_token *tokens)
+{
     int count = 0;
-    t_token *current = cmd_tokens;
+    t_token *current = tokens;
 
-    // Compter le nombre d'arguments
-    while (current) {
+    // Compter les tokens (jusqu'à un PIPE ou à la fin)
+    while (current && current->type != TOKEN_PIPE)
+    {
         count++;
         current = current->next;
     }
-
-    // Allocation de mémoire pour le tableau d'arguments
+    // Allouer le tableau d'arguments
     char **args = malloc((count + 1) * sizeof(char *));
-    if (!args) {
-        perror("Erreur d'allocation mémoire pour args");
+    if (!args)
+    {
+        perror("malloc failed");
         return NULL;
     }
-
-    current = cmd_tokens;
+    // Remplir le tableau d'arguments
+    current = tokens;
     int i = 0;
-    while (current) {
-        args[i] = strdup(current->value); // Assurez-vous de dupliquer la valeur
-        if (!args[i]) {
-            perror("Erreur lors de la duplication d'un argument");
-            free(args);
-            return NULL;
-        }
+    while (current && current->type != TOKEN_PIPE)
+    {
+        args[i++] = strdup(current->value); // Chaque token est un argument
         current = current->next;
-        i++;
     }
-    args[i] = NULL; // Terminer le tableau d'arguments
-
+    args[i] = NULL; // Terminer par NULL pour execve
     return args;
 }
+
+
+// char **prepare_args(t_token *tokens)
+// {
+//     int count = 0;
+//     t_token *current = tokens;
+
+//     // Compter les tokens
+//     while (current && current->type != TOKEN_PIPE)
+//     {
+//         count++;
+//         current = current->next;
+//     }
+
+//     // Allouer le tableau d'arguments
+//     char **args = malloc((count + 1) * sizeof(char *));
+//     if (!args) {
+//         perror("malloc failed");
+//         return NULL;
+//     }
+
+//     // Remplir le tableau d'arguments
+//     current = tokens;
+//     int i = 0;
+//     while (current && current->type != TOKEN_PIPE) {
+//         args[i++] = strdup(current->value); // Duplication de la valeur pour chaque argument
+//         current = current->next;
+//     }
+//     args[i] = NULL; // Terminer par NULL
+//     return args;
+// }
+
 
 void	exec(t_token *cmd_tokens, char **env)
 {
 	char	**option_cmd;
 	char	*path;
 
-	option_cmd = prepare_args_p(cmd_tokens);
+	option_cmd = prepare_args(cmd_tokens);
+	if (!option_cmd[0]) {
+    fprintf(stderr, "Error: Command is empty\n");
+    free_tab_2(option_cmd);
+    exit(EXIT_FAILURE);
+	}
 	if (!option_cmd || !option_cmd[0])
 	{
-		free_tab(option_cmd);
+		free_tab_2(option_cmd);
 		perror("Invalid command");
 		exit(EXIT_FAILURE);
 	}
@@ -90,62 +95,69 @@ void	exec(t_token *cmd_tokens, char **env)
 	if(execve(path, option_cmd, env) == -1)
 	{
 		perror("exec command");
-		free_tab(option_cmd);
+		free_tab_2(option_cmd);
 		exit(EXIT_FAILURE);
 	}
 }
 
-void	child(t_token *tokens, int *pipe_fd, char **env)
-{
-	// int	fd;
-
-	// fd = open(input_file, O_RDONLY);
-	// if (fd < 0)
-	// {
-	// 	perror("open infile file failed");
-	// 	close(pipe_fd[1]);
-	// 	close(pipe_fd[0]);
-	// 	exit(0);
-	// }
-	// dup2(fd, 0);
-	// dup2(pipe_fd[1], 1);
-	// close(pipe_fd[1]);
-	// close(pipe_fd[0]);
-	// close(fd);
-	// exec(tokens, env);
-	close(pipe_fd[0]); // Fermer la lecture du pipe
-
-    dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie standard vers le pipe
-    close(pipe_fd[1]); // Fermer l'écriture après redirection
-
+void child(t_token *tokens, int *pipe_fd, char **env) {
+    close(pipe_fd[0]); // Fermer la lecture du pipe dans l'enfant
+    dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie vers le pipe
+    close(pipe_fd[1]); // Fermer après redirection
     exec(tokens, env);
 }
 
-void	parent(t_token *tokens, int *pipe_fd, char **env)
-{
-	// int	fd;
-
-	// fd = open(output_file, O_CREAT | O_RDWR | O_TRUNC, 0644);
-	// if (fd < 0)
-	// {
-	// 	perror("open output file failed");
-	// 	close(pipe_fd[1]);
-	// 	close(pipe_fd[0]);
-	// 	exit(0);
-	// }
-	// dup2(fd, 1);
-	// dup2(pipe_fd[0], 0);
-	// close(pipe_fd[0]);
-	// close(pipe_fd[1]);
-	// close(fd);
-	// exec(tokens, env);
-	close(pipe_fd[1]); // Fermer l'écriture du pipe
-
-    dup2(pipe_fd[0], STDIN_FILENO); // Rediriger l'entrée standard vers le pipe
-    close(pipe_fd[0]); // Fermer la lecture après redirection
-
+void parent(t_token *tokens, int *pipe_fd, char **env) {
+    close(pipe_fd[1]); // Fermer l'écriture du pipe dans l'enfant
+    dup2(pipe_fd[0], STDIN_FILENO); // Rediriger l'entrée vers le pipe
+    close(pipe_fd[0]); // Fermer après redirection
     exec(tokens, env);
 }
+
+int check_consecutive_pipes(t_token *tokens)
+{
+    t_token *current = tokens;
+
+    while (current)
+    {
+        // Vérifie s'il y a deux pipes consécutifs ou si un pipe est suivi de NULL
+        if (current->type == TOKEN_PIPE && (!current->next || current->next->type == TOKEN_PIPE))
+        {
+            fprintf(stderr, "Error: Consecutive pipes or missing command\n");
+            return -1;  // Erreur trouvée
+        }
+        current = current->next;
+    }
+    return 0;  // Pas d'erreur
+}
+
+int contains_pipe(t_token *tokens)
+{
+    while (tokens)
+    {
+        if (tokens->type == TOKEN_PIPE)
+            return 1; // Un pipe trouvé
+        tokens = tokens->next;
+    }
+    return 0; // Aucun pipe trouvé
+}
+
+
+// void	child(t_token *tokens, int *pipe_fd, char **env)
+// {
+// 	close(pipe_fd[0]); // Fermer la lecture du pipe
+//     dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie standard vers le pipe
+//     close(pipe_fd[1]); // Fermer l'écriture après redirection
+//     exec(tokens, env);
+// }
+
+// void	parent(t_token *tokens, int *pipe_fd, char **env)
+// {
+// 	close(pipe_fd[1]); // Fermer l'écriture du pipe
+//     dup2(pipe_fd[0], STDIN_FILENO); // Rediriger l'entrée standard vers le pipe
+//     close(pipe_fd[0]); // Fermer la lecture après redirection
+//     exec(tokens, env);
+// }
 
 // int	main(int ac, char *argv[], char *env[])
 // {

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 18:33:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 11:59:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,10 +53,12 @@ typedef struct s_token
 }	t_token;
 
 /// read
-void loop(void);
-// void process_tokens(t_token *tokens);
+// void loop(void);
+void loop(char **env);
 void process_tokens(t_token *cmd_tokens, int num_pipes);
-char **prepare_args(t_token *tokens);
+// char **prepare_args(t_token *tokens);
+int check_consecutive_pipes(t_token *tokens);
+int contains_pipe(t_token *tokens);
 
 /// signal
 
@@ -69,6 +71,10 @@ void handle_sigint(int sig);
 
 t_token	*create_token(t_token_type type, const char *value);
 t_token *lexer(const char *input);
+void add_token(t_token **head, t_token_type type, const char *value);
+t_token_type get_token_type(const char *str);
+int is_whitespace(char c);
+t_token *parse_command_line(char *line);
 
 ///free
 
@@ -97,8 +103,14 @@ char	*join_path_cmd(char *path, char *cmd);
 char	*find_in_env(char *name, char **env);
 void	*free_tab(char **tab);
 void	exit_error(void);
-char **prepare_args_p(t_token *tokens);
+char **prepare_args(t_token *tokens);
 t_token *extract_command(t_token *tokens);
 t_token *extract_command_after(t_token *tokens);
+int process_pline(t_token *tokens, char **env);
+char **get_environment(char **envp);
+
+///free
+
+void *free_tab_2(char **tab);
 
 #endif

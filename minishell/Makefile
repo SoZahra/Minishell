@@ -6,14 +6,14 @@
 #    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/17 15:52:13 by fzayani          ###   ########.fr        #
+#    Updated: 2024/10/18 11:42:07 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	minishell
 
 SRCS_FILES	=	main.c read.c signal.c parsing.c lexer.c lexer_utils.c pipe.c pipe_utils.c\
-				free.c pipe_utils_2.c
+				free.c pipe_utils_2.c env.c
 
 SRCS_PATH	=	src/
 OBJS_PATH	=	.objs/

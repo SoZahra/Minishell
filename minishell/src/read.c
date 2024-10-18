@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 18:37:42 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 14:46:58 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,33 +134,33 @@
 //     free(args); // Libérer la mémoire allouée pour `args`
 // }
 
-char **prepare_args(t_token *tokens)
-{
-    int count = 0;
-    t_token *current = tokens;
+// char **prepare_args(t_token *tokens)
+// {
+//     int count = 0;
+//     t_token *current = tokens;
 
-    // Compter les tokens
-    while (current && current->type != TOKEN_PIPE)
-    {
-        count++;
-        current = current->next;
-    }
-    // Allouer le tableau d'arguments
-    char **args = malloc((count + 1) * sizeof(char *));
-    if (!args) {
-        perror("malloc failed");
-        return NULL;
-    }
-    // Remplir le tableau d'arguments
-    current = tokens;
-    int i = 0;
-    while (current && current->type != TOKEN_PIPE) {
-        args[i++] = current->value;
-        current = current->next;
-    }
-    args[i] = NULL; // Terminer par NULL
-    return args;
-}
+//     // Compter les tokens
+//     while (current && current->type != TOKEN_PIPE)
+//     {
+//         count++;
+//         current = current->next;
+//     }
+//     // Allouer le tableau d'arguments
+//     char **args = malloc((count + 1) * sizeof(char *));
+//     if (!args) {
+//         perror("malloc failed");
+//         return NULL;
+//     }
+//     // Remplir le tableau d'arguments
+//     current = tokens;
+//     int i = 0;
+//     while (current && current->type != TOKEN_PIPE) {
+//         args[i++] = current->value;
+//         current = current->next;
+//     }
+//     args[i] = NULL; // Terminer par NULL
+//     return args;
+// }
 
 // void process_tokens(t_token *tokens)
 // {
@@ -232,10 +232,12 @@ char **prepare_args(t_token *tokens)
 //     close(saved_stdin);
 // }
 
+
+
 void process_tokens(t_token *cmd_tokens, int num_pipes)
 {
     int pipe_fd[2];
-    int fd_in = 0; // descripteur d'entrée pour les pipes
+    int fd_in = 0; // Descripteur d'entrée pour les pipes
     pid_t pid;
 
     // Debug: Affichage des commandes et du nombre de pipes
@@ -269,9 +271,8 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
                 dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie vers le pipe
             }
             close(pipe_fd[1]); // Fermer le descripteur d'écriture du pipe
-            if (fd_in != 0) {
-                close(fd_in); // Fermer le descripteur d'entrée
-            }
+            close(pipe_fd[0]); // Fermer le descripteur de lecture du pipe
+
             // Préparer les arguments pour la commande actuelle
             t_token *cmd = &cmd_tokens[j];
             char **args = prepare_args(cmd);
@@ -291,6 +292,7 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
                 exit(EXIT_FAILURE);
             }
         } else { // Processus parent
+            close(pipe_fd[1]); // Fermer le descripteur d'écriture du pipe dans le parent
             waitpid(pid, NULL, 0); // Attendre que l'enfant termine
             if (fd_in != 0) {
                 close(fd_in); // Fermer l'ancien pipe d'entrée
@@ -300,64 +302,37 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
     }
 }
 
-void loop(void)
+void loop(char **env)
 {
-    char *input;
+    char *line;
     t_token *tokens;
 
     while (1)
     {
-        input = readline(PROMPT); // Affiche le prompt et lit l'entrée
-        if (!input) {
-            printf("exit\n");
-            break; // Quitte la boucle si l'entrée est nulle (CTRL+D)
-        }
-        if (*input)
-            add_history(input); // Ajoute l'entrée à l'historique
-        if (strcmp(input, "test") == 0) // Mode test du lexer
+        // Afficher le prompt
+        printf("MiniBG🌝> ");
+        line = readline(NULL); // lire une ligne de commande
+
+        if (line && *line) // Si la ligne n'est pas vide
         {
-            printf("Enter command to test lexer (or type 'exit' to return to prompt):\n");
-            while (1)
+            tokens = parse_command_line(line);
+            if (tokens)
             {
-                char *test_input = readline("Test> ");
-                if (!test_input || strcmp(test_input, "exit") == 0)
+                if (check_consecutive_pipes(tokens) == -1)
                 {
-                    free(test_input);
-                    break; // Quitte le mode test si 'exit' est tapé
+                    free_tokens(tokens);
+                    continue;
                 }
-                tokens = lexer(test_input); // Analyse les tokens
-                if (!tokens)
-                    printf("Lexer error: invalid syntax\n");
+                print_tokens(tokens);
+                // Procesus de commande avec pipes ou exécution simple
+                if (contains_pipe(tokens))
+                    process_pline(tokens, env);
                 else
-                {
-                    print_tokens(tokens); // Affiche les tokens
-                    free_tokens(tokens); // Libère les tokens
-                }
-                free(test_input);
+                    exec(tokens, env);
+                free_tokens(tokens);
             }
         }
-        else // Traitement des commandes normales
-        {
-            tokens = lexer(input); // Analyse les tokens de l'entrée
-            if (!tokens) {
-                free(input);
-                continue; // Ignore si l'analyse échoue
-            }
-
-            // Compte le nombre de pipes dans l'entrée
-            int num_pipes = 0;
-            t_token *current = tokens;
-            while (current) {
-                if (strcmp(current->value, "|") == 0) {
-                    num_pipes++;
-                }
-                current = current->next;
-            }
-
-            process_tokens(tokens, num_pipes); // Traite les tokens avec le nombre de pipes
-            free_tokens(tokens); // Libère les tokens
-        }
-        free(input); // Libère la mémoire de l'entrée
+        free(line); // Libérer la ligne après usage
     }
 }
 
@@ -368,14 +343,14 @@ void loop(void)
 
 //     while (1)
 //     {
-//         input = readline(PROMPT);
+//         input = readline(PROMPT); // Affiche le prompt et lit l'entrée
 //         if (!input) {
 //             printf("exit\n");
-//             break;
+//             break; // Quitte la boucle si l'entrée est nulle (CTRL+D)
 //         }
 //         if (*input)
-//             add_history(input);
-//         if (strcmp(input, "test") == 0)
+//             add_history(input); // Ajoute l'entrée à l'historique
+//         if (strcmp(input, "test") == 0) // Mode test du lexer
 //         {
 //             printf("Enter command to test lexer (or type 'exit' to return to prompt):\n");
 //             while (1)
@@ -384,29 +359,40 @@ void loop(void)
 //                 if (!test_input || strcmp(test_input, "exit") == 0)
 //                 {
 //                     free(test_input);
-//                     break;
+//                     break; // Quitte le mode test si 'exit' est tapé
 //                 }
-//                 tokens = lexer(test_input);
+//                 tokens = lexer(test_input); // Analyse les tokens
 //                 if (!tokens)
 //                     printf("Lexer error: invalid syntax\n");
 //                 else
 //                 {
-//                     print_tokens(tokens);
-//                     free_tokens(tokens);
+//                     print_tokens(tokens); // Affiche les tokens
+//                     free_tokens(tokens); // Libère les tokens
 //                 }
 //                 free(test_input);
 //             }
 //         }
-//         else
+//         else // Traitement des commandes normales
 //         {
-//             tokens = lexer(input);
+//             tokens = lexer(input); // Analyse les tokens de l'entrée
 //             if (!tokens) {
 //                 free(input);
-//                 continue;
+//                 continue; // Ignore si l'analyse échoue
 //             }
-//             process_tokens(tokens);// Traitement des tokens (à implémenter)
-//             free_tokens(tokens);
+
+//             // Compte le nombre de pipes dans l'entrée
+//             int num_pipes = 0;
+//             t_token *current = tokens;
+//             while (current) {
+//                 if (strcmp(current->value, "|") == 0) {
+//                     num_pipes++;
+//                 }
+//                 current = current->next;
+//             }
+
+//             process_tokens(tokens, num_pipes); // Traite les tokens avec le nombre de pipes
+//             free_tokens(tokens); // Libère les tokens
 //         }
-//         free(input);
+//         free(input); // Libère la mémoire de l'entrée
 //     }
 // }

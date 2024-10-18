@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 17:40:29 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 11:33:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,22 @@ t_token *extract_command(t_token *tokens)
 	tail = 0;
 	while(tokens && tokens->type != TOKEN_PIPE)
 	{
-		// t_token *new_t = create_token(tokens->type, tokens->value);
+		// t_token *new_t = malloc(sizeof(t_token));
+        // new_t->type = tokens->type;
+        // new_t->value = strdup(tokens->value);
+        // new_t->next = NULL;
 		t_token *new_t = malloc(sizeof(t_token));
-        new_t->type = tokens->type;
-        new_t->value = strdup(tokens->value);
-        new_t->next = NULL;
+		if (!new_t) {
+		// Libérer la mémoire déjà allouée dans cette fonction si nécessaire
+			perror("malloc failed");
+			exit(EXIT_FAILURE);
+		}
+		new_t->value = strdup(tokens->value);
+		if (!new_t->value) {
+			free(new_t);
+			perror("strdup failed");
+			exit(EXIT_FAILURE);
+		}
 		if(!head)
 		{
 			head = new_t;
@@ -91,7 +102,6 @@ int process_pline(t_token *tokens, char **env)
         t_token *first_cmd_t = extract_command(tokens);
         child(first_cmd_t, pipe_fd, env);
     }
-
     pid2 = fork();
     if (pid2 == -1)
         exit_error();
@@ -103,7 +113,6 @@ int process_pline(t_token *tokens, char **env)
     // Fermer les deux extrémités du pipe dans le processus parent
     close(pipe_fd[0]);
     close(pipe_fd[1]);
-
     // Attendre la fin des deux processus enfants
     waitpid(pid1, &status, 0);
     waitpid(pid2, &status, 0);

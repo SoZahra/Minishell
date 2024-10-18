@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 17:53:49 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 14:46:09 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,24 +74,56 @@ char	*join_path_cmd(char *path, char *cmd)
 char *get_path(char *cmd, char **env)
 {
     char **paths;
-    char **s_cmd;
     char *full_path;
     int i;
+    // printf("%s\n", cmd);
+    // Extraire uniquement la commande sans les arguments
+    char **split_cmd = ft_split(cmd, ' ');  // Séparer les mots de la commande
+    char *command_only = split_cmd[0];      // Prendre seulement la commande
 
-    i = 0;
-    s_cmd = ft_split(cmd, ' ');
     paths = ft_split(find_in_env("PATH", env), ':');
+    i = 0;
     while (paths[i])
     {
-        full_path = join_path_cmd(paths[i], s_cmd[0]);
-        printf("Checking path: %s\n", full_path); // Debug
+        full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
+        printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
         if (access(full_path, F_OK | X_OK) == 0)
-            return (free_tab(paths), free_tab(s_cmd), full_path);
+        {
+            free_tab(paths);
+            free_tab(split_cmd);
+            return full_path;  // Retourner le chemin complet si la commande est trouvée
+        }
         free(full_path);
         i++;
     }
     free_tab(paths);
-    free_tab(s_cmd);
-    return (cmd);
+    free_tab(split_cmd);
+    return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
 }
+
+
+
+// char *get_path(char *cmd, char **env)
+// {
+//     char **paths;
+//     char **s_cmd;
+//     char *full_path;
+//     int i;
+
+//     i = 0;
+//     s_cmd = ft_split(cmd, ' ');
+//     paths = ft_split(find_in_env("PATH", env), ':');
+//     while (paths[i])
+//     {
+//         full_path = join_path_cmd(paths[i], s_cmd[0]);
+//         printf("Checking path: %s\n", full_path); // Debug
+//         if (access(full_path, F_OK | X_OK) == 0)
+//             return (free_tab(paths), free_tab(s_cmd), full_path);
+//         free(full_path);
+//         i++;
+//     }
+//     free_tab(paths);
+//     free_tab(s_cmd);
+//     return (cmd);
+// }
 
