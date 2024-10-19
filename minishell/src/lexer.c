@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 15:27:53 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/19 16:18:32 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ t_token *parse_command_line(char *line)
     while (*line)
     {
         if (*line == '"' || *line == '\'')  // Détecter un guillemet ouvrant ou fermant
-        {
+        {//quote pas ferme erreur 
             if (in_quotes)
             {
                 in_quotes = 0;// Si on était déjà dans les guillemets, on les ferme
