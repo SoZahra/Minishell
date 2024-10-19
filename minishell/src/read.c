@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   read.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/19 14:34:23 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/19 18:25:44 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,8 @@ void loop(char **env)
 {
     char *line;
     t_token *tokens;
+    int pid; // besoin de fork, read est un processus a part entiere, ici le parent
+    int status = 0;
 
     while (1)
     {
@@ -107,7 +109,13 @@ void loop(char **env)
                 if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
                     process_pline(tokens, env);
                 else
-                    exec(tokens, env);
+                {
+                    pid = fork(); // tous les autres process tel que exec sont des enfants
+                    fprintf(stderr, "test666");
+                    if (pid == 0)
+                        exec(tokens, env);
+                    waitpid(pid, &status, 0);
+                }
                 free_tokens(tokens);
             }
         }
