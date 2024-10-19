@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 11:47:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 17:36:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 {
     signal(SIGINT, handle_sigint);
 
-    // Appeler get_environment pour obtenir une copie de l'environnement
-    char **env_copy = get_environment(envp);
+    char **env_copy = get_environment(envp);// Appeler get_environment pour obtenir une copie de l'environnement
     if (!env_copy)
         return (fprintf(stderr, "Failed to copy environment\n"), 1);
     loop(env_copy);// Lancer la boucle principale du shell

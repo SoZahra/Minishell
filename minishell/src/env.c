@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 11:41:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 11:41:32 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 17:37:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,7 @@ char **get_environment(char **envp)
         perror("malloc failed");
         return NULL;
     }
-
-    // Copier chaque variable d'environnement
-    while (i < count)
+    while (i < count) // Copier chaque variable d'environnement
     {
         env_copy[i] = strdup(envp[i]); // Dupliquer chaque chaîne
         if (!env_copy[i])
@@ -44,6 +42,5 @@ char **get_environment(char **envp)
         i++;
     }
     env_copy[i] = NULL; // Terminer le tableau par un pointeur NULL
-
     return env_copy;
 }

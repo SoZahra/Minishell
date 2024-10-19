@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:07:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 14:22:58 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 17:35:48 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,35 +42,39 @@ char **prepare_args(t_token *tokens)
     return args;
 }
 
-
-// char **prepare_args(t_token *tokens)
+// void	exec(t_token *cmd_tokens, char **env)
 // {
-//     int count = 0;
-//     t_token *current = tokens;
+//     char	**option_cmd;
+//     char	*path;
+//     pid_t	pid;
+//     int		status;
 
-//     // Compter les tokens
-//     while (current && current->type != TOKEN_PIPE)
+//     option_cmd = prepare_args(cmd_tokens);
+//     if (!option_cmd[0]) {
+//         fprintf(stderr, "Error: Command is empty\n");
+//         free_tab_2(option_cmd);
+//         return;  // Remplacer exit() par return pour que le parent ne se termine pas
+//     }
+//     path = get_path(option_cmd[0], env);// Obtenir le chemin de la commande
+//     pid = fork();  // Créer un processus enfant
+//     if (pid == -1)  // Si fork échoue
 //     {
-//         count++;
-//         current = current->next;
+//         perror("fork failed");
+//         free_tab_2(option_cmd);
+//         return;
 //     }
-
-//     // Allouer le tableau d'arguments
-//     char **args = malloc((count + 1) * sizeof(char *));
-//     if (!args) {
-//         perror("malloc failed");
-//         return NULL;
+//     if (pid == 0)  // Dans le processus enfant
+//     {
+//         if (execve(path, option_cmd, env) == -1)  // Exécuter la commande
+//         {
+//             perror("exec command");
+//             free_tab_2(option_cmd);
+//             exit(EXIT_FAILURE);  // Terminer l'enfant en cas d'échec
+//         }
 //     }
-
-//     // Remplir le tableau d'arguments
-//     current = tokens;
-//     int i = 0;
-//     while (current && current->type != TOKEN_PIPE) {
-//         args[i++] = strdup(current->value); // Duplication de la valeur pour chaque argument
-//         current = current->next;
-//     }
-//     args[i] = NULL; // Terminer par NULL
-//     return args;
+//     else  // Dans le processus parent
+//         waitpid(pid, &status, 0);  // Attendre que l'enfant se termine
+//     free_tab_2(option_cmd);// Nettoyer la mémoire dans le parent
 // }
 
 

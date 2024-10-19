@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 14:46:58 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/18 16:59:23 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,12 +309,11 @@ void loop(char **env)
 
     while (1)
     {
-        // Afficher le prompt
-        printf("MiniBG🌝> ");
+        write(1, "MiniBG🌝> ", 12);
         line = readline(NULL); // lire une ligne de commande
-
         if (line && *line) // Si la ligne n'est pas vide
         {
+            add_history(line);
             tokens = parse_command_line(line);
             if (tokens)
             {
@@ -324,8 +323,7 @@ void loop(char **env)
                     continue;
                 }
                 print_tokens(tokens);
-                // Procesus de commande avec pipes ou exécution simple
-                if (contains_pipe(tokens))
+                if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
                     process_pline(tokens, env);
                 else
                     exec(tokens, env);
