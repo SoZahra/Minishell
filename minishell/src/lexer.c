@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/21 14:55:54 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 15:48:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,20 +71,25 @@ t_token *parse_command_line(char *line)
     char buffer[1024];
     int i = 0;
     int in_quotes = 0;  // Variable pour savoir si on est à l'intérieur de guillemets
+    char quote_char = 0; // Variable pour stocker le type de guillemet ouvert (' ou ")
 
     while (*line)
     {
-        if (*line == '"' || *line == '\'')  // Détecter un guillemet ouvrant ou fermant
-        {//quote pas ferme erreur
+        if ((*line == '"' || *line == '\'') && (!in_quotes || *line == quote_char))  // Détecter un guillemet ouvrant ou fermant
+        {
             if (in_quotes)
             {
-                in_quotes = 0;// Si on était déjà dans les guillemets, on les ferme
+                in_quotes = 0; // Fermer les guillemets
+                quote_char = 0;
                 buffer[i] = '\0';
                 add_token(&token_list, TOKEN_ARGUMENT, buffer);  // Ajouter le token complet
                 i = 0;  // Réinitialiser le buffer
             }
             else
-                in_quotes = 1;// Si on n'était pas dans des guillemets, on les ouvre
+            {
+                in_quotes = 1; // Ouvrir les guillemets
+                quote_char = *line; // Retenir quel type de guillemet a été ouvert
+            }
             line++;  // Passer le guillemet
             continue;
         }
@@ -110,7 +115,6 @@ t_token *parse_command_line(char *line)
             char special[3] = {0};  // pour gérer les redirections ">>" et "<<"
             special[0] = *line;
             line++;
-
             if ((*special == '>' && *line == '>') || (*special == '<' && *line == '<'))
             {
                 special[1] = *line;
@@ -121,11 +125,19 @@ t_token *parse_command_line(char *line)
         else
             buffer[i++] = *line++;  // Ajouter le caractère dans le buffer
     }
-    if (i > 0)// Ajouter le dernier token s'il y en a un
+
+    if (in_quotes)  // Si on est encore dans les guillemets, il manque une fermeture
+    {
+        fprintf(stderr, "Error: Unmatched %c\n", quote_char);
+        return NULL; // Retourner NULL en cas d'erreur
+    }
+
+    if (i > 0) // Ajouter le dernier token s'il y en a un
     {
         buffer[i] = '\0';
         add_token(&token_list, TOKEN_ARGUMENT, buffer);
     }
+
     return token_list;
 }
 
