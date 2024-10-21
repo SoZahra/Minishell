@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/19 16:18:32 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 14:55:54 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,11 +33,8 @@ void add_token(t_token **head, t_token_type type, const char *value)
     t_token *new_token = create_token(type, value);
     if (!new_token)
         return;
-
     if (!*head)
-    {
         *head = new_token;
-    }
     else
     {
         t_token *current = *head;
@@ -78,7 +75,7 @@ t_token *parse_command_line(char *line)
     while (*line)
     {
         if (*line == '"' || *line == '\'')  // Détecter un guillemet ouvrant ou fermant
-        {//quote pas ferme erreur 
+        {//quote pas ferme erreur
             if (in_quotes)
             {
                 in_quotes = 0;// Si on était déjà dans les guillemets, on les ferme
@@ -204,7 +201,7 @@ t_token *lexer(const char *input)
         }
     }
     free(input_copy);
-    return head;
+    return (head);
 }
 
 

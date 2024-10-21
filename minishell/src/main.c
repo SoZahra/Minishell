@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/19 16:11:36 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 14:51:06 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
     free_tab(env_copy);
     return (0);
 }
-
 
 void print_tokens(t_token *tokens)
 {

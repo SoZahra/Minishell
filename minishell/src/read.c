@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/19 14:34:23 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 13:57:00 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,11 +81,14 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
 void loop(char **env)
 {
     char *line;
+	int pid;
+	int status;
     t_token *tokens;
 
+	status = 0;
     while (1)
     {
-        write(1, "MiniBG🌝> ", 12);
+        write(1, "MiniBG > ", 10);
         line = readline(NULL); // lire une ligne de commande
         if (line == NULL) // Gestion du Ctrl+D
         {
@@ -107,7 +110,14 @@ void loop(char **env)
                 if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
                     process_pline(tokens, env);
                 else
-                    exec(tokens, env);
+                {
+                    // exec(tokens, env);
+                    pid = fork(); // tous les autres process tel que exec sont des enfants
+                    // fprintf(stderr, "test666");
+                    if (pid == 0)
+                        exec(tokens, env);
+                    waitpid(pid, &status, 0);
+                }
                 free_tokens(tokens);
             }
         }

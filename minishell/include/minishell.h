@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 17:21:11 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 14:49:39 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 
 extern char **environ;
 
-#define PROMPT "MiniBG🌝> "
+#define PROMPT "MiniBG> "
 
 typedef enum token_type
 {
