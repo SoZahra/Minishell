@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/19 18:25:44 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/22 21:09:17 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void loop(char **env)
 
     while (1)
     {
-        write(1, "MiniBG🌝> ", 12);
+        write(1, "MiniBG> ", 9);
         line = readline(NULL); // lire une ligne de commande
         if (line == NULL) // Gestion du Ctrl+D
         {
@@ -107,11 +107,14 @@ void loop(char **env)
                 }
                 print_tokens(tokens);
                 if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
+                {
+                    fprintf(stderr, "in Pipe\n");
                     process_pline(tokens, env);
+                }
                 else
                 {
                     pid = fork(); // tous les autres process tel que exec sont des enfants
-                    fprintf(stderr, "test666");
+                    fprintf(stderr, "outside \n");
                     if (pid == 0)
                         exec(tokens, env);
                     waitpid(pid, &status, 0);

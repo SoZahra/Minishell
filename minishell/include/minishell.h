@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 17:21:11 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/22 18:30:37 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,8 +106,17 @@ void	exit_error(void);
 char **prepare_args(t_token *tokens);
 t_token *extract_command(t_token *tokens);
 t_token *extract_command_after(t_token *tokens);
+t_token *extract_command_n(t_token *tokens, int n);
 int process_pline(t_token *tokens, char **env);
+int	**pipe_tab(t_token *tokens);
+int	count_commands(t_token *tokens);
 char **get_environment(char **envp);
+t_token *extract_output(t_token *tokens);
+t_token *extract_input(t_token *tokens);
+int get_output_fd(t_token *input_token);
+int get_input_fd(t_token *input_token);
+int	check_redirection_input(t_token *tokens);
+int	check_redirection_output(t_token *tokens);
 
 ///free
 

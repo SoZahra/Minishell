@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_utils.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 14:46:09 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/22 14:00:55 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ char *get_path(char *cmd, char **env)
     while (paths[i])
     {
         full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
-        printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
+        //printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
         if (access(full_path, F_OK | X_OK) == 0)
         {
             free_tab(paths);
