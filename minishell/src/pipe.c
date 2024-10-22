@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:07:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/18 17:35:48 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/22 17:17:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,7 @@ char **prepare_args(t_token *tokens)
         perror("malloc failed");
         return NULL;
     }
-    // Remplir le tableau d'arguments
-    current = tokens;
+    current = tokens;// Remplir le tableau d'arguments
     int i = 0;
     while (current && current->type != TOKEN_PIPE)
     {
@@ -42,67 +41,69 @@ char **prepare_args(t_token *tokens)
     return args;
 }
 
+void exec(t_token *cmd_tokens, char **env)
+{
+    char **option_cmd;
+    char *path;
+
+    option_cmd = prepare_args(cmd_tokens);
+
+    if (!option_cmd[0]) {
+        fprintf(stderr, "Error: Command is empty\n");
+        free_tab_2(option_cmd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Vérifier si la commande est "cd" avant l'appel à execve()
+    if (strcmp(option_cmd[0], "cd") == 0) {
+        ft_cd(option_cmd);  // Appeler la fonction cd
+        free_tab_2(option_cmd);
+        return;  // Retourner directement sans utiliser execve()
+    }
+
+    // Si ce n'est pas "cd", exécuter la commande avec execve
+    path = get_path(option_cmd[0], env);
+    if (execve(path, option_cmd, env) == -1) {
+        perror("exec command");
+        free_tab_2(option_cmd);
+        exit(EXIT_FAILURE);
+    }
+
+    free_tab_2(option_cmd);
+}
+
+
 // void	exec(t_token *cmd_tokens, char **env)
 // {
-//     char	**option_cmd;
-//     char	*path;
-//     pid_t	pid;
-//     int		status;
+// 	char	**option_cmd;
+// 	char	*path;
 
-//     option_cmd = prepare_args(cmd_tokens);
-//     if (!option_cmd[0]) {
-//         fprintf(stderr, "Error: Command is empty\n");
-//         free_tab_2(option_cmd);
-//         return;  // Remplacer exit() par return pour que le parent ne se termine pas
-//     }
-//     path = get_path(option_cmd[0], env);// Obtenir le chemin de la commande
-//     pid = fork();  // Créer un processus enfant
-//     if (pid == -1)  // Si fork échoue
+// 	option_cmd = prepare_args(cmd_tokens);
+// 	if (!option_cmd[0]) {
+//     fprintf(stderr, "Error: Command is empty\n");
+//     free_tab_2(option_cmd);
+//     exit(EXIT_FAILURE);
+// 	}
+// 	if (!option_cmd || !option_cmd[0])
+// 	{
+// 		free_tab_2(option_cmd);
+// 		perror("Invalid command");
+// 		exit(EXIT_FAILURE);
+// 	}
+//     if (strcmp(option_cmd[0], "cd") == 0)
 //     {
-//         perror("fork failed");
+//         ft_cd(option_cmd); // Appeler la fonction cd
 //         free_tab_2(option_cmd);
-//         return;
+//         exit(EXIT_FAILURE);
 //     }
-//     if (pid == 0)  // Dans le processus enfant
-//     {
-//         if (execve(path, option_cmd, env) == -1)  // Exécuter la commande
-//         {
-//             perror("exec command");
-//             free_tab_2(option_cmd);
-//             exit(EXIT_FAILURE);  // Terminer l'enfant en cas d'échec
-//         }
-//     }
-//     else  // Dans le processus parent
-//         waitpid(pid, &status, 0);  // Attendre que l'enfant se termine
-//     free_tab_2(option_cmd);// Nettoyer la mémoire dans le parent
+// 	path = get_path(option_cmd[0], env);
+// 	if(execve(path, option_cmd, env) == -1)
+// 	{
+// 		perror("exec command");
+// 		free_tab_2(option_cmd);
+// 		exit(EXIT_FAILURE);
+// 	}
 // }
-
-
-void	exec(t_token *cmd_tokens, char **env)
-{
-	char	**option_cmd;
-	char	*path;
-
-	option_cmd = prepare_args(cmd_tokens);
-	if (!option_cmd[0]) {
-    fprintf(stderr, "Error: Command is empty\n");
-    free_tab_2(option_cmd);
-    exit(EXIT_FAILURE);
-	}
-	if (!option_cmd || !option_cmd[0])
-	{
-		free_tab_2(option_cmd);
-		perror("Invalid command");
-		exit(EXIT_FAILURE);
-	}
-	path = get_path(option_cmd[0], env);
-	if(execve(path, option_cmd, env) == -1)
-	{
-		perror("exec command");
-		free_tab_2(option_cmd);
-		exit(EXIT_FAILURE);
-	}
-}
 
 void child(t_token *tokens, int *pipe_fd, char **env) {
     close(pipe_fd[0]); // Fermer la lecture du pipe dans l'enfant
@@ -145,48 +146,3 @@ int contains_pipe(t_token *tokens)
     }
     return 0; // Aucun pipe trouvé
 }
-
-
-// void	child(t_token *tokens, int *pipe_fd, char **env)
-// {
-// 	close(pipe_fd[0]); // Fermer la lecture du pipe
-//     dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie standard vers le pipe
-//     close(pipe_fd[1]); // Fermer l'écriture après redirection
-//     exec(tokens, env);
-// }
-
-// void	parent(t_token *tokens, int *pipe_fd, char **env)
-// {
-// 	close(pipe_fd[1]); // Fermer l'écriture du pipe
-//     dup2(pipe_fd[0], STDIN_FILENO); // Rediriger l'entrée standard vers le pipe
-//     close(pipe_fd[0]); // Fermer la lecture après redirection
-//     exec(tokens, env);
-// }
-
-// int	main(int ac, char *argv[], char *env[])
-// {
-// 	pid_t	pid1;
-// 	pid_t	pid2;
-// 	int		pipe_fd[2];
-// 	int		status;
-
-// 	if (ac != 5 || env == NULL)
-// 		return (write(2, "check the arguments / env potentialy empty", 43), 0);
-// 	if (pipe(pipe_fd) == -1)
-// 		exit_error();
-// 	pid1 = fork();
-// 	if (pid1 == -1)
-// 		exit_error();
-// 	if (pid1 == 0)
-// 		child(argv, pipe_fd, env);
-// 	pid2 = fork();
-// 	if (pid2 == -1)
-// 		exit_error();
-// 	if (pid2 == 0)
-// 		parent(argv, pipe_fd, env);
-// 	close(pipe_fd[0]);
-// 	close(pipe_fd[1]);
-// 	waitpid(pid1, &status, 0);
-// 	waitpid(pid2, &status, 0);
-// 	return (0);
-// }

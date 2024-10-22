@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/21 14:49:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/22 14:55:26 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ void handle_sigint(int sig);
 
 ///parsing
 
+void ft_cd(char **args);
 
 /// lexer
 

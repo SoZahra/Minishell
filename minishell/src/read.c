@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/21 13:57:00 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/21 16:50:28 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,20 +23,25 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
     for (int k = 0; k <= num_pipes; k++) {
         t_token *cmd = &cmd_tokens[k];
         printf("Command %d: ", k);
-        while (cmd) {
+        while (cmd)
+		{
             printf("%s ", cmd->value);
             cmd = cmd->next;
         }
         printf("\n");
     }
-    for (int j = 0; j <= num_pipes; j++) {
-        if (j < num_pipes) {
-            if (pipe(pipe_fd) == -1) {
+    for (int j = 0; j <= num_pipes; j++)
+	{
+        if (j < num_pipes)
+		{
+            if (pipe(pipe_fd) == -1)
+			{
                 perror("Échec de pipe");
                 exit(EXIT_FAILURE);
             }
         }
-        if ((pid = fork()) == -1) {
+        if ((pid = fork()) == -1)
+		{
             perror("Échec de fork");
             exit(EXIT_FAILURE);
         }
@@ -88,7 +93,8 @@ void loop(char **env)
 	status = 0;
     while (1)
     {
-        write(1, "MiniBG > ", 10);
+		printf("%s", PROMPT);
+        // write(1, PROMPT, 10);
         line = readline(NULL); // lire une ligne de commande
         if (line == NULL) // Gestion du Ctrl+D
         {
