@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/21 16:50:28 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/23 16:17:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,7 @@ void loop(char **env)
 	status = 0;
     while (1)
     {
-		printf("%s", PROMPT);
-        // write(1, PROMPT, 10);
-        line = readline(NULL); // lire une ligne de commande
+        line = readline(PROMPT); // lire une ligne de commande
         if (line == NULL) // Gestion du Ctrl+D
         {
             write(1, "exit\n", 5); // Afficher un message de sortie propre
@@ -121,7 +119,10 @@ void loop(char **env)
                     pid = fork(); // tous les autres process tel que exec sont des enfants
                     // fprintf(stderr, "test666");
                     if (pid == 0)
+                    {
                         exec(tokens, env);
+                        exit(0);
+                    }
                     waitpid(pid, &status, 0);
                 }
                 free_tokens(tokens);

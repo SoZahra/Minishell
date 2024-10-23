@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 10:24:47 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/08 10:36:10 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/23 14:25:29 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,13 @@ void				ft_lstdelone(t_list *lst, void (*del)(void *));
 void				ft_lstclear(t_list **lst, void (*del)(void *));
 
 char				*ft_itoa_unsigned(unsigned int n);
+
+int					ft_strcmp(const char *s1, const char *s2);
+
+char				*ft_strndup(const char *s, size_t n);
+
+char				*ft_strncpy(char *dst, const char *src, size_t n);
+
 /// gnl////
 char				*get_next_line(int fd);
 char				*ft_read_to_left_str(int fd, char *left_str);

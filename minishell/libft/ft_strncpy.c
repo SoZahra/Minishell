@@ -1,40 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   free.c                                             :+:      :+:    :+:   */
+/*   ft_strncpy.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/07 16:07:57 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/23 11:54:55 by fzayani          ###   ########.fr       */
+/*   Created: 2024/10/23 14:24:39 by fzayani           #+#    #+#             */
+/*   Updated: 2024/10/23 14:25:01 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
+#include "libft.h"
 
-void	free_tokens(t_token *tokens)
-{
-	t_token	*tmp;
-
-	while (tokens)
-	{
-		tmp = tokens;
-		tokens = tokens->next;
-		free(tmp->value);
-		free(tmp);
-	}
-}
-
-void	*free_tab_2(char **tab)
+char	*ft_strncpy(char *dst, const char *src, size_t n)
 {
 	size_t	i;
 
 	i = 0;
-	while (tab[i])
+	while (src[i] && i < n)
 	{
-		free(tab[i]);
+		dst[i] = src[i];
 		i++;
 	}
-	free(tab);
-	return (NULL);
+	while (i < n)
+	{
+		dst[i] = '\0';
+		i++;
+	}
+	return (dst);
 }

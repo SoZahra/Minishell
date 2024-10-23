@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 15:02:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/17 14:03:44 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/23 12:10:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,7 @@ void exc_pipe(t_token *tokens)
 		perror("fork failed");
 		return;
 	}
-	// exc_error(tokens);
-	if(pid1 == 0) //premier enfant pour ecrire ls
+	if(pid1 == 0)
 	{
 		close(pipefd[0]);//close une fois que la lecture est fini du pipe
 		dup2(pipefd[1], STDOUT_FILENO); //rediriger vers l'entree standard

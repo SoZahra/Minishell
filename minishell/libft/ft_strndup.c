@@ -1,40 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   free.c                                             :+:      :+:    :+:   */
+/*   ft_strndup.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/07 16:07:57 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/23 11:54:55 by fzayani          ###   ########.fr       */
+/*   Created: 2024/10/23 12:13:34 by fzayani           #+#    #+#             */
+/*   Updated: 2024/10/23 12:18:08 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
+#include "libft.h"
 
-void	free_tokens(t_token *tokens)
+char	*ft_strndup(const char *s, size_t n)
 {
-	t_token	*tmp;
+	char	*str;
 
-	while (tokens)
-	{
-		tmp = tokens;
-		tokens = tokens->next;
-		free(tmp->value);
-		free(tmp);
-	}
-}
-
-void	*free_tab_2(char **tab)
-{
-	size_t	i;
-
-	i = 0;
-	while (tab[i])
-	{
-		free(tab[i]);
-		i++;
-	}
-	free(tab);
-	return (NULL);
+	str = (char *)malloc(sizeof(char) * n + 1);
+	if (!str)
+		return (NULL);
+	str = ft_strncpy(str, s, n);
+	str[n] = '\0';
+	return (str);
 }

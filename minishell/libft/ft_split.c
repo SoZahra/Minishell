@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:33:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/05/24 14:37:12 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/23 14:24:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,23 +27,23 @@ static void	ft_free_split(char **tab)
 	free(tab);
 }
 
-static char	*ft_strncpy(char *dst, const char *src, size_t n)
-{
-	size_t	i;
+// char	*ft_strncpy(char *dst, const char *src, size_t n)
+// {
+// 	size_t	i;
 
-	i = 0;
-	while (src[i] && i < n)
-	{
-		dst[i] = src[i];
-		i++;
-	}
-	while (i < n)
-	{
-		dst[i] = '\0';
-		i++;
-	}
-	return (dst);
-}
+// 	i = 0;
+// 	while (src[i] && i < n)
+// 	{
+// 		dst[i] = src[i];
+// 		i++;
+// 	}
+// 	while (i < n)
+// 	{
+// 		dst[i] = '\0';
+// 		i++;
+// 	}
+// 	return (dst);
+// }
 
 static int	count_words(const char *s, char c)
 {
@@ -64,17 +64,17 @@ static int	count_words(const char *s, char c)
 	return (count);
 }
 
-static char	*ft_strndup(const char *s, size_t n)
-{
-	char	*str;
+// static char	*ft_strndup(const char *s, size_t n)
+// {
+// 	char	*str;
 
-	str = (char *)malloc(sizeof(char) * n + 1);
-	if (!str)
-		return (NULL);
-	str = ft_strncpy(str, s, n);
-	str[n] = '\0';
-	return (str);
-}
+// 	str = (char *)malloc(sizeof(char) * n + 1);
+// 	if (!str)
+// 		return (NULL);
+// 	str = ft_strncpy(str, s, n);
+// 	str[n] = '\0';
+// 	return (str);
+// }
 
 char	**ft_split(char const *s, char c)
 {
