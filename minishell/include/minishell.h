@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/23 17:18:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/24 15:00:11 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,19 +53,32 @@ typedef struct s_token
 }					t_token;
 
 /// read
-// void loop(void);
-void				loop(char **env);
-void				process_tokens(t_token *cmd_tokens, int num_pipes);
-// char **prepare_args(t_token *tokens);
+// void				loop(char **env);
+// void				process_tokens(t_token *cmd_tokens, int num_pipes);
 int					check_consecutive_pipes(t_token *tokens);
 int					contains_pipe(t_token *tokens);
+
+void				print_cmd(t_token *cmd, int index);
+void				print_cmds(t_token *cmd_tokens, int num_pipes);
+void				create_pipe(int pipe_fd[2]);
+char				**prepare_print_args(t_token *cmd);
+void				exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
+						int last_cmd);
+void				handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
+						int last_cmd);
+void				handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
+void				process_tokens(t_token *cmd_tokens, int num_pipes);
+
+void				handle_line(char *line, char **env);
+void				exec_simple_cmd(t_token *tokens, char **env);
+void				read_and_exec(char **env);
+void				loop(char **env);
 
 /// signal
 
 void				handle_sigint(int sig);
 void				handle_sigquit(int sig);
-// void				setup_signals(void);
-void	init_sig(void);
+void				init_sig(void);
 
 /// parsing
 
@@ -113,6 +126,10 @@ t_token				*extract_command(t_token *tokens);
 t_token				*extract_command_after(t_token *tokens);
 int					process_pline(t_token *tokens, char **env);
 char				**get_environment(char **envp);
+
+///pipe_utils_2
+
+int process_pline(t_token *tokens, char **env);
 
 /// free
 
