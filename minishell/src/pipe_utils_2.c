@@ -6,13 +6,13 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/22 20:57:49 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/25 19:03:42 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-t_token *extract_command(t_token *tokens)
+/* t_token *extract_command(t_token *tokens)
 {
 	t_token *head;
 	t_token *tail;
@@ -50,6 +50,41 @@ t_token *extract_command(t_token *tokens)
 		tokens = tokens->next;
 	}
 	return (head); // liste de tokens avant le pipe
+} */
+
+#include <stdlib.h>
+#include <string.h>
+
+#include <stdlib.h>
+
+t_token *extract_command(t_token *tokens)
+{
+    t_token *command_list = NULL;      // Start of the sub-list for the command
+    t_token *last_command = NULL;      // Pointer to keep track of the end of the new list
+
+    while (tokens != NULL && tokens->type != TOKEN_PIPE && tokens->type != TOKEN_REDIRECT_INPUT && tokens->type != TOKEN_REDIRECT_OUTPUT)
+    {
+        // Duplicate the current token
+        t_token *new_token = malloc(sizeof(t_token));
+        if (!new_token)
+            exit_error(); // Handle memory allocation error
+
+        new_token->value = strdup(tokens->value); // Copy the value
+        new_token->type = tokens->type;
+        new_token->next = NULL;
+
+        // Link the new token to the command list
+        if (command_list == NULL)
+            command_list = new_token;  // First token becomes the head of the new list
+        else
+            last_command->next = new_token; // Link the previous node to this one
+        
+        last_command = new_token; // Update the last command pointer
+
+        tokens = tokens->next; // Move to the next token in the original list
+    }
+
+    return command_list; // Return the sub-list of tokens representing the command
 }
 
 t_token *extract_command_after(t_token *tokens)
@@ -128,20 +163,6 @@ t_token *extract_input_after_redirect(t_token *tokens)
         current = current->next;
     }
     return NULL;
-}
-
-int	check_redirection_output(t_token *tokens)
-{
-	t_token	*current;
-
-	current = tokens;
-	while (current)
-	{
-		if (current->type == TOKEN_REDIRECT_OUTPUT)
-			return(1);
-		current = current->next;
-	}
-	return (0);
 }
 
 int	**pipe_tab(t_token *tokens)
@@ -249,6 +270,43 @@ int	check_redirection_input(t_token *tokens)
 	return (0);
 }
 
+int	is_pipe(t_token *tokens)
+{
+	t_token	*current;
+
+	current = tokens;
+	while (current)
+	{
+		if (current->type == TOKEN_PIPE)
+			return(1);
+		current = current->next;
+	}
+	return (0);
+}
+
+int	check_redirection_output(t_token *tokens)
+{
+	t_token	*current;
+
+	current = tokens;
+	while (current)
+	{
+		if (current->type == TOKEN_REDIRECT_OUTPUT)
+			return(1);
+		current = current->next;
+	}
+	return (0);
+}
+
+int is_command(t_token *token) 
+{
+    if (token->type == TOKEN_PIPE ||
+        token->type != TOKEN_REDIRECT_INPUT ||
+        token->type != TOKEN_REDIRECT_OUTPUT)
+        return(0);
+    return (1);
+}
+
 /* int process_pline(t_token *tokens, char **env)
 {
 	pid_t pid1, pid2;
@@ -313,7 +371,7 @@ int process_pline(t_token *tokens, char **env)
             exit_error();
         if (pid == 0) // Child process
         {
-           /*  if (i = 0 && check_redirection_input(tokens))
+          /*   if (i = 0 && check_redirection_input(tokens))
             {
                 fprintf(stderr, "Test Input \n\n");
                 dup2(get_input_fd(extract_input(tokens)), 0);
@@ -329,7 +387,7 @@ int process_pline(t_token *tokens, char **env)
                 dup2(STDOUT_FILENO, 1);
                 close (pipe_fd[0]);
             }
-            if (i < num_cmds && check_redirection_output(tokens))
+            if (i < num_cmds - 1 && check_redirection_output(tokens))
             {
                 fprintf(stderr, "Test Output \n\n");
                 close(pipe_fd[0]);
