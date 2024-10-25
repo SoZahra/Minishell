@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/24 15:00:11 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/25 18:09:14 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,10 @@ extern char			**environ;
 
 # define PROMPT "MiniBG> "
 
+# ifndef PATH_MAX
+#  define PATH_MAX 4096
+# endif
+
 typedef enum token_type
 {
 	TOKEN_COMMAND,
@@ -52,9 +56,8 @@ typedef struct s_token
 	struct s_token	*next;
 }					t_token;
 
-/// read
-// void				loop(char **env);
-// void				process_tokens(t_token *cmd_tokens, int num_pipes);
+/// loop
+
 int					check_consecutive_pipes(t_token *tokens);
 int					contains_pipe(t_token *tokens);
 
@@ -74,6 +77,14 @@ void				exec_simple_cmd(t_token *tokens, char **env);
 void				read_and_exec(char **env);
 void				loop(char **env);
 
+/// loop->parsing
+
+void				ft_cd_home(void);
+void				ft_cd_oldpwd(char **oldpwd);
+// void	ft_uptdate_pwd(char **oldpwd, char *cwd);
+void				ft_update_pwd(char **oldpwd);
+void				ft_cd(char **args);
+
 /// signal
 
 void				handle_sigint(int sig);
@@ -84,16 +95,40 @@ void				init_sig(void);
 
 void				ft_cd(char **args);
 
-/// lexer
+/// lexer/tokens.c
 
 t_token				*create_token(t_token_type type, const char *value);
-t_token				*lexer(const char *input);
 void				add_token(t_token **head, t_token_type type,
 						const char *value);
 t_token_type		get_token_type(const char *str);
-int					is_whitespace(char c);
+int					finalize_tokens(int in_quotes, char quote_char,
+						char *buffer, int *i, t_token **token_list);
+
+/// lexer/lexer.c
+
 t_token				*parse_command_line(char *line);
 
+t_token				*add_pipe_token(t_token **head, t_token **tail);
+void				process_token(t_token **head, t_token **tail, char *start,
+						char *ptr, int first_token);
+void				handle_token(t_token **head, t_token **tail, char **ptr,
+						int *first_token);
+t_token				*lexer(const char *input);
+
+/// lexer/handle.c
+
+int					handle_quotes(char **line, int *in_quotes, char *quote_char,
+						char *buffer, int *i, t_token **token_list);
+int					handle_whitespace(char **line, char *buffer, int *i,
+						t_token **token_list, int in_quotes);
+int					handle_special_chars(char **line, char *buffer, int *i,
+						t_token **token_list, int in_quotes);
+
+/// lexer/lexer_utils.c
+
+int					is_whitespace(char c);
+int					handle_space(char **ptr);
+t_token				*create_token_from_pipe(t_token **head, t_token **tail);
 /// free
 
 void				free_tokens(t_token *tokens);
@@ -127,9 +162,9 @@ t_token				*extract_command_after(t_token *tokens);
 int					process_pline(t_token *tokens, char **env);
 char				**get_environment(char **envp);
 
-///pipe_utils_2
+/// pipe_utils_2
 
-int process_pline(t_token *tokens, char **env);
+int					process_pline(t_token *tokens, char **env);
 
 /// free
 

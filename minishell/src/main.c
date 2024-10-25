@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/23 17:18:15 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/24 16:38:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 {
 	char	**env_copy;
 
-    // setup_signals();
 	init_sig();
 	env_copy = get_environment(envp);
 	if (!env_copy)
