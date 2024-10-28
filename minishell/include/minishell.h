@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:09:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/28 15:20:02 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 # include <sys/wait.h>
 # include <unistd.h>
 
-extern char			**environ;
+extern char				**environ;
 
 # define PROMPT "MiniBG> "
 
@@ -47,95 +47,120 @@ typedef enum token_type
 	TOKEN_PIPE,            // |
 	TOKEN_FILENAME,        // Ajoute ce type pour les fichiers après redirection
 	TOKEN_REDIRECT_HEREDOC // <<
-}					t_token_type;
+}						t_token_type;
 
 typedef struct s_token
 {
-	char			*value;
-	t_token_type	type;
-	struct s_token	*next;
-}					t_token;
+	char				*value;
+	t_token_type		type;
+	struct s_token		*next;
+}						t_token;
+
+typedef struct s_env_var
+{
+	char				*name;
+	char				*value;
+	struct s_env_var	*next;
+}						t_env_var;
 
 /// loop
 
-int					check_consecutive_pipes(t_token *tokens);
-int					contains_pipe(t_token *tokens);
+int						check_consecutive_pipes(t_token *tokens);
+int						contains_pipe(t_token *tokens);
 
-void				print_cmd(t_token *cmd, int index);
-void				print_cmds(t_token *cmd_tokens, int num_pipes);
-void				create_pipe(int pipe_fd[2]);
-char				**prepare_print_args(t_token *cmd);
-void				exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
-						int last_cmd);
-void				handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
-						int last_cmd);
-void				handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
-void				process_tokens(t_token *cmd_tokens, int num_pipes);
+void					print_cmd(t_token *cmd, int index);
+void					print_cmds(t_token *cmd_tokens, int num_pipes);
+void					create_pipe(int pipe_fd[2]);
+char					**prepare_print_args(t_token *cmd);
+void					handle_child(t_token *cmd_tokens, int fd_in,
+							int pipe_fd[2], int last_cmd);
+void					handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
+void					handle_line(char *line, char **env);
 
-void				handle_line(char *line, char **env);
-void				exec_simple_cmd(t_token *tokens, char **env);
-void				read_and_exec(char **env);
-void				loop(char **env);
+void					loop(char **env);
+
+/// loop/read.c
+
+void					process_tokens(t_token *cmd_tokens, int num_pipes);
+void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
+							int last_cmd);
+void					exec_simple_cmd(t_token *tokens, char **env);
+void					split_env_v(const char *input, char **var,
+							char **value);
+int						exec_builtin_cmd(char **args, char **env);
+void					read_and_exec(char **env);
+
+/// env/enc.c
+
+int						export_v(char ***env_copy, const char *var,
+							const char *value);
+int						unset_v(char ***env_copy, const char *var);
+
+/// env/utils_env.c
+
+int						ft_strncmp_export(const char *s1, const char *s2,
+							unsigned int n);
+int						is_valid_id(const char *var);
 
 /// loop->parsing
 
-void				ft_cd_home(void);
-void				ft_cd_oldpwd(char **oldpwd);
-// void	ft_uptdate_pwd(char **oldpwd, char *cwd);
-void				ft_update_pwd(char **oldpwd);
-void				ft_cd(char **args);
+void					ft_cd_home(void);
+void					ft_cd_oldpwd(char **oldpwd);
+void					ft_update_pwd(char **oldpwd);
+void					ft_cd(char **args);
 
 /// signal
 
-void				handle_sigint(int sig);
-void				handle_sigquit(int sig);
-void				init_sig(void);
+void					handle_sigint(int sig);
+void					handle_sigquit(int sig);
+void					init_sig(void);
 
 /// parsing
 
-void				ft_cd(char **args);
+void					ft_cd(char **args);
 
 /// lexer/tokens.c
 
-t_token				*create_token(t_token_type type, const char *value);
-void				add_token(t_token **head, t_token_type type,
-						const char *value);
-t_token_type		get_token_type(const char *str);
-int					finalize_tokens(int in_quotes, char quote_char,
-						char *buffer, int *i, t_token **token_list);
+t_token					*create_token(t_token_type type, const char *value);
+void					add_token(t_token **head, t_token_type type,
+							const char *value);
+t_token_type			get_token_type(const char *str);
+int						finalize_tokens(int in_quotes, char quote_char,
+							char *buffer, int *i, t_token **token_list);
 
 /// lexer/lexer.c
 
-t_token				*parse_command_line(char *line);
+t_token					*parse_command_line(char *line);
 
-t_token				*add_pipe_token(t_token **head, t_token **tail);
-void				process_token(t_token **head, t_token **tail, char *start,
-						char *ptr, int first_token);
-void				handle_token(t_token **head, t_token **tail, char **ptr,
-						int *first_token);
-t_token				*lexer(const char *input);
+t_token					*add_pipe_token(t_token **head, t_token **tail);
+void					process_token(t_token **head, t_token **tail,
+							char *start, char *ptr, int first_token);
+void					handle_token(t_token **head, t_token **tail, char **ptr,
+							int *first_token);
+t_token					*lexer(const char *input);
 
 /// lexer/handle.c
 
-int					handle_quotes(char **line, int *in_quotes, char *quote_char,
-						char *buffer, int *i, t_token **token_list);
-int					handle_whitespace(char **line, char *buffer, int *i,
-						t_token **token_list, int in_quotes);
-int					handle_special_chars(char **line, char *buffer, int *i,
-						t_token **token_list, int in_quotes);
+int						handle_quotes(char **line, int *in_quotes,
+							char *quote_char, char *buffer, int *i,
+							t_token **token_list);
+int						handle_whitespace(char **line, char *buffer, int *i,
+							t_token **token_list, int in_quotes);
+int						handle_special_chars(char **line, char *buffer, int *i,
+							t_token **token_list, int in_quotes);
 
 /// lexer/lexer_utils.c
 
-int					is_whitespace(char c);
-int					handle_space(char **ptr);
-t_token				*create_token_from_pipe(t_token **head, t_token **tail);
+int						is_whitespace(char c);
+int						handle_space(char **ptr);
+t_token					*create_token_from_pipe(t_token **head, t_token **tail);
 /// free
 
-void				free_tokens(t_token *tokens);
+void					free_tokens(t_token *tokens);
 
 /// main
 
-void				print_tokens(t_token *tokens);
+void					print_tokens(t_token *tokens);
 
 // exc_pipe
 
@@ -146,28 +171,28 @@ void				print_tokens(t_token *tokens);
 
 // pipex
 
-void				exec(t_token *cmd_tokens, char **env);
-void				child(t_token *tokens, int *pipe_fd, char **env);
-void				parent(t_token *tokens, int *pipe_fd, char **env);
-size_t				ft_strlen(const char *c);
-char				*my_getenv(char *name, char **env);
-char				*get_path(char *cmd, char **env);
-char				*join_path_cmd(char *path, char *cmd);
-char				*find_in_env(char *name, char **env);
-void				*free_tab(char **tab);
-void				exit_error(void);
-char				**prepare_args(t_token *tokens);
-t_token				*extract_command(t_token *tokens);
-t_token				*extract_command_after(t_token *tokens);
-int					process_pline(t_token *tokens, char **env);
-char				**get_environment(char **envp);
+void					exec(t_token *cmd_tokens, char **env);
+void					child(t_token *tokens, int *pipe_fd, char **env);
+void					parent(t_token *tokens, int *pipe_fd, char **env);
+size_t					ft_strlen(const char *c);
+char					*my_getenv(char *name, char **env);
+char					*get_path(char *cmd, char **env);
+char					*join_path_cmd(char *path, char *cmd);
+char					*find_in_env(char *name, char **env);
+void					*free_tab(char **tab);
+void					exit_error(void);
+char					**prepare_args(t_token *tokens);
+t_token					*extract_command(t_token *tokens);
+t_token					*extract_command_after(t_token *tokens);
+int						process_pline(t_token *tokens, char **env);
+char					**get_environment(char **envp);
 
 /// pipe_utils_2
 
-int					process_pline(t_token *tokens, char **env);
+int						process_pline(t_token *tokens, char **env);
 
 /// free
 
-void				*free_tab_2(char **tab);
+void					*free_tab_2(char **tab);
 
 #endif

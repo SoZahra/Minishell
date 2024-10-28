@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 14:08:55 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 14:09:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/28 13:14:28 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,8 @@ int	finalize_tokens(int in_quotes, char quote_char, char *buffer, int *i,
 		fprintf(stderr, "Error: Unmatched %c\n", quote_char);
 		return (-1);
 	}
-	if (*i > 0)
+	if (*i > 0 && !(buffer[0] == '"' && buffer[1] == '\0')
+		&& !(buffer[0] == '\'' && buffer[1] == '\0'))
 	{
 		buffer[*i] = '\0';
 		add_token(token_list, TOKEN_ARGUMENT, buffer);

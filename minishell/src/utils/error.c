@@ -6,7 +6,11 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/07 19:00:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/07 19:00:29 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/28 10:49:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "../include/minishell.h"
+
+//faire une fonction pour free tout en meme temps
 

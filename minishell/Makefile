@@ -6,7 +6,7 @@
 #    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/25 17:54:33 by fzayani          ###   ########.fr        #
+#    Updated: 2024/10/28 14:51:13 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -103,7 +103,7 @@ UTILS_DIR	=	$(SRC_PATH)utils
 
 # Liste des fichiers source
 SRCS_FILES	=	main.c \
-				env/env.c \
+				env/env.c env/utils_env.c\
 				loop/parsing.c loop/read.c loop/handle.c loop/read_utils.c\
 				lexer/lexer.c lexer/lexer_utils.c lexer/handle.c lexer/tokens.c\
 				pipe/exc_pipe.c pipe/pipe.c pipe/pipe_utils.c pipe/pipe_utils_2.c\

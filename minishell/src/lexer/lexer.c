@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:08:12 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/25 18:12:41 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,16 +56,6 @@ t_token	*add_pipe_token(t_token **head, t_token **tail)
 	return (n_token);
 }
 
-// int	handle_space(char **ptr)
-// {
-// 	if (**ptr == ' ')
-// 	{
-// 		(*ptr)++;
-// 		return (1);
-// 	}
-// 	return (0);
-// }
-
 void	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 		int first_token)
 {
@@ -81,11 +71,6 @@ void	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 		add_token(head, TOKEN_ARGUMENT, token_str);
 	free(token_str);
 }
-
-// t_token	*create_token_from_pipe(t_token **head, t_token **tail)
-// {
-// 	return (add_pipe_token(head, tail));
-// }
 
 void	handle_token(t_token **head, t_token **tail, char **ptr,
 		int *first_token)
@@ -127,88 +112,3 @@ t_token	*lexer(const char *input)
 	}
 	return (free(ptr), head);
 }
-
-// t_token	*lexer(const char *input)
-// {
-// 	t_token	*head;
-// 	t_token	*tail;
-// 	char	*input_copy;
-// 	char	*ptr;
-// 	t_token	*new_token;
-// 	t_token	*tmp;
-// 	int		first_token;
-// 	char	*start;
-// 	char	*token_str;
-
-// 	head = NULL;
-// 	tail = NULL;
-// 	input_copy = ft_strdup(input);
-// 	ptr = input_copy;
-// 	first_token = 1;
-// 	while (*ptr)
-// 	{
-// 		if (*ptr == ' ')
-// 		{
-// 			ptr++;
-// 			continue ;
-// 		}
-// 		if (*ptr == '|')
-// 		{
-// 			new_token = create_token(TOKEN_PIPE, "|");
-// 			if (!new_token)
-// 			{
-// 				free(input_copy);
-// 				return (NULL);
-// 			}
-// 			first_token = 1;
-// 			if (!head)
-// 			{
-// 				head = new_token;
-// 				tail = new_token;
-// 			}
-// 			else
-// 			{
-// 				tail->next = new_token;
-// 				tail = new_token;
-// 			}
-// 			ptr++;
-// 			continue ;
-// 		}
-// 		start = ptr;
-// 		while (*ptr && *ptr != ' ' && *ptr != '|')
-// 			ptr++;
-// 		token_str = ft_strndup(start, ptr - start);
-// 		new_token = NULL;
-// 		if (first_token)
-// 		{
-// 			new_token = create_token(TOKEN_COMMAND, token_str);
-// 			first_token = 0;
-// 		}
-// 		else
-// 			new_token = create_token(TOKEN_ARGUMENT, token_str);
-// 		free(token_str);
-// 		if (!new_token)
-// 		{
-// 			while (head)
-// 			{
-// 				tmp = head;
-// 				head = head->next;
-// 				(free(tmp->value), free(tmp));
-// 			}
-// 			free(input_copy);
-// 			return (NULL);
-// 		}
-// 		if (!head)
-// 		{
-// 			head = new_token;
-// 			tail = new_token;
-// 		}
-// 		else
-// 		{
-// 			tail->next = new_token;
-// 			tail = new_token;
-// 		}
-// 	}
-// 	free(input_copy);
-// 	return (head);
-// }

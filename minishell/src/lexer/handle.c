@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 14:10:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:03:43 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/28 11:31:57 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,12 @@ int	handle_quotes(char **line, int *in_quotes, char *quote_char, char *buffer,
 		if (*in_quotes && **line == *quote_char)
 		{
 			*in_quotes = 0;
-			buffer[*i] = '\0';
-			add_token(token_list, TOKEN_ARGUMENT, buffer);
-			*i = 0;
+			if (*i > 0)  // Vérifie que le buffer contient des caractères avant d'ajouter le token
+			{
+				buffer[*i] = '\0';
+				add_token(token_list, TOKEN_ARGUMENT, buffer);
+				*i = 0;
+			}
 		}
 		else if (!*in_quotes)
 		{
