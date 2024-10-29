@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/22 14:00:55 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/26 17:49:35 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,8 +100,6 @@ char *get_path(char *cmd, char **env)
     free_tab(split_cmd);
     return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
 }
-
-
 
 // char *get_path(char *cmd, char **env)
 // {

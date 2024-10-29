@@ -1,0 +1,23 @@
+#    Makefile                                           :+:      :+:    :+:    #
+#    By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+         #
+#    Updated: 2024/10/29 14:33:03 by llarrey          ###   ########.fr        #
+NAME		=	minishell
+SRCS_FILES	=	main.c read.c signal.c parsing.c lexer.c lexer_utils.c pipe.c pipe_utils.c\
+				free.c pipe_utils_2.c env.c
+INC_PATH	=	include/
+LIBFT_PATH	=	./libft/
+LIBFT_LIB	=	$(LIBFT_PATH)libft.a
+CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
+LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline
+all:	$(NAME)
+	@echo "[DONE] Minishell compiled!"
+	@make -C $(LIBFT_PATH) --silent
+clean:
+	@make clean -C $(LIBFT_PATH)
+	@echo "[DONE] Objects files deleted..."
+fclean:	clean
+	@make fclean -C $(LIBFT_PATH)
+	@echo "[DONE] Minishell deleted..."
+re:	fclean all
+	@echo "[DONE] Minishell recompiled..."
+.PHONY:	all clean fclean re
