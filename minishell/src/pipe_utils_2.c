@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 13:18:31 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/30 13:35:35 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,7 @@ int process_pline(t_token *tokens, char **env)
     t_token *cmd_start = tokens;
     int redirect = 0;
     int redirect_output = 0;
+    int redirect_input = 0;
 
     while (cmd_start != NULL)
     {
@@ -251,6 +252,7 @@ int process_pline(t_token *tokens, char **env)
                     close(input_fd);
                     redir_token = redir_token->next;
                     redirect = 1;
+                    redirect_input = 1;
                 }
                 else if (redir_token->type == TOKEN_REDIRECT_OUTPUT)
                 {
@@ -274,11 +276,12 @@ int process_pline(t_token *tokens, char **env)
                 redir_token = redir_token->next;
             }
             *exec_tokens_tail = NULL;
-            if (prev_fd != -1 && redirect != 1)
+            if (prev_fd != -1 && redirect_input != 1)
             {
                 fprintf(stderr, "First if \n");
                 dup2(prev_fd, STDIN_FILENO);
                 close(prev_fd);
+                redirect_input = 0;
             }
             if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1)
             {
