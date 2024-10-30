@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:05:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/24 15:12:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/29 17:40:20 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,10 @@ char	**prepare_print_args(t_token *cmd)
 {
 	char	**args;
 	int		k;
+	int exit_status = 0;
 
 	k = 0;
-	args = prepare_args(cmd);
+	args = prepare_args(cmd, &exit_status);
 	if (args == NULL || args[0] == NULL)
 	{
 		fprintf(stderr, "Erreur lors de la preparation des args\n");
@@ -65,3 +66,24 @@ char	**prepare_print_args(t_token *cmd)
 	}
 	return (args);
 }
+
+// char	**prepare_print_args(t_token *cmd)
+// {
+// 	char	**args;
+// 	int		k;
+
+// 	k = 0;
+// 	args = prepare_args(cmd);
+// 	if (args == NULL || args[0] == NULL)
+// 	{
+// 		fprintf(stderr, "Erreur lors de la preparation des args\n");
+// 		exit(EXIT_FAILURE);
+// 	}
+// 	printf("Execution de la commande : %s\n", args[0]);
+// 	while (args[k] != NULL)
+// 	{
+// 		printf("Arguments %d : %s\n", k, args[k]);
+// 		k++;
+// 	}
+// 	return (args);
+// }

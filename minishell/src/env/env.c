@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 11:41:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/28 14:44:33 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/29 15:20:51 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,29 +39,6 @@ char	**get_environment(char **envp)
 	}
 	return (env_copy[i] = NULL, env_copy);
 }
-// int export_v(char ***env_copy, const char *var, const char *value)
-// {
-//     int i;
-//     size_t len;
-//     char *new_var;
-
-// 	i = 0;
-// 	len = strlen(var);
-//     while ((*env_copy)[i]) {
-//         if (ft_strncmp((*env_copy)[i], var, len) == 0 && (*env_copy)[i][len] == '=')
-// 		{
-//             free((*env_copy)[i]);
-//             (*env_copy)[i] = new_var;
-//             return 0;
-//         }
-//         i++;
-//     }
-//     new_var = ft_strjoin(ft_strjoin(var, "="), value); // exemple avec ft_strjoin
-//     (*env_copy)[i] = new_var;
-//     (*env_copy)[i + 1] = NULL;
-//     return 0;
-// }
-
 
 int export_v(char ***env_copy, const char *var, const char *value)
 {

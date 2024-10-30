@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/28 15:20:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/30 17:44:58 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,23 @@
 
 extern char				**environ;
 
-# define PROMPT "MiniBG> "
+# define PROMPT "\033[1;34mMiniBG>\033[0m "
 
 # ifndef PATH_MAX
 #  define PATH_MAX 4096
 # endif
+
+typedef struct s_env_var
+{
+	char				*name;
+	char				*value;
+	struct s_env_var	*next;
+}						t_env_var;
+typedef struct s_ctx
+{
+    t_env_var *env_vars;  // Liste des variables d'environnement
+	int exit_status;
+} t_ctx;
 
 typedef enum token_type
 {
@@ -45,8 +57,11 @@ typedef enum token_type
 	TOKEN_REDIRECT_OUTPUT, // >
 	TOKEN_REDIRECT_APPEND, // >>
 	TOKEN_PIPE,            // |
-	TOKEN_FILENAME,        // Ajoute ce type pour les fichiers après redirection
-	TOKEN_REDIRECT_HEREDOC // <<
+	TOKEN_FILENAME,	// Ajoute ce type pour les fichiers après redirection
+	TOKEN_REDIRECT_HEREDOC, // <<
+	TOKEN_END,
+	STRING,
+	DOUBLEQUOTE
 }						t_token_type;
 
 typedef struct s_token
@@ -56,12 +71,7 @@ typedef struct s_token
 	struct s_token		*next;
 }						t_token;
 
-typedef struct s_env_var
-{
-	char				*name;
-	char				*value;
-	struct s_env_var	*next;
-}						t_env_var;
+
 
 /// loop
 
@@ -72,23 +82,30 @@ void					print_cmd(t_token *cmd, int index);
 void					print_cmds(t_token *cmd_tokens, int num_pipes);
 void					create_pipe(int pipe_fd[2]);
 char					**prepare_print_args(t_token *cmd);
+char **prepare_args(t_token *tokens, int *exit_status);
 void					handle_child(t_token *cmd_tokens, int fd_in,
 							int pipe_fd[2], int last_cmd);
 void					handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
-void					handle_line(char *line, char **env);
+// void					handle_line(char *line, char **env);
 
 void					loop(char **env);
+void handle_line(char *line, char **env, t_ctx *ctx);
 
 /// loop/read.c
 
 void					process_tokens(t_token *cmd_tokens, int num_pipes);
 void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 							int last_cmd);
-void					exec_simple_cmd(t_token *tokens, char **env);
+// void					exec_simple_cmd(t_token *tokens, char **env);
+// void					exec_simple_cmd(t_token *tokens, char **env,
+// 							int *exit_status);
+void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 void					split_env_v(const char *input, char **var,
 							char **value);
 int						exec_builtin_cmd(char **args, char **env);
-void					read_and_exec(char **env);
+// void					read_and_exec(char **env);
+void read_and_exec(char **env);
+int						count_tokens(t_token *tokens);
 
 /// env/enc.c
 
@@ -101,6 +118,19 @@ int						unset_v(char ***env_copy, const char *var);
 int						ft_strncmp_export(const char *s1, const char *s2,
 							unsigned int n);
 int						is_valid_id(const char *var);
+
+/// env/expand.c
+
+char					*expand_env_var(char *token, int *exit_status);
+char *ps_get_before_env(char *str, char *found);
+char *ps_get_env_var(char *var_name, t_ctx *ctx);
+char *ps_get_after_env(char *found) ;
+char *ps_convert_to_env(char *str, char *found, t_ctx *ctx);
+int ft_count_exp(char *str);
+int ps_handle_env(t_token *token, t_ctx *ctx);
+// void ps_expand_env(t_token *tokens, t_ctx *ctx);
+void ps_expand_env(t_token *token, t_ctx *ctx);
+char *ps_strjoin(char *s1, const char *s2);
 
 /// loop->parsing
 
@@ -138,6 +168,8 @@ void					process_token(t_token **head, t_token **tail,
 void					handle_token(t_token **head, t_token **tail, char **ptr,
 							int *first_token);
 t_token					*lexer(const char *input);
+
+int	handle_env_var(char **ptr, t_token **head, t_token **tail, int *first_token);
 
 /// lexer/handle.c
 
@@ -181,7 +213,7 @@ char					*join_path_cmd(char *path, char *cmd);
 char					*find_in_env(char *name, char **env);
 void					*free_tab(char **tab);
 void					exit_error(void);
-char					**prepare_args(t_token *tokens);
+// char					**prepare_args(t_token *tokens);
 t_token					*extract_command(t_token *tokens);
 t_token					*extract_command_after(t_token *tokens);
 int						process_pline(t_token *tokens, char **env);

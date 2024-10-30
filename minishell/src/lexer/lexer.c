@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:12:41 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/30 17:45:30 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,31 +84,93 @@ void	handle_token(t_token **head, t_token **tail, char **ptr,
 	*first_token = 0;
 }
 
+int	handle_env_var(char **ptr, t_token **head, t_token **tail, int *first_token)
+{
+	(void)tail;
+	char	*start = *ptr;
+	int		len = 1;
+
+	// Vérifier si le prochain caractère est une lettre ou un underscore
+	if (!isalpha(start[1]) && start[1] != '_')
+		return (0); // Si ce n'est pas un nom valide de variable, on retourne 0
+
+	(*ptr)++; // Avance au caractère suivant après le '$'
+	while (isalnum(**ptr) || **ptr == '_')
+	{
+		(*ptr)++;
+		len++;
+	}
+
+	// Extraire le nom de la variable (sans le '$')
+	char *var_name = ft_strndup(start + 1, len - 1);
+	if (!var_name)
+		return (-1);
+
+	// Ajouter un token pour cette variable d'environnement
+	if (*first_token)
+		add_token(head, TOKEN_COMMAND, var_name);
+	else
+		add_token(head, TOKEN_ARGUMENT, var_name);
+
+	free(var_name);
+	*first_token = 0;
+	return (1); // Retourne 1 pour indiquer qu'on a traité un token de variable
+}
+
 t_token	*lexer(const char *input)
 {
-	t_token	*head;
-	t_token	*tail;
-	char	*ptr;
-	int		first_token;
+	t_token	*head = NULL;
+	t_token	*tail = NULL;
+	char	*ptr = ft_strdup(input);
+	int		first_token = 1;
 
-	head = ((tail = NULL));
-	ptr = ft_strdup(input);
-	first_token = 1;
 	if (!ptr)
 		return (NULL);
+
 	while (*ptr)
 	{
 		if (handle_space(&ptr))
-			continue ;
+			continue;
 		if (*ptr == '|')
 		{
 			if (!create_token_from_pipe(&head, &tail))
 				return (free(ptr), NULL);
 			first_token = 1;
 			ptr++;
-			continue ;
+			continue;
 		}
+		if (*ptr == '$' && handle_env_var(&ptr, &head, &tail, &first_token))
+			continue;
 		handle_token(&head, &tail, &ptr, &first_token);
 	}
 	return (free(ptr), head);
 }
+
+// t_token	*lexer(const char *input)
+// {
+// 	t_token	*head;
+// 	t_token	*tail;
+// 	char	*ptr;
+// 	int		first_token;
+
+// 	head = ((tail = NULL));
+// 	ptr = ft_strdup(input);
+// 	first_token = 1;
+// 	if (!ptr)
+// 		return (NULL);
+// 	while (*ptr)
+// 	{
+// 		if (handle_space(&ptr))
+// 			continue ;
+// 		if (*ptr == '|')
+// 		{
+// 			if (!create_token_from_pipe(&head, &tail))
+// 				return (free(ptr), NULL);
+// 			first_token = 1;
+// 			ptr++;
+// 			continue ;
+// 		}
+// 		handle_token(&head, &tail, &ptr, &first_token);
+// 	}
+// 	return (free(ptr), head);
+// }

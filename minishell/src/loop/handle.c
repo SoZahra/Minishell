@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:06:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 12:07:20 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/10/30 14:40:54 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,24 +33,47 @@ void	handle_parent(int pipe_fd[2], int *fd_in, pid_t pid)
 	*fd_in = pipe_fd[0];
 }
 
-void	handle_line(char *line, char **env)
-{
-	t_token	*tokens;
+// void	handle_line(char *line, char **env)
+// {
+// 	t_token	*tokens;
 
-	add_history(line);
-	tokens = parse_command_line(line);
-	if (tokens)
-	{
-		if (check_consecutive_pipes(tokens) == -1)
-		{
-			free_tokens(tokens);
-			return ;
-		}
-		print_tokens(tokens);
-		if (contains_pipe(tokens))
-			process_pline(tokens, env);
-		else
-			exec_simple_cmd(tokens, env);
-		free_tokens(tokens);
-	}
+// 	add_history(line);
+// 	tokens = parse_command_line(line);
+// 	if (tokens)
+// 	{
+// 		if (check_consecutive_pipes(tokens) == -1)
+// 		{
+// 			free_tokens(tokens);
+// 			return ;
+// 		}
+// 		print_tokens(tokens);
+// 		if (contains_pipe(tokens))
+// 			process_pline(tokens, env);
+// 		else
+// 			exec_simple_cmd(tokens, env);
+// 		free_tokens(tokens);
+// 	}
+// }
+
+void handle_line(char *line, char **env, t_ctx *ctx)
+{
+    t_token *tokens;
+
+    add_history(line);
+    tokens = parse_command_line(line);
+    if (tokens)
+    {
+        if (check_consecutive_pipes(tokens) == -1)
+        {
+            free_tokens(tokens);
+            return;
+        }
+        print_tokens(tokens);
+        if (contains_pipe(tokens))
+            process_pline(tokens, env);
+        else
+            exec_simple_cmd(tokens, env, ctx); // Passer le contexte ici
+        free_tokens(tokens);
+    }
 }
+
