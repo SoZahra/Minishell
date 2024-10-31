@@ -6,55 +6,13 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 14:32:02 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/31 13:36:14 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-/* t_token *extract_command(t_token *tokens)
-{
-	t_token *head;
-	t_token *tail;
-
-	head = 0;
-	tail = 0;
-	while(tokens && tokens->type != TOKEN_PIPE)
-	{
-		// t_token *new_t = malloc(sizeof(t_token));
-        // new_t->type = tokens->type;
-        // new_t->value = strdup(tokens->value);
-        // new_t->next = NULL;
-		t_token *new_t = malloc(sizeof(t_token));
-		if (!new_t) {
-		// Libérer la mémoire déjà allouée dans cette fonction si nécessaire
-			perror("malloc failed");
-			exit(EXIT_FAILURE);
-		}
-		new_t->value = strdup(tokens->value);
-		if (!new_t->value) {
-			free(new_t);
-			perror("strdup failed");
-			exit(EXIT_FAILURE);
-		}
-		if(!head)
-		{
-			head = new_t;
-			tail = new_t;
-		}
-		else
-		{
-			tail->next =new_t;
-			tail = new_t;
-		}
-		tokens = tokens->next;
-	}
-	return (head); // liste de tokens avant le pipe
-} */
-
 #include <stdlib.h>
 #include <string.h>
-
 #include <stdlib.h>
 
 t_token *extract_command(t_token *tokens)
@@ -86,68 +44,6 @@ t_token *extract_command(t_token *tokens)
 
     return command_list; // Return the sub-list of tokens representing the command
 }
-
-t_token *extract_command_after(t_token *tokens)
-{
-	t_token *head;
-	t_token *tail;
-
-	head = NULL;
-	tail = NULL;
-	while(tokens && tokens->type != TOKEN_PIPE)
-		tokens = tokens->next;
-	if(tokens &&  tokens->type == TOKEN_PIPE)
-		tokens = tokens->next;
-	while(tokens) // apres pipe
-	{
-		// t_token *new_t = create_token(tokens->type, tokens->value);
-		t_token *new_t = malloc(sizeof(t_token));
-        new_t->type = tokens->type;
-        new_t->value = strdup(tokens->value);
-        new_t->next = NULL;
-		if(!head)
-		{
-			head = new_t;
-			tail = new_t;
-		}
-		else
-		{
-			tail->next =new_t;
-			tail = new_t;
-		}
-		tokens = tokens->next;
-	}
-	return (head); // liste de tokens avant le pipe
-}
-
-/* t_token *extract_command_n(t_token *tokens, int n)
-{
-    t_token *current = tokens;
-    t_token *cmd_start = NULL;  // Start of the command to extract
-    int command_count = 0;      // Track the command number
-
-    while (current != NULL)
-    {
-		if (current->type == TOKEN_REDIRECT_INPUT
-			|| current->type == TOKEN_REDIRECT_INPUT)
-            current = current->next;
-        if (current->type == TOKEN_PIPE)
-        {
-            command_count++;
-        }
-        else if (command_count == n)
-        {
-            if (cmd_start == NULL)
-                cmd_start = current;
-        }
-        else if (command_count > n)
-            break;
-        current = current->next;
-    }
-    if (cmd_start != NULL)     // If we found the n-th command, return the starting token of it
-        return (cmd_start);
-    return NULL;
-} */
 
 t_token *extract_command_n(t_token *tokens, int n)
 {

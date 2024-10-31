@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/22 21:09:17 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/31 14:09:38 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,26 +100,29 @@ void loop(char **env)
             tokens = parse_command_line(line);
             if (tokens)
             {
-                if (check_consecutive_pipes(tokens) == -1)
+                pid = fork();
+                if (pid == 0)
                 {
+                    if (check_consecutive_pipes(tokens) == -1)
+                    {
+                        free_tokens(tokens);
+                        continue;
+                    }
+                    print_tokens(tokens);
+                    if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
+                    {
+                        fprintf(stderr, "in Pipe\n");
+                        process_pline(tokens, env);
+                    }
+                    else
+                    {
+                        // tous les autres process tel que exec sont des enfants
+                        fprintf(stderr, "outside \n");
+                        process_pline(tokens, env);
+                    }
                     free_tokens(tokens);
-                    continue;
                 }
-                print_tokens(tokens);
-                if (contains_pipe(tokens))// Procesus de commande avec pipes ou exécution simple
-                {
-                    fprintf(stderr, "in Pipe\n");
-                    process_pline(tokens, env);
-                }
-                else
-                {
-                    pid = fork(); // tous les autres process tel que exec sont des enfants
-                    fprintf(stderr, "outside \n");
-                    if (pid == 0)
-                        exec(tokens, env);
-                    waitpid(pid, &status, 0);
-                }
-                free_tokens(tokens);
+                waitpid(pid, &status, 0);
             }
         }
         free(line); // Libérer la ligne après usage

@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/31 10:55:49 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/31 14:05:28 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,6 @@ char *get_path(char *cmd, char **env)
     while (paths[i])
     {
         full_path = join_path_cmd(paths[i], s_cmd[0]);
-        printf("Checking path: %s\n", full_path); // Debug
         if (access(full_path, F_OK | X_OK) == 0)
             return (free_tab(paths), free_tab(s_cmd), full_path);
         free(full_path);
