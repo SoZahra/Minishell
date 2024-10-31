@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/26 17:49:35 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/31 10:55:49 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ char	*find_in_env(char *name, char **env)
 	return (NULL);
 }
 
-char	*join_path_cmd(char *path, char *cmd)
+/* char	*join_path_cmd(char *path, char *cmd)
 {
 
     char *full_path;
@@ -69,9 +69,20 @@ char	*join_path_cmd(char *path, char *cmd)
     sprintf(full_path, "%s%s", path_with_slash, cmd);
     free(path_with_slash);
     return (full_path);
+} */
+
+char	*join_path_cmd(char *path, char *cmd)
+{
+	char	*full_path;
+	char	*path_with_slash;
+
+	path_with_slash = ft_strjoin(path, "/");
+	full_path = ft_strjoin(path_with_slash, cmd);
+	free(path_with_slash);
+	return (full_path);
 }
 
-char *get_path(char *cmd, char **env)
+/* char *get_path(char *cmd, char **env)
 {
     char **paths;
     char *full_path;
@@ -86,42 +97,43 @@ char *get_path(char *cmd, char **env)
     while (paths[i])
     {
         full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
-        //printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
+        fprintf(stderr, "Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
         if (access(full_path, F_OK | X_OK) == 0)
         {
             free_tab(paths);
             free_tab(split_cmd);
             return full_path;  // Retourner le chemin complet si la commande est trouvée
         }
+        
         free(full_path);
         i++;
     }
     free_tab(paths);
     free_tab(split_cmd);
     return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
+} */
+
+char *get_path(char *cmd, char **env)
+{
+    char **paths;
+    char **s_cmd;
+    char *full_path;
+    int i;
+
+    i = 0;
+    s_cmd = ft_split(cmd, ' ');
+    paths = ft_split(find_in_env("PATH", env), ':');
+    while (paths[i])
+    {
+        full_path = join_path_cmd(paths[i], s_cmd[0]);
+        printf("Checking path: %s\n", full_path); // Debug
+        if (access(full_path, F_OK | X_OK) == 0)
+            return (free_tab(paths), free_tab(s_cmd), full_path);
+        free(full_path);
+        i++;
+    }
+    free_tab(paths);
+    free_tab(s_cmd);
+    return (cmd);
 }
-
-// char *get_path(char *cmd, char **env)
-// {
-//     char **paths;
-//     char **s_cmd;
-//     char *full_path;
-//     int i;
-
-//     i = 0;
-//     s_cmd = ft_split(cmd, ' ');
-//     paths = ft_split(find_in_env("PATH", env), ':');
-//     while (paths[i])
-//     {
-//         full_path = join_path_cmd(paths[i], s_cmd[0]);
-//         printf("Checking path: %s\n", full_path); // Debug
-//         if (access(full_path, F_OK | X_OK) == 0)
-//             return (free_tab(paths), free_tab(s_cmd), full_path);
-//         free(full_path);
-//         i++;
-//     }
-//     free_tab(paths);
-//     free_tab(s_cmd);
-//     return (cmd);
-// }
 

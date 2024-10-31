@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 13:35:35 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/10/30 14:32:02 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,7 +300,7 @@ int process_pline(t_token *tokens, char **env)
             else if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output == 1)
             {
                 fprintf(stderr, "Third if \n");
-                close(pipe_fd[0]);
+            	close(pipe_fd[0]);
                 dup2(prev_fd, STDIN_FILENO);
                 close(prev_fd);
                 /* dup2(pipe_fd[1], STDOUT_FILENO);
