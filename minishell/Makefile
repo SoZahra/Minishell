@@ -6,7 +6,7 @@
 #    By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/10/29 14:33:03 by llarrey          ###   ########.fr        #
+#    Updated: 2024/11/03 12:15:21 by llarrey          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,4 +56,8 @@ fclean:	clean
 re:	fclean all
 	@echo "[DONE] Minishell recompiled..."
 
+<<<<<<< HEAD
 .PHONY:	all clean fclean re
+=======
+.PHONY:	all clean fclean re
+>>>>>>> Fat

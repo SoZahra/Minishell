@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/26 17:33:16 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/03 12:15:27 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ char	*find_in_env(char *name, char **env);
 void	*free_tab(char **tab);
 void	exit_error(void);
 char **prepare_args(t_token *tokens);
+<<<<<<< HEAD
 //t_token *extract_command(t_token *tokens);
 t_token *extract_command_after(t_token *tokens);
 t_token *extract_command_n(t_token *tokens, int n);
@@ -119,6 +120,13 @@ int	check_redirection_input(t_token *tokens);
 int	check_redirection_output(t_token *tokens);
 int is_command(t_token *token);
 int	is_pipe(t_token *tokens);
+=======
+t_token *extract_command(t_token *tokens);
+t_token *extract_command_after(t_token *tokens);
+int process_pline(t_token *tokens, char **env);
+char **get_environment(char **envp);
+
+>>>>>>> Fat
 ///free
 
 void *free_tab_2(char **tab);
