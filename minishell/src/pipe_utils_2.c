@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/31 13:36:14 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/03 12:10:00 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,97 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
-
-t_token *extract_command(t_token *tokens)
-{
-    t_token *command_list = NULL;      // Start of the sub-list for the command
-    t_token *last_command = NULL;      // Pointer to keep track of the end of the new list
-
-    while (tokens != NULL && tokens->type != TOKEN_PIPE && tokens->type != TOKEN_REDIRECT_INPUT && tokens->type != TOKEN_REDIRECT_OUTPUT)
-    {
-        // Duplicate the current token
-        t_token *new_token = malloc(sizeof(t_token));
-        if (!new_token)
-            exit_error(); // Handle memory allocation error
-
-        new_token->value = strdup(tokens->value); // Copy the value
-        new_token->type = tokens->type;
-        new_token->next = NULL;
-
-        // Link the new token to the command list
-        if (command_list == NULL)
-            command_list = new_token;  // First token becomes the head of the new list
-        else
-            last_command->next = new_token; // Link the previous node to this one
-        
-        last_command = new_token; // Update the last command pointer
-
-        tokens = tokens->next; // Move to the next token in the original list
-    }
-
-    return command_list; // Return the sub-list of tokens representing the command
-}
-
-t_token *extract_command_n(t_token *tokens, int n)
-{
-    t_token *current = tokens;
-    t_token *cmd_start = NULL;      // Start of the filtered command list
-    t_token *cmd_end = NULL;        // Pointer to the last token in the new list
-    int command_count = 0;          // Track the command number
-    int inside_command = 0;         // Flag to indicate we're inside the target command
-
-    while (current != NULL)
-    {
-        if (current->type == TOKEN_PIPE)
-        {
-            command_count++;
-            if (command_count > n)
-                break;  // We've finished processing the nth command
-        }
-        else if (command_count == n)
-        {
-            inside_command = 1;
-            if (current->type == TOKEN_REDIRECT_INPUT || current->type == TOKEN_REDIRECT_OUTPUT)
-            {
-                current = current->next;  // Skip the redirection filename token
-                if (current != NULL)       // Move to the next token after the filename
-                    current = current->next;
-                continue;
-            }
-            t_token *new_token = malloc(sizeof(t_token));  // Allocate memory for the new token
-            *new_token = *current;  // Copy the current token's contents
-            new_token->next = NULL;
-            if (cmd_start == NULL)
-            {
-                cmd_start = new_token;
-                cmd_end = new_token;
-            }
-            else
-            {
-                cmd_end->next = new_token;
-                cmd_end = new_token;
-            }
-        }
-        current = current->next;
-    }
-    return cmd_start;
-}
-
-t_token *extract_input_after_redirect(t_token *tokens) 
-{
-    t_token *current = tokens;
-
-    while (current != NULL) 
-    {
-        if (current->type == TOKEN_REDIRECT_INPUT) 
-        { 
-            if (current->next != NULL) 
-                return current->next;
-        }
-        current = current->next;
-    }
-    return NULL;
-}
 
 int process_pline(t_token *tokens, char **env)
 {
