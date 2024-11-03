@@ -1,10 +1,10 @@
-total 68
-drwxr-xr-x 2 llarrey 2024_paris    25 Nov  3 12:01 include
-drwxr-xr-x 2 llarrey 2024_paris  4096 Nov  3 12:08 libft
--rw-r--r-- 1 llarrey 2024_paris  1933 Nov  3 12:01 Makefile
--rwxr-xr-x 1 llarrey 2024_paris 38472 Nov  3 12:08 minishell
-drwxr-xr-x 2 llarrey 2024_paris  4096 Nov  3 12:01 src
--rw-r--r-- 1 llarrey 2024_paris     0 Nov  3 12:08 test
--rw-r--r-- 1 llarrey 2024_paris     8 Oct 30 14:37 test2
--rw-r--r-- 1 llarrey 2024_paris     9 Oct 30 14:37 test3
--rw-r--r-- 1 llarrey 2024_paris   525 Oct 31 14:08 ts
+total 104
+drwxr-xr-x 2 llarrey 2024_paris    25 Nov  3 13:47 include
+drwxr-xr-x 2 llarrey 2024_paris  8192 Nov  3 15:38 libft
+-rw-r--r-- 1 llarrey 2024_paris  2832 Nov  3 13:48 Makefile
+-rwxr-xr-x 1 llarrey 2024_paris 70184 Nov  3 15:38 minishell
+drwxr-xr-x 8 llarrey 2024_paris   164 Nov  3 13:47 src
+-rw-r--r-- 1 llarrey 2024_paris   526 Nov  3 15:38 test
+-rw-r--r-- 1 llarrey 2024_paris     8 Nov  3 13:41 test2
+-rw-r--r-- 1 llarrey 2024_paris     9 Nov  3 13:41 test3
+-rw-r--r-- 1 llarrey 2024_paris   525 Nov  3 13:41 ts

@@ -3,123 +3,249 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_utils_2.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/24 16:42:38 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/03 15:38:12 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdlib.h>
 
-t_token	*extract_command(t_token *tokens)
+/* int process_pline(t_token *tokens, char **env)
 {
-	t_token	*head;
-	t_token	*tail;
-	t_token	*new_t;
+    int pipe_fd[2];
+    int prev_fd = -1;
+    pid_t pid;
+    int status;
+    t_token *cmd_start = tokens;
+    int redirect = 0;
+    int redirect_output = 0;
+    int redirect_input = 0;
 
-	head = 0;
-	tail = 0;
-	while (tokens && tokens->type != TOKEN_PIPE)
-	{
-		// t_token *new_t = malloc(sizeof(t_token));
-		// new_t->type = tokens->type;
-		// new_t->value = strdup(tokens->value);
-		// new_t->next = NULL;
-		new_t = malloc(sizeof(t_token));
-		if (!new_t)
-		{
-			// Libérer la mémoire déjà allouée dans cette fonction si nécessaire
-			perror("malloc failed");
-			exit(EXIT_FAILURE);
-		}
-		new_t->value = strdup(tokens->value);
-		if (!new_t->value)
-		{
-			free(new_t);
-			perror("strdup failed");
-			exit(EXIT_FAILURE);
-		}
-		if (!head)
-		{
-			head = new_t;
-			tail = new_t;
-		}
-		else
-		{
-			tail->next = new_t;
-			tail = new_t;
-		}
-		tokens = tokens->next;
-	}
-	return (head); // liste de tokens avant le pipe
+    while (cmd_start != NULL)
+    {
+        t_token *cmd_end = cmd_start;
+        while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
+            cmd_end = cmd_end->next;
+
+        if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE)
+        {
+            if (pipe(pipe_fd) == -1)
+                exit_error();
+        }
+        pid = fork();
+        if (pid == -1)
+            exit_error();
+        if (pid == 0)
+        {
+            t_token *exec_tokens = NULL;
+            t_token **exec_tokens_tail = &exec_tokens;
+            t_token *redir_token = cmd_start;
+
+            while (redir_token != cmd_end)
+            {
+                if (redir_token->type == TOKEN_REDIRECT_INPUT)
+                {
+                    int input_fd = open(redir_token->next->value, O_RDONLY);
+                    if (input_fd == -1)
+                        exit_error();
+                    dup2(input_fd, STDIN_FILENO);
+                    close(input_fd);
+                    redir_token = redir_token->next;
+                    redirect = 1;
+                    redirect_input = 1;
+                }
+                else if (redir_token->type == TOKEN_REDIRECT_OUTPUT)
+                {
+                    fprintf(stderr, "Output redirection \n");
+                    int output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (output_fd == -1)
+                        exit_error();
+                    dup2(output_fd, STDOUT_FILENO);
+                    close(output_fd);
+                    redir_token = redir_token->next;
+                    redirect_output = 1;
+                    redirect = 1;
+                }
+                else
+                {
+                    *exec_tokens_tail = redir_token;
+                    exec_tokens_tail = &(*exec_tokens_tail)->next;
+                    redirect = 0;
+                }
+                fprintf(stderr, "Did I leave ? \n");
+                redir_token = redir_token->next;
+            }
+            *exec_tokens_tail = NULL;
+            if (prev_fd != -1 && redirect_input != 1)
+            {
+                fprintf(stderr, "First if \n");
+                dup2(prev_fd, STDIN_FILENO);
+                close(prev_fd);
+                redirect_input = 0;
+            }
+            if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1)
+            {
+                fprintf(stderr, "Second if \n");
+                close(pipe_fd[0]);
+                dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]);
+            }
+            if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect != 1)
+            {
+                fprintf(stderr, "Second / half if \n");
+                close(pipe_fd[0]);
+                dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]);
+            }
+            else if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output == 1)
+            {
+                fprintf(stderr, "Third if \n");
+            	close(pipe_fd[0]);
+                dup2(prev_fd, STDIN_FILENO);
+                close(prev_fd);
+                //dup2(pipe_fd[1], STDOUT_FILENO);
+                //close(pipe_fd[1]);
+            }
+            fprintf(stderr, "Check on tokens value : %s \n\n", exec_tokens->value);
+            exec(exec_tokens, env);
+            exit_error();
+        }
+        wait(0);
+        if (prev_fd != -1)
+            close(prev_fd);
+        if (cmd_end != NULL)
+        {
+            close(pipe_fd[1]);
+            prev_fd = pipe_fd[0];
+            cmd_start = cmd_end->next;
+        }
+        else
+            cmd_start = NULL;
+    }
+    while (wait(&status) > 0);
+    return 0;
+}
+ */
+
+void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input) {
+    int input_fd = open(redir_token->next->value, O_RDONLY);
+    if (input_fd == -1)
+        exit_error();
+    dup2(input_fd, STDIN_FILENO);
+    close(input_fd);
+    *redirect = 1;
+    *redirect_input = 1;
 }
 
-t_token	*extract_command_after(t_token *tokens)
-{
-	t_token	*head;
-	t_token	*tail;
-	t_token	*new_t;
-
-	head = NULL;
-	tail = NULL;
-	while (tokens && tokens->type != TOKEN_PIPE)
-		tokens = tokens->next;
-	if (tokens && tokens->type == TOKEN_PIPE)
-		tokens = tokens->next;
-	while (tokens) // apres pipe
-	{
-		// t_token *new_t = create_token(tokens->type, tokens->value);
-		new_t = malloc(sizeof(t_token));
-		new_t->type = tokens->type;
-		new_t->value = strdup(tokens->value);
-		new_t->next = NULL;
-		if (!head)
-		{
-			head = new_t;
-			tail = new_t;
-		}
-		else
-		{
-			tail->next = new_t;
-			tail = new_t;
-		}
-		tokens = tokens->next;
-	}
-	return (head); // liste de tokens avant le pipe
+void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output) {
+    int output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (output_fd == -1)
+        exit_error();
+    dup2(output_fd, STDOUT_FILENO);
+    close(output_fd);
+    *redirect = 1;
+    *redirect_output = 1;
 }
 
-int	process_pline(t_token *tokens, char **env)
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
 {
-	int		pipe_fd[2];
-	int		status;
-	t_token	*first_cmd_t;
-	t_token	*second_cmd_t;
+    t_token **exec_tokens_tail = exec_tokens;
+    t_token *redir_token = cmd_start;
 
-	pid_t pid1, pid2;
-	if (pipe(pipe_fd) == -1)
-		exit_error();
-	pid1 = fork();
-	if (pid1 == -1)
-		exit_error();
-	if (pid1 == 0) // Processus enfant 1 (avant le pipe)
-	{
-		first_cmd_t = extract_command(tokens);
-		child(first_cmd_t, pipe_fd, env);
-	}
-	pid2 = fork();
-	if (pid2 == -1)
-		exit_error();
-	if (pid2 == 0) // Processus enfant 2 (après le pipe)
-	{
-		second_cmd_t = extract_command_after(tokens);
-		parent(second_cmd_t, pipe_fd, env);
-	}
-	// Fermer les deux extrémités du pipe dans le processus parent
-	close(pipe_fd[0]);
-	close(pipe_fd[1]);
-	// Attendre la fin des deux processus enfants
-	waitpid(pid1, &status, 0);
-	waitpid(pid2, &status, 0);
-	return (0);
+    while (redir_token != cmd_end) {
+        if (redir_token->type == TOKEN_REDIRECT_INPUT) {
+            handle_input_redirection(redir_token, redirect, redirect_input);
+            redir_token = redir_token->next;
+        } else if (redir_token->type == TOKEN_REDIRECT_OUTPUT) {
+            handle_output_redirection(redir_token, redirect, redirect_output);
+            redir_token = redir_token->next;
+        } else {
+            *exec_tokens_tail = redir_token;
+            exec_tokens_tail = &(*exec_tokens_tail)->next;
+        }
+        redir_token = redir_token->next;
+    }
+    *exec_tokens_tail = NULL;
+}
+
+void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
+{
+    if (prev_fd != -1 && redirect_input != 1) {
+        dup2(prev_fd, STDIN_FILENO);
+        close(prev_fd);
+    }
+    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1) {
+        close(pipe_fd[0]);
+        dup2(pipe_fd[1], STDOUT_FILENO);
+        close(pipe_fd[1]);
+    }
+}
+
+void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end)
+{
+    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE) {
+        if (pipe(pipe_fd) == -1)
+            exit_error();
+    }
+}
+
+void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, char **env)
+{
+    pid_t pid = fork();
+    if (pid == -1)
+        exit_error();
+
+    if (pid == 0) {
+        t_token *exec_tokens = NULL;
+        int redirect = 0, redirect_output = 0, redirect_input = 0;
+
+        collect_exec_tokens(cmd_start, cmd_end, &exec_tokens, &redirect, &redirect_input, &redirect_output);
+        setup_pipe_for_child(prev_fd, pipe_fd, redirect_input, redirect_output, cmd_end);
+        exec(exec_tokens, env);  // Replace with actual execution logic
+        exit_error();
+    }
+}
+
+void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t_token *cmd_end)
+{
+    if (*prev_fd != -1)
+        close(*prev_fd);
+    if (cmd_end != NULL) {
+        close(pipe_fd[1]);
+        *prev_fd = pipe_fd[0];
+        *cmd_start = cmd_end->next;
+    } else {
+        *cmd_start = NULL;
+    }
+}
+
+void wait_for_all_children()
+{
+    int status;
+    while (wait(&status) > 0);
+}
+
+int process_pline(t_token *tokens, char **env) {
+    int pipe_fd[2], prev_fd = -1;
+    t_token *cmd_start = tokens;
+
+    while (cmd_start != NULL) {
+        t_token *cmd_end = cmd_start;
+        while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
+            cmd_end = cmd_end->next;
+
+        initialize_pipe_if_needed(pipe_fd, cmd_end);
+        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, env);
+        wait(0);  // Wait for each child to finish immediately after fork.
+
+        cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
+    }
+
+    wait_for_all_children();
+    return 0;
 }

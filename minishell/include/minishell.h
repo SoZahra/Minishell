@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/03 13:49:31 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/03 15:37:40 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,24 +215,14 @@ void	*free_tab(char **tab);
 void	exit_error(void);
 //char **prepare_args(t_token *tokens);
 //t_token *extract_command(t_token *tokens);
-t_token *extract_command_after(t_token *tokens);
-t_token *extract_command_n(t_token *tokens, int n);
 int process_pline(t_token *tokens, char **env);
 int	**pipe_tab(t_token *tokens);
 int	count_commands(t_token *tokens);
 char **get_environment(char **envp);
-t_token *extract_output(t_token *tokens);
-t_token *extract_input(t_token *tokens);
 int get_output_fd(t_token *input_token);
-int get_input_fd(t_token *input_token);
-int	check_redirection_input(t_token *tokens);
-int	check_redirection_output(t_token *tokens);
-int is_command(t_token *token);
 int	is_pipe(t_token *tokens);
-t_token *extract_command(t_token *tokens);
-t_token *extract_command_after(t_token *tokens);
-int process_pline(t_token *tokens, char **env);
 char **get_environment(char **envp);
+
 
 ///free
 void					exec(t_token *cmd_tokens, char **env);
@@ -253,6 +243,14 @@ char					**get_environment(char **envp);
 
 /// pipe_utils_2
 int						process_pline(t_token *tokens, char **env);
+void wait_for_all_children();
+void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t_token *cmd_end);
+void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, char **env);
+void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end);
+void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end);
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output);
+void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output);
+void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input);
 
 /// free
 

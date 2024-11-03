@@ -6,11 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:09:29 by fzayani           #+#    #+#             */
-<<<<<<< HEAD:minishell/src/pipe_utils.c
-/*   Updated: 2024/11/03 12:15:59 by llarrey          ###   ########.fr       */
-=======
-/*   Updated: 2024/10/21 13:44:44 by fzayani          ###   ########.fr       */
->>>>>>> Fat:minishell/src/pipe/pipe_utils.c
+/*   Updated: 2024/11/03 14:09:54 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,11 +97,7 @@ char	*join_path_cmd(char *path, char *cmd)
     while (paths[i])
     {
         full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
-<<<<<<< HEAD:minishell/src/pipe_utils.c
         fprintf(stderr, "Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
-=======
-        // printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
->>>>>>> Fat:minishell/src/pipe/pipe_utils.c
         if (access(full_path, F_OK | X_OK) == 0)
         {
             free_tab(paths);
