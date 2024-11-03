@@ -1,36 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   signal.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/24 16:38:21 by fzayani          ###   ########.fr       */
+/*   Created: 2024/10/03 16:33:55 by fzayani           #+#    #+#             */
+/*   Updated: 2024/10/23 17:23:03 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
-		char **envp)
-{
-	char	**env_copy;
+int		g_var_global = 0;
 
-	init_sig();
-	env_copy = get_environment(envp);
-	if (!env_copy)
-		return (fprintf(stderr, "Failed to copy environment\n"), 1);
-	loop(env_copy);
-	free_tab(env_copy);
-	return (0);
+void	handle_sigint(int sig)
+{
+	(void)sig;
+	printf("\n");
+	rl_on_new_line();
+	rl_replace_line("", 0);
+	rl_redisplay();
+	g_var_global = 1;
 }
 
-void	print_tokens(t_token *tokens)
+void	handle_sigquit(int sig)
 {
-	while (tokens)
-	{
-		printf("Token: '%s'\n", tokens->value);
-		tokens = tokens->next;
-	}
+	(void)sig;
+}
+
+void	init_sig(void)
+{
+	signal(SIGINT, handle_sigint);
+	signal(SIGQUIT, SIG_IGN);
 }

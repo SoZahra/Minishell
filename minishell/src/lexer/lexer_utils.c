@@ -1,36 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   lexer_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/02 14:32:37 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/24 16:38:21 by fzayani          ###   ########.fr       */
+/*   Created: 2024/10/10 17:41:00 by fzayani           #+#    #+#             */
+/*   Updated: 2024/10/25 18:09:23 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
-		char **envp)
+int	is_whitespace(char c)
 {
-	char	**env_copy;
+	return (c == ' ' || c == '\t' || c == '\n');
+}
 
-	init_sig();
-	env_copy = get_environment(envp);
-	if (!env_copy)
-		return (fprintf(stderr, "Failed to copy environment\n"), 1);
-	loop(env_copy);
-	free_tab(env_copy);
+int	handle_space(char **ptr)
+{
+	if (**ptr == ' ')
+	{
+		(*ptr)++;
+		return (1);
+	}
 	return (0);
 }
 
-void	print_tokens(t_token *tokens)
+t_token	*create_token_from_pipe(t_token **head, t_token **tail)
 {
-	while (tokens)
-	{
-		printf("Token: '%s'\n", tokens->value);
-		tokens = tokens->next;
-	}
+	return (add_pipe_token(head, tail));
 }
