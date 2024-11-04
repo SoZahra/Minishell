@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/03 14:54:10 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/04 14:26:32 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void loop(char **env)
     {
         write(1, "MiniBG> ", 9);
         line = readline(NULL); // lire une ligne de commande
-        if (line == NULL) // Gestion du Ctrl+D
+        if (line == NULL) // Gestion du Ctrl+D  
         {
             write(1, "exit\n", 5); // Afficher un message de sortie propre
             break; // Quitter la boucle
