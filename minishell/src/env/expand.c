@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/04 17:08:25 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/05 20:27:36 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ int ps_handle_env(t_token *token, t_ctx *ctx)
     return 0;
 }
 
-void ps_expand_env(t_token *tokens, t_ctx *ctx) //#to do # add char **env and reproduce getenv with the env used by the miniBG
+void ps_expand_env(t_token *tokens, t_ctx *ctx, char **env) //#to do # add char **env and reproduce getenv with the env used by the miniBG
 {
     (void)ctx;
 
@@ -171,7 +171,9 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx) //#to do # add char **env and re
                     char var_name[j + 1];
                     strncpy(var_name, var_start, j);
                     var_name[j] = '\0';
-                    char *env_value = getenv(var_name);
+                    char * env_value = find_in_env(var_name, env);
+                    //fprintf(stderr, "Value : %s", env_value);
+                    //char *env_value = getenv(var_name);
                     // Concatène la valeur de la variable si elle est définie
                     char *tmp = result;
                     result = ft_strjoin(result ? result : "", env_value ? env_value : "");
@@ -202,8 +204,6 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx) //#to do # add char **env and re
         tokens = tokens->next;
     }
 }
-
-
 
 // void ps_expand_env(t_token *tokens, t_ctx *ctx)
 // {

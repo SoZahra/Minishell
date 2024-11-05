@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/03 15:37:40 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/05 18:33:54 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ char *ps_convert_to_env(char *str, char *found, t_ctx *ctx);
 int ft_count_exp(char *str);
 int ps_handle_env(t_token *token, t_ctx *ctx);
 // void ps_expand_env(t_token *tokens, t_ctx *ctx);
-void ps_expand_env(t_token *token, t_ctx *ctx);
+void ps_expand_env(t_token *token, t_ctx *ctx, char **env);
 char *ps_strjoin(char *s1, const char *s2);
 
 /// loop->parsing

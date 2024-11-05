@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/04 15:53:39 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/05 18:33:30 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     pid_t pid;
 
     // 1. Étendre les variables d'environnement dans chaque token
-    ps_expand_env(tokens, ctx); // Passer les tokens à ps_expand_env pour traiter l'expansion
+    ps_expand_env(tokens, ctx, env); // Passer les tokens à ps_expand_env pour traiter l'expansion
     // 2. Préparer les arguments après l'expansion
 	fprintf(stderr, "am i in ?\n");
     args = prepare_args(tokens, &ctx->exit_status); // Passer les tokens ici, pas une chaîne de caractères
