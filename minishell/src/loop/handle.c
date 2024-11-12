@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:06:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 14:40:54 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/06 13:54:45 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ void handle_line(char *line, char **env, t_ctx *ctx)
         else
             exec_simple_cmd(tokens, env, ctx); // Passer le contexte ici
         free_tokens(tokens);
+        init_sig();
     }
 }
 

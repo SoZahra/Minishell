@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/05 20:27:36 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/11 13:40:14 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,9 +114,7 @@ char *ps_convert_to_env(char *str, char *found, t_ctx *ctx)
     if (!new)
         return (free(after_env), NULL);
     char *final_result = ft_strjoin(new, after_env);
-    free(after_env);
-    free(new); // Libération de new pour éviter une fuite
-    return final_result; // Renvoie le résultat final
+    return (free(new), free(after_env), final_result); // Renvoie le résultat final
 }
 
 // Compte les occurrences de `$` dans une chaîne
@@ -158,39 +156,32 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx, char **env) //#to do # add char 
         char *result = NULL;
         int i = 0;
         while (token[i] != '\0') {
-            if (token[i] == '$') {
+            if (token[i] == '$') 
+            {
                 char *var_start = &token[i + 1];
                 int j = 0;
-
-                // Identifie la fin de la variable
-                while (isalpha(var_start[j]) || var_start[j] == '_') {
+                while (isalpha(var_start[j]) || var_start[j] == '_') 
                     j++;
-                }
-                if (j > 0) {
-                    // Copie le nom de la variable et récupère sa valeur
+                if (j > 0) 
+                {
                     char var_name[j + 1];
                     strncpy(var_name, var_start, j);
                     var_name[j] = '\0';
                     char * env_value = find_in_env(var_name, env);
-                    //fprintf(stderr, "Value : %s", env_value);
-                    //char *env_value = getenv(var_name);
-                    // Concatène la valeur de la variable si elle est définie
                     char *tmp = result;
                     result = ft_strjoin(result ? result : "", env_value ? env_value : "");
                     free(tmp);
-                    // Avance l'index pour sauter le nom de la variable
                     i += j + 1;
                 } else {
-                    // Si le caractère suivant `$` n'est pas une lettre valide pour une variable
-                    // Ajouter `$` au résultat
                     char single_char[2] = {token[i], '\0'};
                     char *tmp = result;
                     result = ft_strjoin(result ? result : "", single_char);
                     free(tmp);
                     i++;
                 }
-            } else {
-                // Concatène les autres caractères
+            } 
+            else 
+            {
                 char single_char[2] = {token[i], '\0'};
                 char *tmp = result;
                 result = ft_strjoin(result ? result : "", single_char);
@@ -198,7 +189,6 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx, char **env) //#to do # add char 
                 i++;
             }
         }
-        // Met à jour le token avec le résultat final
         free(tokens->value);
         tokens->value = result;
         tokens = tokens->next;

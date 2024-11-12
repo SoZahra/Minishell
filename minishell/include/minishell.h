@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/05 18:33:54 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/12 14:28:17 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,6 @@ typedef struct s_token
 	t_token_type		type;
 	struct s_token		*next;
 }						t_token;
-
-
 
 /// loop
 
