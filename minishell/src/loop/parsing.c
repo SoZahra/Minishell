@@ -6,13 +6,13 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 17:34:21 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:14:13 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/13 11:47:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-void	ft_cd(char **args)
+int	ft_cd(char **args)
 {
 	static char	*oldpwd = NULL;
 
@@ -25,13 +25,14 @@ void	ft_cd(char **args)
 		if (chdir(args[1]) != 0)
 		{
 			perror("cd");
-			return ;
+			return (0);
 		}
 	}
 	ft_update_pwd(&oldpwd);
+	return (0);
 }
 
-void	ft_cd_home(void)
+int	ft_cd_home(void)
 {
 	char	*home;
 
@@ -39,28 +40,30 @@ void	ft_cd_home(void)
 	if (home == NULL)
 	{
 		fprintf(stderr, "cd: HOME not set\n");
-		return ;
+		return (0);
 	}
 	if (chdir(home) != 0)
 		perror("cd");
+	return (0);
 }
 
-void	ft_cd_oldpwd(char **oldpwd)
+int	ft_cd_oldpwd(char **oldpwd)
 {
 	if (*oldpwd == NULL)
 	{
 		fprintf(stderr, "cd: OLDPWD not set\n");
-		return ;
+		return (0);
 	}
 	if (chdir(*oldpwd) != 0)
 	{
 		perror("cd");
-		return ;
+		return (0);
 	}
 	printf("%s\n", *oldpwd);
+	return(0);
 }
 
-void	ft_update_pwd(char **oldpwd)
+int	ft_update_pwd(char **oldpwd)
 {
 	char	*cwd;
 
@@ -78,4 +81,5 @@ void	ft_update_pwd(char **oldpwd)
 		perror("getcwd() error");
 		*oldpwd = NULL;
 	}
+	return(0);
 }

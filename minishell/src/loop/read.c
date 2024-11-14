@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 15:53:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/14 10:38:34 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ int count_tokens(t_token *tokens)
     return (count);
 }
 
-void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
+int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
 {
     char **args;
     pid_t pid;
@@ -108,12 +108,12 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     args = prepare_args(tokens, &ctx->exit_status); // Passer les tokens ici, pas une chaîne de caractères
     if (!args) {
         perror("Erreur d'allocation de mémoire pour les arguments");
-        return;
+        return 0;
     }
     // 3. Vérifier si la commande est une commande interne (builtin)
     if (exec_builtin_cmd(args, env)) {
         free(args);
-        return;
+        return 0;
     }
     // 4. Fork pour exécuter la commande externe
     pid = fork();
@@ -132,6 +132,7 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     // 5. Processus parent: attendre la fin de la commande
     waitpid(pid, NULL, 0);
     free(args); // Libérer les arguments après exécution
+	return 0;
 }
 
 // void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
@@ -195,6 +196,8 @@ void split_env_v(const char *input, char **var, char **value)
 
 int exec_builtin_cmd(char **args, char **env)
 {
+	t_ctx *ctx = NULL;
+
 	if(ft_strcmp(args[0], "export") == 0 && args[1])
 	{
 		char *var = NULL;
@@ -209,6 +212,7 @@ int exec_builtin_cmd(char **args, char **env)
 		}
 		else
 			fprintf(stderr, "not good caracter %s\n", args[1]);
+		ctx->exit_status = 0;
 		return (free(var), free(value), 1);
 	}
 	if(ft_strcmp(args[0], "unset") == 0 && args[1])
@@ -218,42 +222,66 @@ int exec_builtin_cmd(char **args, char **env)
 	return (0);
 }
 
-void read_and_exec(char **env)
+// int read_and_exec(char **env)
+// {
+//     char *line;
+//     t_ctx ctx; // Déclarez une variable de type t_ctx
+//     ctx.exit_status = 0; // Initialisez le statut de sortie
+
+//     line = readline(PROMPT); // Afficher le prompt et lire la ligne
+//     if (line == NULL)
+//     {
+//         write(1, "exit\n", 5); // Si readline échoue, affichez exit et sortez
+//         exit(0);
+//     }
+//     // Vérifier si la commande est "exit"
+//     if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' '))
+//     {
+//         write(1, "exit\n", 5); // Afficher exit
+//         if (line[4] != '\0' && line[5] != '\0')
+//         {
+//             char *arg = &line[5];
+//             int i = 0; // Réinitialiser l'index pour vérifier les arguments
+//             // Vérifier si l'argument est numérique
+//             while (arg[i] && ft_isdigit(arg[i]))
+//                 i++;
+//             if (arg[i] != '\0') // Si ce n'est pas un argument numérique valide
+//             {
+//                 fprintf(stderr, "Exit : %s : numeric argument required\n", arg);
+//                 exit(255);
+//             }
+//             exit(ft_atoi(arg)); // Convertir l'argument en entier et quitter
+//         }
+//         exit(0); // Quitter avec succès
+//     }
+//     // Si la ligne n'est pas vide, traiter la ligne
+//     if (*line)
+//         handle_line(line, env, &ctx); // Passez ctx ici
+//     free(line); // Libérer la mémoire allouée pour la ligne
+// 	return (0);
+// }
+
+int read_and_exec(char **env)
 {
     char *line;
-    t_ctx ctx; // Déclarez une variable de type t_ctx
-    ctx.exit_status = 0; // Initialisez le statut de sortie
+    t_ctx ctx;
+    ctx.exit_status = 0;
 
-    line = readline(PROMPT); // Afficher le prompt et lire la ligne
-    if (line == NULL)
-    {
-        write(1, "exit\n", 5); // Si readline échoue, affichez exit et sortez
+    line = readline(PROMPT);
+    if (line == NULL) {
+        write(1, "exit\n", 5);
         exit(0);
     }
-    // Vérifier si la commande est "exit"
-    if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' '))
-    {
-        write(1, "exit\n", 5); // Afficher exit
-        if (line[4] != '\0' && line[5] != '\0')
-        {
-            char *arg = &line[5];
-            int i = 0; // Réinitialiser l'index pour vérifier les arguments
-            // Vérifier si l'argument est numérique
-            while (arg[i] && ft_isdigit(arg[i]))
-                i++;
-            if (arg[i] != '\0') // Si ce n'est pas un argument numérique valide
-            {
-                fprintf(stderr, "Exit : %s : numeric argument required\n", arg);
-                exit(255);
-            }
-            exit(ft_atoi(arg)); // Convertir l'argument en entier et quitter
-        }
-        exit(0); // Quitter avec succès
+
+    if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' ')) {
+        write(1, "exit\n", 5);
+        exit(ctx.exit_status);
     }
-    // Si la ligne n'est pas vide, traiter la ligne
+
     if (*line)
-        handle_line(line, env, &ctx); // Passez ctx ici
-    free(line); // Libérer la mémoire allouée pour la ligne
+        handle_line(line, env, &ctx);
+    free(line);
+    return ctx.exit_status;
 }
 
 
@@ -291,10 +319,11 @@ void read_and_exec(char **env)
 // 	free(line);
 // }
 
-void	loop(char **env)
+int	loop(char **env)
 {
 	// int exit_status = 0;
 
 	while (1)
 		read_and_exec(env);
+	return (0);
 }

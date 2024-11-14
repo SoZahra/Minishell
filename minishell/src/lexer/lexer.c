@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 17:45:30 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/14 11:58:03 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,31 +14,60 @@
 
 t_token	*parse_command_line(char *line)
 {
-	t_token	*token_list;
+	t_token	*token_list = NULL;
 	char	buffer[1024];
-	int		i;
-	int		in_quotes;
-	char	quote_char;
+	int		i = 0;
+	int		in_quotes = 0;
+	char	quote_char = 0;
 
-	token_list = NULL;
-	i = 0;
-	in_quotes = 0;
-	quote_char = 0;
 	while (*line)
 	{
-		if (handle_quotes(&line, &in_quotes, &quote_char, buffer, &i,
-				&token_list))
-			continue ;
+		if (handle_quotes(&line, &in_quotes, &quote_char, buffer, &i, &token_list))
+			continue;
 		if (handle_whitespace(&line, buffer, &i, &token_list, in_quotes))
-			continue ;
+			continue;
 		if (handle_special_chars(&line, buffer, &i, &token_list, in_quotes))
-			continue ;
+			continue;
+		if ((*line == '"' && *(line + 1) == '"') || (*line == '\'' && *(line + 1) == '\''))
+		{
+			line += 2;
+			continue;
+		}
 		buffer[i++] = *line++;
 	}
 	if (finalize_tokens(in_quotes, quote_char, buffer, &i, &token_list) == -1)
 		return (NULL);
 	return (token_list);
 }
+
+
+// t_token	*parse_command_line(char *line)
+// {
+// 	t_token	*token_list;
+// 	char	buffer[1024];
+// 	int		i;
+// 	int		in_quotes;
+// 	char	quote_char;
+
+// 	token_list = NULL;
+// 	i = 0;
+// 	in_quotes = 0;
+// 	quote_char = 0;
+// 	while (*line)
+// 	{
+// 		if (handle_quotes(&line, &in_quotes, &quote_char, buffer, &i,
+// 				&token_list))
+// 			continue ;
+// 		if (handle_whitespace(&line, buffer, &i, &token_list, in_quotes))
+// 			continue ;
+// 		if (handle_special_chars(&line, buffer, &i, &token_list, in_quotes))
+// 			continue ;
+// 		buffer[i++] = *line++;
+// 	}
+// 	if (finalize_tokens(in_quotes, quote_char, buffer, &i, &token_list) == -1)
+// 		return (NULL);
+// 	return (token_list);
+// }
 
 t_token	*add_pipe_token(t_token **head, t_token **tail)
 {
@@ -56,7 +85,7 @@ t_token	*add_pipe_token(t_token **head, t_token **tail)
 	return (n_token);
 }
 
-void	process_token(t_token **head, t_token **tail, char *start, char *ptr,
+int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 		int first_token)
 {
 	char	*token_str;
@@ -64,12 +93,13 @@ void	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 	(void)tail;
 	token_str = ft_strndup(start, ptr - start);
 	if (!token_str)
-		return ;
+		return (0);
 	if (first_token)
 		add_token(head, TOKEN_COMMAND, token_str);
 	else
 		add_token(head, TOKEN_ARGUMENT, token_str);
 	free(token_str);
+	return (0);
 }
 
 void	handle_token(t_token **head, t_token **tail, char **ptr,

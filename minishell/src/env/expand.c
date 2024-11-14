@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 15:39:43 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/13 11:39:41 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ char *expand_env_var(char *token, int *exit_status)
 // Fonction pour obtenir la partie avant le caractère `$`
 char *ps_get_before_env(char *str, char *found)
 {
-    return ft_strndup(str, found - str); // Copie jusqu'au `$`
+    return (ft_strndup(str, found - str)); // Copie jusqu'au `$`
 }
 
 // Fonction pour obtenir la valeur de la variable d'environnement ou une chaîne vide si elle n'existe pas
@@ -99,8 +99,7 @@ char *ps_convert_to_env(char *str, char *found, t_ctx *ctx)
 
     if (!before_env || !env_var || !after_env)
     {
-        // Libérer tous les pointeurs s'ils sont non nuls
-        if (before_env)
+        if (before_env)// Libérer tous les pointeurs s'ils sont non nuls
             free(before_env);
         if (env_var)
             free(env_var);
@@ -152,57 +151,111 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx)
 {
     (void)ctx;
 
-    while (tokens)
-    {
+    while (tokens) {
         char *token = tokens->value;
         char *result = NULL;
-        int i = 0;
-        while (token[i] != '\0') {
+
+        for (int i = 0; token[i] != '\0'; i++)
+        {
             if (token[i] == '$') {
+                // Si le prochain caractère est un guillemet, on ajoute `$` comme une chaîne et on ignore l'expansion
+                if (token[i + 1] == '"') {
+                    char single_char[2] = {'$', '\0'};
+                    char *tmp = result;
+                    result = ft_strjoin(result ? result : "", single_char);
+                    free(tmp);
+                    continue; // Passez au caractère suivant
+                }
                 char *var_start = &token[i + 1];
                 int j = 0;
-
-                // Identifie la fin de la variable
-                while (isalpha(var_start[j]) || var_start[j] == '_') {
+                while (ft_isalpha(var_start[j]) || var_start[j] == '_')
                     j++;
-                }
-                if (j > 0) {
-                    // Copie le nom de la variable et récupère sa valeur
+                if (j > 0)
+                {
                     char var_name[j + 1];
                     strncpy(var_name, var_start, j);
                     var_name[j] = '\0';
                     char *env_value = getenv(var_name);
-
-                    // Concatène la valeur de la variable si elle est définie
-                    char *tmp = result;
-                    result = ft_strjoin(result ? result : "", env_value ? env_value : "");
-                    free(tmp);
-                    // Avance l'index pour sauter le nom de la variable
-                    i += j + 1;
-                } else {
-                    // Si le caractère suivant `$` n'est pas une lettre valide pour une variable
-                    // Ajouter `$` au résultat
-                    char single_char[2] = {token[i], '\0'};
-                    char *tmp = result;
-                    result = ft_strjoin(result ? result : "", single_char);
-                    free(tmp);
-                    i++;
+                    if (env_value)
+                    {
+                        char *tmp = result;
+                        result = ft_strjoin(result ? result : "", env_value);
+                        free(tmp);
+                    }
+                    i += j;
                 }
-            } else {
-                // Concatène les autres caractères
+            }
+            else
+            {
+                // Ajoutez les autres caractères directement dans la chaîne de résultat
                 char single_char[2] = {token[i], '\0'};
                 char *tmp = result;
                 result = ft_strjoin(result ? result : "", single_char);
                 free(tmp);
-                i++;
             }
         }
-        // Met à jour le token avec le résultat final
         free(tokens->value);
         tokens->value = result;
         tokens = tokens->next;
     }
 }
+
+
+// void ps_expand_env(t_token *tokens, t_ctx *ctx)
+// {
+//     (void)ctx;
+
+//     while (tokens)
+//     {
+//         char *token = tokens->value;
+//         char *result = NULL;
+//         int i = 0;
+//         while (token[i] != '\0') {
+//             if (token[i] == '$') {
+//                 char *var_start = &token[i + 1];
+//                 int j = 0;
+
+//                 // Identifie la fin de la variable
+//                 while (isalpha(var_start[j]) || var_start[j] == '_') {
+//                     j++;
+//                 }
+//                 if (j > 0) {
+//                     // Copie le nom de la variable et récupère sa valeur
+//                     char var_name[j + 1];
+//                     strncpy(var_name, var_start, j);
+//                     var_name[j] = '\0';
+//                     char *env_value = getenv(var_name);
+
+//                     // Concatène la valeur de la variable si elle est définie
+//                     char *tmp = result;
+//                     result = ft_strjoin(result ? result : "", env_value ? env_value : "");
+//                     free(tmp);
+//                     // Avance l'index pour sauter le nom de la variable
+//                     i += j + 1;
+//                 } else {
+//                     // Si le caractère suivant `$` n'est pas une lettre valide pour une variable
+//                     // Ajouter `$` au résultat
+//                     char single_char[2] = {token[i], '\0'};
+//                     char *tmp = result;
+//                     result = ft_strjoin(result ? result : "", single_char);
+//                     free(tmp);
+//                     i++;
+//                 }
+//             } else {
+//                 // Concatène les autres caractères
+//                 char single_char[2] = {token[i], '\0'};
+//                 char *tmp = result;
+//                 result = ft_strjoin(result ? result : "", single_char);
+//                 free(tmp);
+//                 i++;
+//             }
+//         }
+//         // Met à jour le token avec le résultat final
+//         free(tokens->value);
+//         tokens->value = result;
+//         tokens = tokens->next;
+//     }
+// }
 
 
 
