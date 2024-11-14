@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/12 14:28:17 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/14 15:23:09 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,16 +100,17 @@ void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 void					split_env_v(const char *input, char **var,
 							char **value);
-int						exec_builtin_cmd(char **args, char **env);
+int exec_builtin_cmd(char **args, char **env);
+void print_env(char **env);
 // void					read_and_exec(char **env);
 void read_and_exec(char **env);
 int						count_tokens(t_token *tokens);
 
 /// env/enc.c
 
-int						export_v(char ***env_copy, const char *var,
+int						export_v(char **env_copy, const char *var,
 							const char *value);
-int						unset_v(char ***env_copy, const char *var);
+int						unset_v(char **env_copy, const char *var);
 
 /// env/utils_env.c
 
@@ -121,7 +122,7 @@ int						is_valid_id(const char *var);
 
 char					*expand_env_var(char *token, int *exit_status);
 char *ps_get_before_env(char *str, char *found);
-char *ps_get_env_var(char *var_name, t_ctx *ctx);
+char	*ps_get_env_var(char *var_name, t_ctx *ctx, char **env);
 char *ps_get_after_env(char *found) ;
 char *ps_convert_to_env(char *str, char *found, t_ctx *ctx);
 int ft_count_exp(char *str);

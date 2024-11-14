@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/11 17:10:49 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/14 15:50:55 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,17 @@ int count_tokens(t_token *tokens)
     return (count);
 }
 
+void print_env(char **env)
+{
+    int i = 0;
+
+    while (env && env[i]) // Boucle tant que les éléments sont valides
+    {
+        printf("%s\n", env[i]);
+        i++;
+    }
+}
+
 void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
 {
     char **args;
@@ -112,7 +123,10 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
         return;
     }
     // 3. Vérifier si la commande est une commande interne (builtin)
-    if (exec_builtin_cmd(args, env)) {
+    if (exec_builtin_cmd(args, env)) 
+	{
+        ps_expand_env(tokens, ctx, env);
+		fprintf(stderr, "am i inside builtin ?\n");
         free(args);
         return;
     }
@@ -194,7 +208,7 @@ void split_env_v(const char *input, char **var, char **value)
 	}
 }
 
-int exec_builtin_cmd(char **args, char **env)
+/* int exec_builtin_cmd(char **args, char **env)
 {
 	if(ft_strcmp(args[0], "export") == 0 && args[1])
 	{
@@ -217,6 +231,53 @@ int exec_builtin_cmd(char **args, char **env)
 	if (ft_strcmp(args[0], "cd") == 0)
 		return (ft_cd(args), 1);
 	return (0);
+} */
+
+int exec_builtin_cmd(char **args, char **env)
+{
+    int i;
+
+    fprintf(stderr, "It went in\n\n");
+    if (ft_strcmp(args[0], "export") == 0 && args[1])
+    {
+        i = 1;
+        while (args[i])
+        {
+            char *var = NULL;
+            char *value = NULL;
+            split_env_v(args[i], &var, &value);
+
+            if (var && is_valid_id(var))
+            {
+                if (value)
+                    export_v(env, var, value);
+                else
+                    export_v(env, var, "");
+            }
+            else
+            {
+                fprintf(stderr, "Invalid character in variable name: %s\n", args[i]);
+            }
+            free(var);
+            free(value);
+            i++;
+        }
+		fprintf(stderr, "Test 1 before print_env\n\n");
+        //print_env(*env);  // Affiche l'environnement après l'export
+        return 1;
+    }
+    if (ft_strcmp(args[0], "unset") == 0 && args[1])
+        return (unset_v(env, args[1]), 1);
+    if (ft_strcmp(args[0], "cd") == 0)
+        return (ft_cd(args), 1);
+    if (ft_strcmp(args[0], "env") == 0)
+    {
+		fprintf(stderr, "Test 2 before second print_env\n\n");
+        print_env(env);  // Utilise *env pour afficher l'environnement actuel
+        fprintf(stderr, "It didn't crashed ! \n\n");
+        return 1;
+    }
+    return 0;
 }
 
 void read_and_exec(char **env)
