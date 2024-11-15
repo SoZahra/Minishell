@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 15:23:09 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 18:00:10 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,11 @@ typedef struct s_ctx
 	int exit_status;
 } t_ctx;
 
+typedef struct s_var
+{
+    char **env;
+} t_var;
+
 typedef enum token_type
 {
 	TOKEN_COMMAND,
@@ -86,8 +91,8 @@ void					handle_child(t_token *cmd_tokens, int fd_in,
 void					handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
 // void					handle_line(char *line, char **env);
 
-void					loop(char **env);
-void handle_line(char *line, char **env, t_ctx *ctx);
+void					loop(t_var *myEnv);
+void handle_line(char *line, t_var *myEnv, t_ctx *ctx);
 
 /// loop/read.c
 
@@ -97,18 +102,18 @@ void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 // void					exec_simple_cmd(t_token *tokens, char **env);
 // void					exec_simple_cmd(t_token *tokens, char **env,
 // 							int *exit_status);
-void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
+void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
 void					split_env_v(const char *input, char **var,
 							char **value);
-int exec_builtin_cmd(char **args, char **env);
+int exec_builtin_cmd(char **args, t_var *myEnv);
 void print_env(char **env);
 // void					read_and_exec(char **env);
-void read_and_exec(char **env);
+void read_and_exec(t_var *myEnv);
 int						count_tokens(t_token *tokens);
 
 /// env/enc.c
 
-int						export_v(char **env_copy, const char *var,
+char					**export_v(char **env_copy, const char *var,
 							const char *value);
 int						unset_v(char **env_copy, const char *var);
 
@@ -128,7 +133,7 @@ char *ps_convert_to_env(char *str, char *found, t_ctx *ctx);
 int ft_count_exp(char *str);
 int ps_handle_env(t_token *token, t_ctx *ctx);
 // void ps_expand_env(t_token *tokens, t_ctx *ctx);
-void ps_expand_env(t_token *token, t_ctx *ctx, char **env);
+void ps_expand_env(t_token *token, t_ctx *ctx, t_var *myEnv);
 char *ps_strjoin(char *s1, const char *s2);
 
 /// loop->parsing

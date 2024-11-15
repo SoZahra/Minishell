@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 11:41:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 15:32:34 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 17:31:56 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,9 +84,9 @@ char	**get_environment(char **envp)
 } */
 
 
-int export_v(char **env_copy, const char *var, const char *value)
+char **export_v(char **env_copy, const char *var, const char *value)
 {
-    int i = 0;
+    size_t i = 0;
     size_t len = ft_strlen(var);
     char *new_var;
     char *new_entry;
@@ -102,50 +102,50 @@ int export_v(char **env_copy, const char *var, const char *value)
             new_var = ft_strjoin(var, "=");
             if (!new_var) {
                 perror("Allocation failed for new_var");
-                return -1;
+                return NULL;
             }
             env_copy[i] = ft_strjoin(new_var, value);
             free(new_var);
             if (!env_copy[i]) {
                 perror("Allocation failed for env value");
-                return -1;
+                return NULL;
             }
-            return 0;
         }
         i++;
     }
     new_var = ft_strjoin(var, "=");
     if (!new_var) {
         perror("Allocation failed for new_var");
-        return -1;
+        return NULL;
     }
     new_entry = ft_strjoin(new_var, value);
     free(new_var);
     if (!new_entry) {
         perror("Allocation failed for new_entry");
-        return -1;
+        return NULL;
     }
     size_t env_size = i;
-    char **new_env = malloc((env_size + 2) * sizeof(char *));
+    char **new_env = malloc((env_size + 1) * sizeof(char *));
     if (!new_env)
     {
         free(new_env);
         perror("malloc failed");
-        return -1;
+        return NULL;
     }
-    for (size_t i = 0; i < env_size; i++) {
+    i = -1;
+    while (++i < env_size) {
         new_env[i] = env_copy[i];
     }
-    new_env[env_size] = new_entry;
-    new_env[env_size + 1] = NULL;
-    //free(env_copy);
+    new_env[i++] = new_entry;
+    new_env[i] = NULL;
+    free(env_copy);
     env_copy = new_env;
-    printf("Environment after export:\n");
-    for (int j = 0; env_copy[j]; j++) {
-        printf("env[%d] = %s\n", j, env_copy[j]);
-    }
-    fprintf(stderr, "env_copy last value, %s \n\n", env_copy[env_size + 1]);
-    return 0;
+    // printf("Environment after export:\n");
+    // for (int j = 0; env_copy[j]; j++) {
+    //     printf("env[%d] = %s\n", j, env_copy[j]);
+    // }
+    // fprintf(stderr, "(env_copy) last value, %s \n\n", env_copy[env_size + 1]);
+    return env_copy;
 }
 
 int unset_v(char **env_copy, const char *var)

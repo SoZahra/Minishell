@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/04 14:26:32 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 17:49:00 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void process_tokens(t_token *cmd_tokens, int num_pipes)
     }
 }
 
-void loop(char **env)
+void loop2(char **env)
 {
     char *line;
     t_token *tokens;

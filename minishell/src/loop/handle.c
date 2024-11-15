@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:06:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 14:28:27 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 17:59:05 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void	handle_parent(int pipe_fd[2], int *fd_in, pid_t pid)
 // 	}
 // }
 
-void handle_line(char *line, char **env, t_ctx *ctx)
+void handle_line(char *line, t_var *myEnv, t_ctx *ctx)
 {
     t_token *tokens;
 
@@ -70,9 +70,9 @@ void handle_line(char *line, char **env, t_ctx *ctx)
         }
         print_tokens(tokens);
         if (contains_pipe(tokens))
-            process_pline(tokens, env);
+            process_pline(tokens, myEnv->env);
         else
-            exec_simple_cmd(tokens, env, ctx); // Passer le contexte ici
+            exec_simple_cmd(tokens, myEnv, ctx); // Passer le contexte ici
         free_tokens(tokens);
         init_sig();
     }

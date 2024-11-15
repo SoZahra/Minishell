@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/13 16:54:47 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 17:54:28 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,7 +159,7 @@ void	append_env_value(char **result, char *env_value)
 }
 
 ///j'ai mis une taille fixe a voir si ca passe, le mettre en define c'est mieux
-int	expand_variable(char *token, char **result, int i, char **env)
+int	expand_variable(char *token, char **result, int i, t_var *myEnv)
 {
 	char	var_name[256];
 	char	*var_start;
@@ -170,7 +170,7 @@ int	expand_variable(char *token, char **result, int i, char **env)
 	j = extract_var_name(var_start, var_name);
 	if (j > 0)
 	{
-		env_value = find_in_env(var_name, env);
+		env_value = find_in_env(var_name, myEnv->env);
 		append_env_value(result, env_value);
 		return (j + 1);
 	}
@@ -193,7 +193,7 @@ int	append_character(char c, char **result)
 	return (1);
 }
 
-void	ps_expand_env(t_token *tokens, t_ctx *ctx, char **env)
+void	ps_expand_env(t_token *tokens, t_ctx *ctx, t_var *myEnv)
 {
 	char	*token;
 	char	*result;
@@ -208,7 +208,7 @@ void	ps_expand_env(t_token *tokens, t_ctx *ctx, char **env)
 		while (token[i] != '\0')
 		{
 			if (token[i] == '$')
-				i += expand_variable(token, &result, i, env);
+				i += expand_variable(token, &result, i, myEnv);
 			else
 				i += append_character(token[i], &result);
 		}

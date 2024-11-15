@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 14:37:35 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 17:50:48 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,7 @@ int ps_handle_env(t_token *token, t_ctx *ctx)
     return 0;
 }
 
-void ps_expand_env(t_token *tokens, t_ctx *ctx, char **env) //#to do # add char **env and reproduce getenv with the env used by the miniBG
+void ps_expand_env2(t_token *tokens, t_ctx *ctx, t_var *myEnv) //#to do # add char **env and reproduce getenv with the env used by the miniBG
 {
     (void)ctx;
 
@@ -167,7 +167,7 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx, char **env) //#to do # add char 
                     char var_name[j + 1];
                     strncpy(var_name, var_start, j);
                     var_name[j] = '\0';
-                    char * env_value = find_in_env(var_name, env);
+                    char *env_value = find_in_env(var_name, myEnv->env);
                     char *tmp = result;
                     result = ft_strjoin(result ? result : "", env_value ? env_value : "");
                     free(tmp);

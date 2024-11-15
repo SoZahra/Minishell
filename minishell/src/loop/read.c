@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 15:50:55 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/15 18:00:22 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,13 +108,13 @@ void print_env(char **env)
     }
 }
 
-void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
+void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
 {
     char **args;
     pid_t pid;
 
     // 1. Étendre les variables d'environnement dans chaque token
-    ps_expand_env(tokens, ctx, env); // Passer les tokens à ps_expand_env pour traiter l'expansion
+    ps_expand_env(tokens, ctx, myEnv); // Passer les tokens à ps_expand_env pour traiter l'expansion
     // 2. Préparer les arguments après l'expansion
 	fprintf(stderr, "am i in ?\n");
     args = prepare_args(tokens, &ctx->exit_status); // Passer les tokens ici, pas une chaîne de caractères
@@ -123,10 +123,10 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
         return;
     }
     // 3. Vérifier si la commande est une commande interne (builtin)
-    if (exec_builtin_cmd(args, env)) 
+    if (exec_builtin_cmd(args, myEnv)) 
 	{
-        ps_expand_env(tokens, ctx, env);
-		fprintf(stderr, "am i inside builtin ?\n");
+        ps_expand_env(tokens, ctx, myEnv);
+        print_env(myEnv->env);
         free(args);
         return;
     }
@@ -140,7 +140,7 @@ void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     if (pid == 0)
 	{
         // Processus enfant: exécuter la commande
-        exec(tokens, env); // Assurez-vous que cette fonction exécute correctement `execve`
+        exec(tokens, myEnv->env); // Assurez-vous que cette fonction exécute correctement `execve`
         free(args); // Libérer les arguments dans le processus enfant aussi
         exit(0);
     }
@@ -233,11 +233,11 @@ void split_env_v(const char *input, char **var, char **value)
 	return (0);
 } */
 
-int exec_builtin_cmd(char **args, char **env)
+int exec_builtin_cmd(char **args, t_var *myEnv)
 {
     int i;
 
-    fprintf(stderr, "It went in\n\n");
+    fprintf(stderr, "It went in2\n\n");
     if (ft_strcmp(args[0], "export") == 0 && args[1])
     {
         i = 1;
@@ -249,10 +249,11 @@ int exec_builtin_cmd(char **args, char **env)
 
             if (var && is_valid_id(var))
             {
-                if (value)
-                    export_v(env, var, value);
+                if (value){
+                    myEnv->env = export_v(myEnv->env, var, value);
+                }
                 else
-                    export_v(env, var, "");
+                    myEnv->env = export_v(myEnv->env, var, "");
             }
             else
             {
@@ -263,24 +264,24 @@ int exec_builtin_cmd(char **args, char **env)
             i++;
         }
 		fprintf(stderr, "Test 1 before print_env\n\n");
-        //print_env(*env);  // Affiche l'environnement après l'export
+        // print_env(env);  // Affiche l'environnement après l'export
         return 1;
     }
     if (ft_strcmp(args[0], "unset") == 0 && args[1])
-        return (unset_v(env, args[1]), 1);
+        return (unset_v(myEnv->env, args[1]), 1);
     if (ft_strcmp(args[0], "cd") == 0)
         return (ft_cd(args), 1);
     if (ft_strcmp(args[0], "env") == 0)
     {
 		fprintf(stderr, "Test 2 before second print_env\n\n");
-        print_env(env);  // Utilise *env pour afficher l'environnement actuel
+        print_env(myEnv->env);  // Utilise *env pour afficher l'environnement actuel
         fprintf(stderr, "It didn't crashed ! \n\n");
         return 1;
     }
     return 0;
 }
 
-void read_and_exec(char **env)
+void read_and_exec(t_var *myEnv)
 {
     char *line;
     t_ctx ctx; // Déclarez une variable de type t_ctx
@@ -314,7 +315,7 @@ void read_and_exec(char **env)
     }
     // Si la ligne n'est pas vide, traiter la ligne
     if (*line)
-        handle_line(line, env, &ctx); // Passez ctx ici
+        handle_line(line, myEnv, &ctx); // Passez ctx ici
     free(line); // Libérer la mémoire allouée pour la ligne
 }
 
@@ -353,10 +354,10 @@ void read_and_exec(char **env)
 // 	free(line);
 // }
 
-void	loop(char **env)
+void	loop(t_var *myEnv)
 {
 	// int exit_status = 0;
-
+    write(2, "ON EST LA OU PAS", strlen("ON EST LA OU PAS"));
 	while (1)
-		read_and_exec(env);
+		read_and_exec(myEnv);
 }
