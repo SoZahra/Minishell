@@ -33,7 +33,7 @@ typedef struct s_env_var
 typedef struct s_ctx
 {
     t_env_var *env_vars;  // Liste des variables d'environnement
-	int exit_status;
+	unsigned char exit_status;
 } t_ctx;
 
 typedef enum token_type
@@ -84,13 +84,15 @@ int	handle_special_chars(char **line, char *buffer, int *i,
 int	is_whitespace(char c);
 int	handle_space(char **ptr);
 t_token	*create_token_from_pipe(t_token **head, t_token **tail);
-t_token	*parse_command_line(char *line);
+// t_token	*parse_command_line(char *line);
+t_token	*parse_command_line(char *line, t_ctx *exit_status);
 t_token	*add_pipe_token(t_token **head, t_token **tail);
 int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 		int first_token);
 void	handle_token(t_token **head, t_token **tail, char **ptr,
 		int *first_token);
-int	handle_env_var(char **line, t_token **token_list);
+// int	handle_env_var(char **line, t_token **token_list);
+int	handle_env_var(char **line, t_token **token_list, t_ctx *exit_status);
 t_token	*lexer(const char *input);
 t_token	*create_token(t_token_type type, const char *value);
 int	add_token(t_token **head, t_token_type type, const char *value);
@@ -112,9 +114,12 @@ void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], int last_cmd);
 void	process_tokens(t_token *cmd_tokens, int num_pipes);
 int count_tokens(t_token *tokens);
 int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
-void split_env_v(const char *input, char **var, char **value);
-int exec_builtin_cmd(char **args, char **env);
+// void split_env_v(const char *input, char **var, char **value);
+// int exec_builtin_cmd(char **args, char **env);
+int split_env_v(char *arg, char **var, char **value);
+int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 int read_and_exec(char **env);
+void handle_exit_command(char *line, t_ctx *ctx);
 int	loop(char **env);
 int	validate_pipe_syntax(t_token *tokens);
 int	validate_pipes(t_token *tokens);
