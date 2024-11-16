@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/15 18:57:52 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/16 17:04:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,31 +127,30 @@ int export_v(char ***env_copy, const char *var, const char *value)
 
 int unset_v(char ***env_copy, const char *var)
 {
-	int i;
-	size_t len;
+    int i, j;
+    size_t len;
 
-	i = 0;
-	len = ft_strlen(var);
-
-	if(!env_copy || !*env_copy || !var)
-		return(fprintf(stderr, "unset_v: NULL poiter"), -1);
-	while((*env_copy)[i++])
-	{
-		if(ft_strncmp_export((*env_copy)[i], var, len) == 0 && (*env_copy)[i][len] == '=')
-		{
-			free((*env_copy)[i]);
-			while((*env_copy)[i + 1])
-			{
-				(*env_copy)[i] = (*env_copy)[i + 1];
-				i++;
-			}
-			(*env_copy)[i] = NULL;
-			return (0);
-		}
-		//i++;
-	}
-	return(0);
+    if (!env_copy || !*env_copy || !var)
+    {
+        // ctx->exit_status = 1; // Erreur sur les paramètres
+		fprintf(stderr, "unset_v: NULL pointer\n");
+        return (-1);
+    }
+    len = ft_strlen(var);
+    for (i = 0; (*env_copy)[i]; i++)
+    {
+        if (ft_strncmp_export((*env_copy)[i], var, len) == 0 && (*env_copy)[i][len] == '=')
+        {
+            free((*env_copy)[i]); // Libérer la variable trouvée
+            for (j = i; (*env_copy)[j]; j++)
+                (*env_copy)[j] = (*env_copy)[j + 1]; // Décaler les éléments suivants
+            // ctx->exit_status = 0; // Succès
+            return (0);
+        }
+    }
+    return (0);
 }
+
 
 // int unset_v(char ***env_copy, const char *var)
 // {
@@ -659,7 +658,6 @@ t_token	*lexer(const char *input)
 		}
 		handle_token(&head, &tail, &ptr, &first_token);
 	}
-
 	free(ptr);
 	return head;
 }
@@ -731,18 +729,31 @@ int	finalize_tokens(int in_quotes, char quote_char, char *buffer, int *i,
 	return (0);
 }
 
-
 void	handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
-		int last_cmd)
+		t_ctx *ctx)
 {
+	int last_cmd = 1;
+
 	if (fd_in != 0)
 		dup2(fd_in, STDIN_FILENO);
 	if (!last_cmd)
 		dup2(pipe_fd[1], STDOUT_FILENO);
 	close(pipe_fd[1]);
 	close(pipe_fd[0]);
-	exec_cmd(cmd_tokens, fd_in, pipe_fd, last_cmd);
+	exec_cmd(cmd_tokens, fd_in, pipe_fd, ctx);
 }
+
+// void	handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
+// 		int last_cmd)
+// {
+// 	if (fd_in != 0)
+// 		dup2(fd_in, STDIN_FILENO);
+// 	if (!last_cmd)
+// 		dup2(pipe_fd[1], STDOUT_FILENO);
+// 	close(pipe_fd[1]);
+// 	close(pipe_fd[0]);
+// 	exec_cmd(cmd_tokens, fd_in, pipe_fd, last_cmd);
+// }
 
 void	handle_parent(int pipe_fd[2], int *fd_in, pid_t pid)
 {
@@ -758,7 +769,6 @@ int handle_line(char *line, char **env, t_ctx *ctx)
 {
     t_token *tokens;
 
-    add_history(line);
     tokens = parse_command_line(line, ctx);
     if (tokens)
     {
@@ -769,7 +779,7 @@ int handle_line(char *line, char **env, t_ctx *ctx)
         }
         // print_tokens(tokens);
         if (contains_pipe(tokens))
-            process_pline(tokens, env);
+            process_pline(tokens, env, ctx);
         else
             exec_simple_cmd(tokens, env, ctx); // Passer le contexte ici
         free_tokens(tokens);
@@ -781,16 +791,24 @@ int	ft_cd(char **args)
 {
 	static char	*oldpwd = NULL;
 
+	if (args[1] && args[2])
+        return (fprintf(stderr, " too many arguments\n"), 1);
 	if (args[1] == NULL || ft_strcmp(args[1], "~") == 0)
-		ft_cd_home();
+	{
+		if(ft_cd_home() != 0)
+			return(1);
+	}
 	else if (ft_strcmp(args[1], "-") == 0)
-		ft_cd_oldpwd(&oldpwd);
+	{
+		if(ft_cd_oldpwd(&oldpwd) != 0)
+			return (1);
+	}
 	else
 	{
 		if (chdir(args[1]) != 0)
 		{
 			perror("cd");
-			return (0);
+			return (1);
 		}
 	}
 	ft_update_pwd(&oldpwd);
@@ -803,12 +821,9 @@ int	ft_cd_home(void)
 
 	home = getenv("HOME");
 	if (home == NULL)
-	{
-		fprintf(stderr, "cd: HOME not set\n");
-		return (0);
-	}
+		return (fprintf(stderr, "cd: HOME not set\n"), 1);
 	if (chdir(home) != 0)
-		perror("cd");
+		return(perror("cd"), 1);
 	return (0);
 }
 
@@ -888,14 +903,13 @@ void	create_pipe(int pipe_fd[2])
 	}
 }
 
-char	**prepare_print_args(t_token *cmd)
+char	**prepare_print_args(t_token *cmd, t_ctx *ctx)
 {
 	char	**args;
 	int		k;
-	int exit_status = 0;
 
 	k = 0;
-	args = prepare_args(cmd, &exit_status);
+	args = prepare_args(cmd, ctx);
 	if (args == NULL || args[0] == NULL)
 	{
 		fprintf(stderr, "Erreur lors de la preparation des args\n");
@@ -910,12 +924,13 @@ char	**prepare_print_args(t_token *cmd)
 	return (args);
 }
 
-
-void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], int last_cmd)
+void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], t_ctx *ctx)
 {
 	char	**args;
+	int last_cmd;
 
-	args = prepare_print_args(cmd);
+	last_cmd = 1;
+	args = prepare_print_args(cmd, ctx);
 	if (fd_in != 0)
 		dup2(fd_in, STDIN_FILENO);
 	if (!last_cmd)
@@ -930,7 +945,28 @@ void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], int last_cmd)
 	}
 }
 
-void	process_tokens(t_token *cmd_tokens, int num_pipes)
+// void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], int last_cmd)
+// {
+// 	char	**args;
+// 	int last_cmd;
+
+// 	last_cmd = 1;
+// 	args = prepare_print_args(cmd);
+// 	if (fd_in != 0)
+// 		dup2(fd_in, STDIN_FILENO);
+// 	if (!last_cmd)
+// 		dup2(pipe_fd[1], STDOUT_FILENO);
+// 	close(pipe_fd[1]);
+// 	close(pipe_fd[0]);
+// 	if (execvp(args[0], args) == -1)
+// 	{
+// 		perror("Échec de exec");
+// 		free(args);
+// 		exit(EXIT_FAILURE);
+// 	}
+// }
+
+void	process_tokens(t_token *cmd_tokens, int num_pipes, t_ctx *ctx)
 {
 	int		pipe_fd[2];
 	int		fd_in;
@@ -951,7 +987,10 @@ void	process_tokens(t_token *cmd_tokens, int num_pipes)
 			exit(EXIT_FAILURE);
 		}
 		if (pid == 0)
-			handle_child(&cmd_tokens[j], fd_in, pipe_fd, j == num_pipes);
+		{
+			ctx->num_pipes = j;
+			handle_child(&cmd_tokens[j], fd_in, pipe_fd, ctx);
+		}
 		else
 			handle_parent(pipe_fd, &fd_in, pid);
 		j++;
@@ -977,7 +1016,7 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     pid_t pid;
 	int status;
 
-    args = prepare_args(tokens, (int *)&ctx->exit_status); // Passer les tokens ici, pas une chaîne de caractères
+    args = prepare_args(tokens, ctx); // Passer les tokens ici, pas une chaîne de caractères
     if (!args)
 	{
         perror("Erreur d'allocation de mémoire pour les arguments");
@@ -999,7 +1038,7 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
     }
     if (pid == 0)
 	{   // Processus enfant: exécuter la commande
-        exec(tokens, env); // Assurez-vous que cette fonction exécute correctement `execve`
+        exec(tokens, env, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
         free(args); // Libérer les arguments dans le processus enfant aussi
         exit(127);
     }
@@ -1053,10 +1092,49 @@ int split_env_v(char *arg, char **var, char **value)
     return 1; // Succès
 }
 
+int process_exit_arg(char **args, t_ctx *ctx)
+{
+    char *cleaned_arg;
+    long exit_code;
+
+    if (args[1])
+	{
+        cleaned_arg = strip_quotes(args[1]); // Supprimer les quotes
+        if (!is_numeric_argument(cleaned_arg))
+		{
+            fprintf(stderr, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
+            free(cleaned_arg);
+            ctx->exit_status = 2;
+            return 1; // Indique une sortie immédiate avec code 2
+        }
+        exit_code = ft_atoi(cleaned_arg);
+        free(cleaned_arg);
+        if (args[2])
+		{
+            fprintf(stderr, "minishell: exit: too many arguments\n");
+            ctx->exit_status = 1;
+            return 0; // Ne pas quitter immédiatement
+        }
+        ctx->exit_status = (exit_code % 256 + 256) % 256; // Calculer modulo 256
+    }
+    // Pas d'argument ou validation réussie
+    write(1, "exit\n", 5);
+    exit(ctx->exit_status);
+    return 1; // Pour respecter les conventions de retour (même si unreachable ici)
+}
+
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
-    if (ft_strcmp(args[0], "export") == 0) {
-        if (!args[1]) {
+	if(ft_strcmp(args[0], "exit") == 0)
+	{
+		if(process_exit_arg(args, ctx))
+			return (1);
+		return (1);
+	}
+    if (ft_strcmp(args[0], "export") == 0)
+	{
+        if (!args[1])
+		{
             // Cas: `export` sans argument - afficher les variables
             char **env_ptr = env;
             while (*env_ptr) {
@@ -1065,56 +1143,80 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
             }
             ctx->exit_status = 0; // Success
             return 1;
-        }
-
-        // Cas: `export` avec des arguments
-        ctx->exit_status = 0; // Initialisation: on considère que tout réussit
-        for (int i = 1; args[i]; i++) {
+        }// Cas: `export` avec des arguments
+        // ctx->exit_status = 0; // Initialisation: on considère que tout réussit
+        for (int i = 1; args[i]; i++)
+		{
             char *var = NULL;
             char *value = NULL;
-
             // Séparer la variable et la valeur
-            if (!split_env_v(args[i], &var, &value) || !is_valid_id(var)) {
+            if (!split_env_v(args[i], &var, &value) || !is_valid_id(var))
+			{
                 fprintf(stderr, "export: `%s`: not a valid identifier\n", args[i]);
                 ctx->exit_status = 1; // Échec sur cet argument
                 free(var);
                 free(value);
                 continue;
-            }
-
-            // Ajouter ou mettre à jour la variable
-            if (export_v(&env, var, value) == -1) {
+            }// Ajouter ou mettre à jour la variable
+			if(!value)
+				return (0);
+            if (export_v(&env, var, value) == -1)
+			{
                 perror("export failed");
                 ctx->exit_status = 1; // Échec de la mise à jour
             }
-
             free(var);
             free(value);
         }
-
         return 1;
     }
     if (ft_strcmp(args[0], "unset") == 0)
 	{
-        if (!args[1])
-		{            // Cas: `unset` sans arguments
-            ctx->exit_status = 0; // Succès
-            return 1;
-        }
-        // Cas: `unset` avec des arguments
-        for (int i = 1; args[i]; i++) {
-            if (!is_valid_id(args[i])) {
-                fprintf(stderr, "unset: `%s`: not a valid identifier\n", args[i]);
-                ctx->exit_status = 1; // Échec sur cet argument
-                continue;
-            }
-			if(unset_v(&env, args[i]) == -1)
-				ctx->exit_status = 1;
-            // Supprimer la variable si elle existe
-            unset_v(&env, args[i]);
-        }
-        ctx->exit_status = 0; // Succès global si aucune erreur majeure
-        return 1;
+		if (!args[1])
+		{
+			ctx->exit_status = 0; // Succès : aucun argument, rien à faire
+			return (1);
+		}
+
+		int error_occurred = 0; // Indique si une erreur s'est produite
+		for (int i = 1; args[i]; i++)
+		{
+			if (!is_valid_id(args[i]))
+			{
+				fprintf(stderr, "unset: `%s`: not a valid identifier\n", args[i]);
+				error_occurred = 1; // Une erreur est survenue
+				continue;
+			}
+			if (unset_v(&env, args[i]) == -1)
+			{
+				fprintf(stderr, "unset: error while unsetting `%s`\n", args[i]);
+            	error_occurred = 1;
+			}
+		}// Ajuster le code de sortie en fonction des erreurs
+		if (error_occurred)
+			ctx->exit_status = 1;
+		else
+			ctx->exit_status = 0;
+		return (1);
+        // if (!args[1])
+		// {            // Cas: `unset` sans arguments
+        //     ctx->exit_status = 0; // Succès
+        //     return (1);
+        // }
+        // // Cas: `unset` avec des arguments
+        // for (int i = 1; args[i]; i++) {
+        //     if (!is_valid_id(args[i])) {
+        //         fprintf(stderr, "unset: `%s`: not a valid identifier\n", args[i]);
+        //         ctx->exit_status = 1; // Échec sur cet argument
+        //         continue;
+        //     }
+		// 	if(unset_v(&env, args[i]) == -1)
+		// 		ctx->exit_status = 1;
+        //     // Supprimer la variable si elle existe
+        //     unset_v(&env, args[i]);
+        // }
+        // ctx->exit_status = 0; // Succès global si aucune erreur majeure
+        // return 1;
     }
     if (ft_strcmp(args[0], "cd") == 0) {
         if (ft_cd(args) == 0)
@@ -1123,62 +1225,29 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
             ctx->exit_status = 1; // Échec
         return 1;
     }
-
     return 0; // Pas un builtin
 }
 
-static char *strip_quotes(char*arg)
+char *strip_quotes(char *arg)
 {
-	if ((*arg == '"' || *arg == '\'') && arg[ft_strlen(arg) - 1] == *arg) {
-        char *stripped = ft_strndup(arg + 1, ft_strlen(arg) - 2);
-        return stripped;
+    if ((*arg == '"' || *arg == '\'') && arg[strlen(arg) - 1] == *arg) {
+        return ft_strndup(arg + 1, strlen(arg) - 2); // Supprimer les quotes
     }
     return ft_strdup(arg);
 }
 
-void handle_exit_command(char *line, t_ctx *ctx)
+int is_numeric_argument(const char *arg)
 {
-	char *arg;
-	char *end;
-	long exit_code;
-	char *clean_arg;
-
-	arg = line + 4;// se mettre apres le exit
-	clean_arg = strip_quotes(arg);
-	exit_code = strtol(clean_arg, &end, 10);
-	while(*arg && is_whitespace(*arg))
-		arg++;
-	if(*arg == '\0')
-	{
-		write(1, "exit\n", 5);
-		exit(ctx->exit_status);
-	}
-	free(clean_arg);
-	while(*end != '\0' && !is_whitespace(*end))
-		end++;
-	if(*end != '\0')
-	{
-		// if (ft_isdigit(*arg) || *arg == '-' || *arg == '+')
-		// {
-            // Plusieurs arguments : afficher une erreur et ne pas quitter
-            fprintf(stderr, "minishell: exit: too many arguments\n");
-            ctx->exit_status = 1;
-            return;
-        // }
-		// else
-		if(arg[0] != '+' && arg[0] != '-' && !ft_isdigit(arg[0]))
-		{
-			// printf("testttt %d", ctx->exit_status);
-            // Argument invalide : afficher une erreur et quitter avec code 2
-            fprintf(stderr, "minishell: exit: %s: numeric argument required\n", arg);
-            ctx->exit_status = 2;
-            write(1, "exit\n", 5);
-            exit(ctx->exit_status);
-        }
-	}
-	ctx->exit_status = (exit_code % 256 + 256) % 256;
-	write(1, "exit\n", 5);
-	exit(ctx->exit_status);
+    if (!arg || (*arg != '+' && *arg != '-' && !isdigit(*arg)))
+        return 0; // L'argument doit commencer par +, -, ou un chiffre
+    if (*arg == '+' || *arg == '-')
+        arg++; // Ignorer le signe initial
+    while (*arg) {
+        if (!isdigit(*arg))
+            return 0; // Tous les caractères restants doivent être numériques
+        arg++;
+    }
+    return 1;
 }
 
 int read_and_exec(char **env)
@@ -1194,21 +1263,18 @@ int read_and_exec(char **env)
             write(1, "exit\n", 5);
             exit(ctx.exit_status); // Utiliser le dernier exit_status
         }
-        if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' ')) {
-            handle_exit_command(line, &ctx);
-        }
         if (*line)
+		{
+			add_history(line);
             handle_line(line, env, &ctx);
+		}
         free(line);
     }
     return ctx.exit_status; // Retourner le dernier code de sortie
 }
 
-
 int	loop(char **env)
 {
-	// int exit_status = 0;
-
 	while (1)
 		read_and_exec(env);
 	return (0);
@@ -1401,7 +1467,7 @@ t_token	*extract_command_after(t_token *tokens)
 	return (head); // liste de tokens avant le pipe
 }
 
-int	process_pline(t_token *tokens, char **env)
+int	process_pline(t_token *tokens, char **env, t_ctx *ctx)
 {
 	int		pipe_fd[2];
 	int		status;
@@ -1417,7 +1483,7 @@ int	process_pline(t_token *tokens, char **env)
 	if (pid1 == 0) // Processus enfant 1 (avant le pipe)
 	{
 		first_cmd_t = extract_command(tokens);
-		child(first_cmd_t, pipe_fd, env);
+		child(first_cmd_t, pipe_fd, env, ctx);
 	}
 	pid2 = fork();
 	if (pid2 == -1)
@@ -1425,7 +1491,7 @@ int	process_pline(t_token *tokens, char **env)
 	if (pid2 == 0) // Processus enfant 2 (après le pipe)
 	{
 		second_cmd_t = extract_command_after(tokens);
-		parent(second_cmd_t, pipe_fd, env);
+		parent(second_cmd_t, pipe_fd, env, ctx);
 	}
 	// Fermer les deux extrémités du pipe dans le processus parent
 	close(pipe_fd[0]);
@@ -1483,14 +1549,12 @@ char	*join_path_cmd(char *path, char *cmd)
     if (!path_with_slash)
         return (NULL);
     sprintf(path_with_slash, "%s/", path);
-    full_path = malloc(strlen(path_with_slash) + strlen(cmd) + 1);
-
+    full_path = malloc(ft_strlen(path_with_slash) + ft_strlen(cmd) + 1);
     if (!full_path)
     {
         free(path_with_slash);
         return (NULL);
     }
-
     sprintf(full_path, "%s%s", path_with_slash, cmd);
     free(path_with_slash);
     return (full_path);
@@ -1527,9 +1591,9 @@ char *get_path(char *cmd, char **env)
 }
 
 
-char **prepare_args(t_token *tokens, int *exit_status)
+char **prepare_args(t_token *tokens, t_ctx *ctx)
 {
-	(void)exit_status;
+	(void)ctx;
     int count = 0;
     t_token *current = tokens;
     char **args;
@@ -1570,13 +1634,13 @@ char **prepare_args(t_token *tokens, int *exit_status)
 }
 
 
-int	exec(t_token *cmd_tokens, char **env)
+int	exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
 {
 	char	**option_cmd;
 	char	*path;
-	int exit_status = 0;
+	// int exit_status = 0;
 
-	option_cmd = prepare_args(cmd_tokens, &exit_status);
+	option_cmd = prepare_args(cmd_tokens, ctx);
 	if (!option_cmd[0])
 	{
 		fprintf(stderr, "Error: Command is empty\n");
@@ -1600,20 +1664,20 @@ int	exec(t_token *cmd_tokens, char **env)
 	return (0);
 }
 
-void	child(t_token *tokens, int *pipe_fd, char **env)
+void	child(t_token *tokens, int *pipe_fd, char **env, t_ctx *ctx)
 {
 	close(pipe_fd[0]);
 	dup2(pipe_fd[1], STDOUT_FILENO);
 	close(pipe_fd[1]);
-	exec(tokens, env);
+	exec(tokens, env, ctx);
 }
 
-void	parent(t_token *tokens, int *pipe_fd, char **env)
+void	parent(t_token *tokens, int *pipe_fd, char **env, t_ctx *ctx)
 {
 	close(pipe_fd[1]);
 	dup2(pipe_fd[0], STDIN_FILENO);
 	close(pipe_fd[0]);
-	exec(tokens, env);
+	exec(tokens, env, ctx);
 }
 
 int	validate_pipes(t_token *tokens)
