@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/15 18:00:22 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/18 15:57:07 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,27 +126,27 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     if (exec_builtin_cmd(args, myEnv)) 
 	{
         ps_expand_env(tokens, ctx, myEnv);
-        print_env(myEnv->env);
-        free(args);
+        //print_env(myEnv->env);
+        free_tab_2(args);
         return;
     }
     // 4. Fork pour exécuter la commande externe
     pid = fork();
     if (pid == -1) {
         perror("Echec fork");
-        free(args);
+        free_tab_2(args);
         exit(EXIT_FAILURE);
     }
     if (pid == 0)
 	{
         // Processus enfant: exécuter la commande
         exec(tokens, myEnv->env); // Assurez-vous que cette fonction exécute correctement `execve`
-        free(args); // Libérer les arguments dans le processus enfant aussi
+        free_tab_2(args); // Libérer les arguments dans le processus enfant aussi
         exit(0);
     }
     // 5. Processus parent: attendre la fin de la commande
     waitpid(pid, NULL, 0);
-    free(args); // Libérer les arguments après exécution
+    free_tab_2(args); // Libérer les arguments après exécution
 }
 
 // void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
@@ -290,7 +290,9 @@ void read_and_exec(t_var *myEnv)
     line = readline(PROMPT); // Afficher le prompt et lire la ligne
     if (line == NULL)
     {
-        write(1, "exit\n", 5); // Si readline échoue, affichez exit et sortez
+        write(1, "exit\n", 5);
+        free_environment(myEnv->env);
+        free(line); // Si readline échoue, affichez exit et sortez
         exit(0);
     }
     // Vérifier si la commande est "exit"
@@ -311,11 +313,13 @@ void read_and_exec(t_var *myEnv)
             }
             exit(ft_atoi(arg)); // Convertir l'argument en entier et quitter
         }
+        free_environment(myEnv->env);
         exit(0); // Quitter avec succès
     }
     // Si la ligne n'est pas vide, traiter la ligne
     if (*line)
         handle_line(line, myEnv, &ctx); // Passez ctx ici
+    //free_environment(myEnv->env);
     free(line); // Libérer la mémoire allouée pour la ligne
 }
 
@@ -357,7 +361,6 @@ void read_and_exec(t_var *myEnv)
 void	loop(t_var *myEnv)
 {
 	// int exit_status = 0;
-    write(2, "ON EST LA OU PAS", strlen("ON EST LA OU PAS"));
 	while (1)
 		read_and_exec(myEnv);
 }

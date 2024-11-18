@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/15 18:00:10 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/18 15:12:21 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,8 @@ int						unset_v(char **env_copy, const char *var);
 int						ft_strncmp_export(const char *s1, const char *s2,
 							unsigned int n);
 int						is_valid_id(const char *var);
+void 	free_environment(char **env_copy);
+
 
 /// env/expand.c
 
