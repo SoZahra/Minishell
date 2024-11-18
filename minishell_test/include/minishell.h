@@ -51,7 +51,8 @@ typedef enum token_type
 	TOKEN_REDIRECT_HEREDOC, // <<
 	TOKEN_END,
 	STRING,
-	DOUBLEQUOTE
+	DOUBLEQUOTE,
+	SINGLE_QUOTE
 }						t_token_type;
 
 typedef struct s_token
@@ -62,11 +63,14 @@ typedef struct s_token
 }						t_token;
 
 
-char	**get_environment(char **envp);
+// char	**get_environment(char **envp);
+t_env_var *get_environment(char **envp);
 int export_v(char ***env_copy, const char *var, const char *value);
 // int unset_v(char ***env_copy, const char *var);
-int unset_v(char ***env_copy, const char *var);
-char *expand_env_var(char *token, int *exit_status);
+// int unset_v(char ***env_copy, const char *var);
+// int unset_v(t_env_var **env_vars, const char *var, t_ctx *ctx);
+int unset_v(t_env_var **env_vars, const char *var);
+// char *expand_env_var(char *token, int *exit_status);
 char *ps_get_before_env(char *str, char *found);
 char *ps_get_env_var(char *var_name, t_ctx *ctx);
 char *ps_get_after_env(char *found);
@@ -76,8 +80,10 @@ int ps_handle_env(t_token *token, t_ctx *ctx);
 void ps_expand_env(t_token *tokens, t_ctx *ctx);
 int	ft_strncmp_export(const char *s1, const char *s2, unsigned int n);
 int	is_valid_id(const char *var);
-void	write_echo_content(t_token *token_list, int n_option);
-void	handle_echo(t_token *token_list);
+// void	write_echo_content(t_token *token_list, int n_option);
+void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx);
+// void	handle_echo(t_token *token_list);
+void	handle_echo(t_token *token_list, t_ctx *ctx);
 int	handle_quotes(char **line, int *in_quotes, char *quote_char, char *buffer,
 		int *i, t_token **token_list);
 int	handle_whitespace(char **line, char *buffer, int *i, t_token **token_list,
@@ -88,7 +94,8 @@ int	is_whitespace(char c);
 int	handle_space(char **ptr);
 t_token	*create_token_from_pipe(t_token **head, t_token **tail);
 // t_token	*parse_command_line(char *line);
-t_token	*parse_command_line(char *line, t_ctx *exit_status);
+// t_token	*parse_command_line(char *line, t_ctx *exit_status);
+t_token *parse_command_line(char *line, t_ctx *ctx);
 t_token	*add_pipe_token(t_token **head, t_token **tail);
 // int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 // 		int first_token);
@@ -96,10 +103,11 @@ void	process_tokens(t_token *cmd_tokens, int num_pipes, t_ctx *ctx);
 void	handle_token(t_token **head, t_token **tail, char **ptr,
 		int *first_token);
 // int	handle_env_var(char **line, t_token **token_list);
-int	handle_env_var(char **line, t_token **token_list, t_ctx *exit_status);
+int	handle_env_var(char **line, t_token **token_list, t_ctx *ctx);
 t_token	*lexer(const char *input);
 t_token	*create_token(t_token_type type, const char *value);
-int	add_token(t_token **head, t_token_type type, const char *value);
+// int	add_token(t_token **head, t_token_type type, const char *value);
+t_token *add_token(t_token **token_list, t_token_type type, const char *value);
 t_token_type	get_token_type(const char *str);
 int	finalize_tokens(int in_quotes, char quote_char, char *buffer, int *i,
 		t_token **token_list);
@@ -109,8 +117,10 @@ void	handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
 		t_ctx *ctx);
 void	handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
 int handle_line(char *line, char **env, t_ctx *ctx);
-int	ft_cd(char **args);
-int	ft_cd_home(void);
+// int	ft_cd(char **args);
+// int	ft_cd_home(void);
+int	ft_cd_home(t_ctx *ctx);
+int	ft_cd(char **args, t_ctx *ctx);
 int	ft_cd_oldpwd(char **oldpwd);
 int	ft_update_pwd(char **oldpwd);
 void	print_all_cmds(t_token *cmd_tokens, int num_pipes);
@@ -127,12 +137,14 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 int split_env_v(char *arg, char **var, char **value);
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 t_token *create_token_list(char **args);
-int read_and_exec(char **env);
+// int read_and_exec(char **env);
+int read_and_exec(char **env, t_ctx *ctx);
 char *strip_quotes(char *arg);
 int is_numeric_argument(const char *arg);
 int process_exit_arg(char **args, t_ctx *ctx);
 void handle_exit_command(char *line, t_ctx *ctx);
-int	loop(char **env);
+// int	loop(char **env);
+int	loop(char **env, t_ctx *ctx);
 int	validate_pipe_syntax(t_token *tokens);
 int	validate_pipes(t_token *tokens);
 int	exc_error(t_token *tokens);
@@ -164,6 +176,16 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 void	print_tokens(t_token *tokens);
 void	exit_error(void);
 
-char *expand_variables(const char *str, t_ctx *ctx);
+// char *expand_variables(const char *str, t_ctx *ctx);
+t_env_var *create_env_var(const char *env_entry);
+char *find_env_value(const char *name, t_env_var *env_vars);
+char **copy_envp(char **envp);
+int ft_export(t_ctx *ctx, char *key, char *value);
+void free_env_copy(char **env_copy);
+void free_env_vars(t_env_var *env_vars);
+char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type);
+
+int count_args(char **args);
+void free_args(char **args);
 
 #endif
