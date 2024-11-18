@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/16 17:04:50 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/18 13:22:00 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -270,6 +270,15 @@ int ps_handle_env(t_token *token, t_ctx *ctx)
     return 0;
 }
 
+char *find_env_value(const char *name, t_env_var *env_vars)
+{
+	while(env_vars)
+	{
+		if(ft_strcmp(env_vars->name, name) == 0)
+			return
+	}
+}
+
 
 void ps_expand_env(t_token *tokens, t_ctx *ctx)
 {
@@ -281,7 +290,8 @@ void ps_expand_env(t_token *tokens, t_ctx *ctx)
 
         for (int i = 0; token[i] != '\0'; i++)
         {
-            if (token[i] == '$') {
+            if (token[i] == '$') 
+			{
                 // Si le prochain caractère est un guillemet, on ajoute `$` comme une chaîne et on ignore l'expansion
                 if (token[i + 1] == '"') {
                     char single_char[2] = {'$', '\0'};
@@ -355,27 +365,96 @@ int	is_valid_id(const char *var)
 	}
 	return (1);
 }
-
-
-void	write_echo_content(t_token *token_list, int n_option)
+char *expand_variables(const char *str, t_ctx *ctx)
 {
-	t_token	*current = token_list;
-	int		first_arg = 1;
+    char *expanded = ft_strdup(""); // Chaîne résultante initialisée à vide
+    char *temp;
+    char buffer[1024];
+    int i = 0;
 
-	while (current)
-	{
-		if (current->value && current->value[0] != '\0') // Ignore les arguments vides
-		{
-			if (!first_arg)
-				write(STDOUT_FILENO, " ", 1); // Ajoute un espace seulement entre arguments non-vides
-			write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-			first_arg = 0;
-		}
-		current = current->next;
-	}
-	if (!n_option)
-		write(STDOUT_FILENO, "\n", 1);
+    while (*str)
+    {
+        if (*str == '$')
+        {
+            str++; // Passer le `$`
+            if (*str == '?') // Code de sortie spécial
+            {
+                char *exit_code = ft_itoa(ctx->exit_status);
+                temp = ft_strjoin(expanded, exit_code);
+                free(expanded);
+                expanded = temp;
+                free(exit_code);
+                str++;
+            }
+            else // Variables d'environnement
+            {
+                i = 0;
+                while (ft_isalnum(*str) || *str == '_')
+                    buffer[i++] = *str++;
+                buffer[i] = '\0';
+
+                char *value = getenv(buffer);
+                temp = ft_strjoin(expanded, value ? value : "");
+                free(expanded);
+                expanded = temp;
+            }
+        }
+        else
+        {
+            temp = ft_strjoin_char(expanded, *str++);
+            free(expanded);
+            expanded = temp;
+        }
+    }
+    return expanded;
 }
+
+
+void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
+{
+    t_token *current = token_list;
+    int first_arg = 1;
+
+    while (current)
+    {
+        if (current->value && current->value[0] != '\0') // Ignore les arguments vides
+        {
+            // Traiter les variables d'environnement et les codes de sortie
+            char *expanded = expand_variables(current->value, ctx);
+            if (!expanded)
+                expanded = ft_strdup(""); // Fallback si l'expansion échoue
+            if (!first_arg)
+                write(STDOUT_FILENO, " ", 1); // Ajouter un espace entre les arguments
+            write(STDOUT_FILENO, expanded, ft_strlen(expanded));
+            free(expanded);
+            first_arg = 0;
+        }
+        current = current->next;
+    }
+    if (!n_option)
+        write(STDOUT_FILENO, "\n", 1);
+}
+
+
+// void	write_echo_content(t_token *token_list, int n_option)
+// {
+// 	t_token	*current = token_list;
+// 	int		first_arg = 1;
+
+// 	while (current)
+// 	{
+// 		if (current->value && current->value[0] != '\0') // Ignore les arguments vides
+// 		{
+// 			if (!first_arg)
+// 				write(STDOUT_FILENO, " ", 1); // Ajoute un espace seulement entre arguments non-vides
+// 			write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+// 			first_arg = 0;
+// 		}
+// 		current = current->next;
+// 	}
+// 	if (!n_option)
+// 		write(STDOUT_FILENO, "\n", 1);
+// }
 
 void	handle_echo(t_token *token_list)
 {
@@ -577,55 +656,96 @@ void	handle_token(t_token **head, t_token **tail, char **ptr,
 	*first_token = 0;
 }
 
-int	handle_env_var(char **line, t_token **token_list, t_ctx *ctx)
+int handle_env_var(char **line, t_token **token_list, t_ctx *ctx)
 {
-	char	*start = *line;
-	char	*exit_code_str;
-	int		len = 1;
+    char *start = *line;
+    char *exit_code_str;
+    char *var_name;
+    char *value;
+    int len = 0;
 
-	// Vérifie si le caractère après `$` est valide pour une variable d'environnement
-	if (!ft_isalpha(start[1]) && start[1] != '_' && start[1] != '?')
-		return (0);
-	(*line)++;	// Avance après le caractère `$`
-	while (ft_isalnum(**line) || **line == '_')
-	{
-		(*line)++;
-		len++;
-	}
-	if(**line == '?')
-	{
-		exit_code_str = ft_itoa(ctx->exit_status);
-		if (!exit_code_str)
-			return (-1);
-		// Nouveau code : Vérifier les caractères qui suivent immédiatement `?`
-		(*line)++;
-		char *suffix = NULL;
-		if (ft_isalnum(**line) || **line == '_') // Si des caractères suivent `?`
-		{
-			char *start = *line;
-			while (ft_isalnum(**line) || **line == '_')
-				(*line)++;
-			suffix = ft_strndup(start, *line - start); // Extraire la suite
-		}
-		// Concaténer l'expansion et la suite (s'il y en a)
-		char *expanded_value = suffix ? ft_strjoin(exit_code_str, suffix) : ft_strdup(exit_code_str);
-		if (!expanded_value)
-			return (free(exit_code_str), free(suffix), -1);
-		add_token(token_list, TOKEN_ARGUMENT, expanded_value);
-		free(exit_code_str);
-		free(suffix);
-		free(expanded_value);
-		return (1);
-	}// Extraire le nom de la variable sans `$`
-	char *var_name = ft_strndup(start + 1, len - 1);
-	if (!var_name)
-		return (-1);
-	char *value = getenv(var_name);
-	if (value)
-		add_token(token_list, TOKEN_ARGUMENT, value);
-	free(var_name);
-	return (1); // Indique qu'un token a été traité
+    (*line)++; // Avance après le caractère `$`
+
+    // Gérer le cas spécial de `$?` (code de sortie)
+    if (**line == '?')
+    {
+        exit_code_str = ft_itoa(ctx->exit_status);
+        if (!exit_code_str)
+            return -1;
+        add_token(token_list, TOKEN_ARGUMENT, exit_code_str);
+        free(exit_code_str);
+        (*line)++;
+        return 1;
+    }
+    // Gérer le nom de variable
+    while (ft_isalnum(**line) || **line == '_')
+    {
+        (*line)++;
+        len++;
+    }
+    if (len == 0) // Si aucun caractère valide après `$`, ne rien faire
+        return 0;
+
+    var_name = ft_strndup(start + 1, len);
+    if (!var_name)
+        return -1;
+    value = getenv(var_name); // Récupérer la valeur de la variable
+    if (value)
+        add_token(token_list, TOKEN_ARGUMENT, value);
+    free(var_name);
+    return 1;
 }
+
+
+// int	handle_env_var(char **line, t_token **token_list, t_ctx *ctx)
+// {
+// 	char	*start = *line;
+// 	char	*exit_code_str;
+// 	int		len = 1;
+
+// 	// Vérifie si le caractère après `$` est valide pour une variable d'environnement
+// 	if (!ft_isalpha(start[1]) && start[1] != '_' && start[1] != '?')
+// 		return (0);
+// 	(*line)++;	// Avance après le caractère `$`
+// 	while (ft_isalnum(**line) || **line == '_')
+// 	{
+// 		(*line)++;
+// 		len++;
+// 	}
+// 	if(**line == '?')
+// 	{
+// 		exit_code_str = ft_itoa(ctx->exit_status);
+// 		if (!exit_code_str)
+// 			return (-1);
+// 		// Nouveau code : Vérifier les caractères qui suivent immédiatement `?`
+// 		(*line)++;
+// 		char *suffix = NULL;
+// 		if (ft_isalnum(**line) || **line == '_') // Si des caractères suivent `?`
+// 		{
+// 			char *start = *line;
+// 			while (ft_isalnum(**line) || **line == '_')
+// 				(*line)++;
+// 			suffix = ft_strndup(start, *line - start); // Extraire la suite
+// 		}
+// 		// Concaténer l'expansion et la suite (s'il y en a)
+// 		char *expanded_value = suffix ? ft_strjoin(exit_code_str, suffix) : ft_strdup(exit_code_str);
+// 		if (!expanded_value)
+// 			return (free(exit_code_str), free(suffix), -1);
+// 		add_token(token_list, TOKEN_ARGUMENT, expanded_value);
+// 		free(exit_code_str);
+// 		free(suffix);
+// 		free(expanded_value);
+// 		return (1);
+// 	}// Extraire le nom de la variable sans `$`
+// 	char *var_name = ft_strndup(start + 1, len - 1);
+// 	if (!var_name)
+// 		return (-1);
+// 	char *value = getenv(var_name);
+// 	if (value)
+// 		add_token(token_list, TOKEN_ARGUMENT, value);
+// 	free(var_name);
+// 	return (1); // Indique qu'un token a été traité
+// }
 
 t_token	*lexer(const char *input)
 {
@@ -648,7 +768,6 @@ t_token	*lexer(const char *input)
 			ptr++;
 			continue;
 		}
-
 		// Gestion des doubles quotes
 		if (*ptr == '"' && !in_single_quotes)
 		{
@@ -792,7 +911,7 @@ int	ft_cd(char **args)
 	static char	*oldpwd = NULL;
 
 	if (args[1] && args[2])
-        return (fprintf(stderr, " too many arguments\n"), 1);
+        ;
 	if (args[1] == NULL || ft_strcmp(args[1], "~") == 0)
 	{
 		if(ft_cd_home() != 0)
@@ -1104,7 +1223,7 @@ int process_exit_arg(char **args, t_ctx *ctx)
 		{
             fprintf(stderr, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
             free(cleaned_arg);
-            ctx->exit_status = 2;
+            ctx->exit_status = 255;
             return 1; // Indique une sortie immédiate avec code 2
         }
         exit_code = ft_atoi(cleaned_arg);
@@ -1117,11 +1236,36 @@ int process_exit_arg(char **args, t_ctx *ctx)
         }
         ctx->exit_status = (exit_code % 256 + 256) % 256; // Calculer modulo 256
     }
-    // Pas d'argument ou validation réussie
+	else 
+		ctx->exit_status = 0;
     write(1, "exit\n", 5);
     exit(ctx->exit_status);
     return 1; // Pour respecter les conventions de retour (même si unreachable ici)
 }
+
+t_token *create_token_list(char **args)
+{
+    t_token *head = NULL;
+    t_token *current = NULL;
+
+    for (int i = 0; args[i]; i++)
+    {
+        t_token *new_token = create_token(TOKEN_ARGUMENT, args[i]); // TOKEN_ARG peut être un type défini pour vos arguments
+        if (!new_token)
+        {
+            perror("create_token failed");
+            free_tokens(head); // Libérer la liste existante en cas d'erreur
+            return (NULL);
+        }
+        if (!head) // Premier élément
+            head = new_token;
+        else
+            current->next = new_token;
+        current = new_token;
+    }
+    return (head);
+}
+
 
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
@@ -1131,40 +1275,65 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 			return (1);
 		return (1);
 	}
+	if (ft_strcmp(args[0], "echo") == 0)
+	{
+		t_token *token_list = create_token_list(args + 1);
+		if(token_list)
+		{
+			handle_echo(token_list);
+			free_tokens(token_list);
+		}
+		ctx->exit_status = 0;
+		return (1);
+	}
     if (ft_strcmp(args[0], "export") == 0)
 	{
         if (!args[1])
 		{
             // Cas: `export` sans argument - afficher les variables
             char **env_ptr = env;
-            while (*env_ptr) {
+            while (*env_ptr) 
+			{
                 printf("declare -x %s\n", *env_ptr);
                 env_ptr++;
             }
             ctx->exit_status = 0; // Success
             return 1;
         }// Cas: `export` avec des arguments
-        // ctx->exit_status = 0; // Initialisation: on considère que tout réussit
         for (int i = 1; args[i]; i++)
 		{
             char *var = NULL;
             char *value = NULL;
             // Séparer la variable et la valeur
-            if (!split_env_v(args[i], &var, &value) || !is_valid_id(var))
+            if (!split_env_v(args[i], &var, &value))
 			{
-                fprintf(stderr, "export: `%s`: not a valid identifier\n", args[i]);
-                ctx->exit_status = 1; // Échec sur cet argument
+                // fprintf(stderr, "export: `%s`: not a valid identifier\n", args[i]);
+                // ctx->exit_status = 1; // Échec sur cet argument
                 free(var);
                 free(value);
+				ctx->exit_status = 1;
                 continue;
             }// Ajouter ou mettre à jour la variable
-			if(!value)
-				return (0);
-            if (export_v(&env, var, value) == -1)
+			if (!is_valid_id(var))
 			{
-                perror("export failed");
-                ctx->exit_status = 1; // Échec de la mise à jour
-            }
+				fprintf(stderr, "export: `%s`: not a valid identifier\n", var);
+				free(var);
+				free(value);
+				ctx->exit_status = 1; // Échec pour cet argument
+				continue;
+			}// Ajouter ou mettre à jour la variable dans l'environnement
+			if (export_v(&env, var, value) == -1)
+			{
+				perror("export failed");
+				ctx->exit_status = 1; // Échec de la mise à jour
+			}
+			// if(!value)
+			// 	return (0);
+            // if (export_v(&env, var, value) == -1)
+			// {
+            //     perror("export failed");
+            //     ctx->exit_status = 1; // Échec de la mise à jour
+            // }
             free(var);
             free(value);
         }
@@ -1238,12 +1407,13 @@ char *strip_quotes(char *arg)
 
 int is_numeric_argument(const char *arg)
 {
-    if (!arg || (*arg != '+' && *arg != '-' && !isdigit(*arg)))
+    if (!arg || (*arg != '+' && *arg != '-' && !ft_isdigit(*arg)))
         return 0; // L'argument doit commencer par +, -, ou un chiffre
     if (*arg == '+' || *arg == '-')
         arg++; // Ignorer le signe initial
-    while (*arg) {
-        if (!isdigit(*arg))
+    while (*arg) 
+	{
+        if (!ft_isdigit(*arg))
             return 0; // Tous les caractères restants doivent être numériques
         arg++;
     }
@@ -1718,7 +1888,6 @@ int	contains_pipe(t_token *tokens)
 	}
 	return (0);
 }
-
 
 int		g_var_global = 0;
 

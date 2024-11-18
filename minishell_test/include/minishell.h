@@ -29,7 +29,8 @@ typedef struct s_env_var
 	char				*name;
 	char				*value;
 	struct s_env_var	*next;
-}						t_env_var;
+}	
+					t_env_var;
 typedef struct s_ctx
 {
     t_env_var *env_vars;  // Liste des variables d'environnement
@@ -125,6 +126,7 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 // int exec_builtin_cmd(char **args, char **env);
 int split_env_v(char *arg, char **var, char **value);
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
+t_token *create_token_list(char **args);
 int read_and_exec(char **env);
 char *strip_quotes(char *arg);
 int is_numeric_argument(const char *arg);
@@ -161,5 +163,7 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		char **envp);
 void	print_tokens(t_token *tokens);
 void	exit_error(void);
+
+char *expand_variables(const char *str, t_ctx *ctx);
 
 #endif
