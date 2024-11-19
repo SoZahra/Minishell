@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/18 15:57:07 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/19 13:47:00 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,24 +113,19 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     char **args;
     pid_t pid;
 
-    // 1. Étendre les variables d'environnement dans chaque token
-    ps_expand_env(tokens, ctx, myEnv); // Passer les tokens à ps_expand_env pour traiter l'expansion
-    // 2. Préparer les arguments après l'expansion
+    ps_expand_env(tokens, ctx, myEnv); 
 	fprintf(stderr, "am i in ?\n");
-    args = prepare_args(tokens, &ctx->exit_status); // Passer les tokens ici, pas une chaîne de caractères
+    args = prepare_args(tokens, &ctx->exit_status);
     if (!args) {
         perror("Erreur d'allocation de mémoire pour les arguments");
         return;
     }
-    // 3. Vérifier si la commande est une commande interne (builtin)
     if (exec_builtin_cmd(args, myEnv)) 
 	{
         ps_expand_env(tokens, ctx, myEnv);
-        //print_env(myEnv->env);
         free_tab_2(args);
         return;
     }
-    // 4. Fork pour exécuter la commande externe
     pid = fork();
     if (pid == -1) {
         perror("Echec fork");
@@ -139,14 +134,12 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     }
     if (pid == 0)
 	{
-        // Processus enfant: exécuter la commande
-        exec(tokens, myEnv->env); // Assurez-vous que cette fonction exécute correctement `execve`
-        free_tab_2(args); // Libérer les arguments dans le processus enfant aussi
+        exec(tokens, myEnv->env);
+        free_tab_2(args);
         exit(0);
     }
-    // 5. Processus parent: attendre la fin de la commande
     waitpid(pid, NULL, 0);
-    free_tab_2(args); // Libérer les arguments après exécution
+    free_tab_2(args);
 }
 
 // void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
