@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 19:46:55 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:13:16 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,10 +91,8 @@ void					handle_child(t_token *cmd_tokens, int fd_in,
 void					handle_parent(int pipe_fd[2], int *fd_in, pid_t pid);
 // void					handle_line(char *line, char **env);
 
-int					loop(char **env);
-int handle_line(char *line, char **env, t_ctx *ctx);
-void					loop(t_var *myEnv);
-void handle_line(char *line, t_var *myEnv, t_ctx *ctx);
+int					loop(t_var *myEnv);
+int handle_line(char *line, t_var *myEnv, t_ctx *ctx);
 
 /// loop/read.c
 
@@ -104,15 +102,14 @@ void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 // void					exec_simple_cmd(t_token *tokens, char **env);
 // void					exec_simple_cmd(t_token *tokens, char **env,
 // 							int *exit_status);
-int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
-void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
+int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
 void					split_env_v(const char *input, char **var,
 							char **value);
-int exec_builtin_cmd(char **args, t_var *myEnv);
+int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
+int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx);
 void print_env(char **env);
 // void					read_and_exec(char **env);
-int read_and_exec(char **env);
-void read_and_exec(t_var *myEnv);
+int read_and_exec(t_var *myEnv);
 int						count_tokens(t_token *tokens);
 
 /// env/enc.c
@@ -133,7 +130,7 @@ void 	free_environment(char **env_copy);
 
 char					*expand_env_var(char *token, int *exit_status);
 char *ps_get_before_env(char *str, char *found);
-char	*ps_get_env_var(char *var_name, t_ctx *ctx, char **env);
+char	*ps_get_env_var(char *var_name, t_ctx *ctx, char	**env);
 char *ps_get_after_env(char *found) ;
 char *ps_convert_to_env(char *str, char *found, t_ctx *ctx);
 int ft_count_exp(char *str);
@@ -213,7 +210,7 @@ void					print_tokens(t_token *tokens);
 
 // pipex
 
-void	exec(t_token *cmd_tokens, char **env);
+int	exec(t_token *cmd_tokens, char **env);
 void	child(t_token *tokens, int *pipe_fd, char **env);
 void	parent(t_token *tokens, int *pipe_fd, char **env);
 size_t	ft_strlen(const char *c);
@@ -235,7 +232,7 @@ char **get_environment(char **envp);
 
 
 ///free
-void					exec(t_token *cmd_tokens, char **env);
+int					exec(t_token *cmd_tokens, char **env);
 void					child(t_token *tokens, int *pipe_fd, char **env);
 void					parent(t_token *tokens, int *pipe_fd, char **env);
 size_t					ft_strlen(const char *c);

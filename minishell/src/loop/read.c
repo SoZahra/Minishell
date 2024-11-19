@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 19:53:53 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:14:09 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void print_env(char **env)
     }
 }
 
-void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
+int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
 {
     char **args;
     pid_t pid;
@@ -120,11 +120,11 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
         perror("Erreur d'allocation de mémoire pour les arguments");
         return 0;
     }
-    if (exec_builtin_cmd(args, myEnv)) 
+    if (exec_builtin_cmd(args, myEnv, ctx)) 
 	{
         ps_expand_env(tokens, ctx, myEnv);
         free_tab_2(args);
-        return;
+        return 0;
     }
     pid = fork();
     if (pid == -1) {
@@ -140,7 +140,6 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     }
     waitpid(pid, NULL, 0);
     free_tab_2(args);
-    free(args); // Libérer les arguments après exécution
 	return 0;
 }
 
@@ -203,35 +202,7 @@ void split_env_v(const char *input, char **var, char **value)
 	}
 }
 
-int exec_builtin_cmd(char **args, char **env)
-{
-	t_ctx *ctx = NULL;
-
-	if(ft_strcmp(args[0], "export") == 0 && args[1])
-	{
-		char *var = NULL;
-		char *value = NULL;
-		split_env_v(args[1], &var, &value);
-		if(var && is_valid_id(var))
-		{
-			if(value)
-				export_v(&env, var, value);
-			else
-				export_v(&env, var, "");
-		}
-		else
-			fprintf(stderr, "not good caracter %s\n", args[1]);
-		ctx->exit_status = 0;
-		return (free(var), free(value), 1);
-	}
-	if(ft_strcmp(args[0], "unset") == 0 && args[1])
-		return (unset_v(&env, args[1]), 1);
-	if (ft_strcmp(args[0], "cd") == 0)
-		return (ft_cd(args), 1);
-	return (0);
-}
-
-int exec_builtin_cmd(char **args, t_var *myEnv)
+int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
 {
     int i;
 
@@ -256,6 +227,8 @@ int exec_builtin_cmd(char **args, t_var *myEnv)
             else
             {
                 fprintf(stderr, "Invalid character in variable name: %s\n", args[i]);
+                ctx->exit_status = 0;
+                return (free(var), free(value), 1);
             }
             free(var);
             free(value);
@@ -279,7 +252,7 @@ int exec_builtin_cmd(char **args, t_var *myEnv)
     return 0;
 }
 
-void read_and_exec(t_var *myEnv)
+int read_and_exec(t_var *myEnv)
 {
     char *line;
     t_ctx ctx;
@@ -340,10 +313,10 @@ void read_and_exec(t_var *myEnv)
 // 	free(line);
 // }
 
-int	loop(char **env)
+int	loop(t_var *myEnv)
 {
 	// int exit_status = 0;
 	while (1)
-		read_and_exec(env);
+		read_and_exec(myEnv);
 	return (0);
 }

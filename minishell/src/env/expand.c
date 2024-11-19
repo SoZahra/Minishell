@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 19:49:01 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:06:18 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 // Fonction pour obtenir la partie avant le caractère `$`
 char	*ps_get_before_env(char *str, char *found)
 {
-    return (ft_strndup(str, found - str)); // Copie jusqu'au `$`
+	return (ft_strndup(str, found - str));
 }
 
 // Fonction pour obtenir la valeur de la variable d'environnement
@@ -53,29 +53,32 @@ char	*ps_get_after_env(char *found)
 // d'exécution, les variables d'environnement, le statut de sortie, etc.
 char	*ps_convert_to_env(char *str, char *found, t_ctx *ctx)
 {
-    char *before_env = ps_get_before_env(str, found);
-    char *env_var = ps_get_env_var(found + 1, ctx); // `+1` pour ignorer le `$`
-    char *after_env = ps_get_after_env(found + 1);
+	char	*before_env;
+	char	*after_env;
+	char	*final_result;
+	char	*env_var;
+	char	*new;
 
-    if (!before_env || !env_var || !after_env)
-    {
-        if (before_env)// Libérer tous les pointeurs s'ils sont non nuls
-            free(before_env);
-        if (env_var)
-            free(env_var);
-        if (after_env)
-            free(after_env);
-        return NULL;
-    }
-    char *new = ft_strjoin(before_env, env_var);// Libération de before_env et env_var après l'utilisation
-    free(before_env);
-    free(env_var);
-    if (!new)
-        return (free(after_env), NULL);
-    char *final_result = ft_strjoin(new, after_env);
-    free(after_env);
-    free(new); // Libération de new pour éviter une fuite
-    return final_result; // Renvoie le résultat final
+	before_env = ps_get_before_env(str, found);
+	env_var = ps_get_env_var(found + 1, ctx, &before_env);
+	after_env = ps_get_after_env(found + 1);
+	if (!before_env || !env_var || !after_env)
+	{
+		if (before_env)
+			free(before_env);
+		if (env_var)
+			free(env_var);
+		if (after_env)
+			free(after_env);
+		return (NULL);
+	}
+	new = ft_strjoin(before_env, env_var);
+	free(before_env);
+	free(env_var);
+	if (!new)
+		return (free(after_env), NULL);
+	final_result = ft_strjoin(new, after_env);
+	return (free(after_env), free(new), final_result);
 }
 
 // Compte les occurrences de `$` dans une chaîne
@@ -121,57 +124,98 @@ int	ps_handle_env(t_token *token, t_ctx *ctx)
 	return (0);
 }
 
-void ps_expand_env(t_token *tokens, t_ctx *ctx)
+int	extract_var_name(char *var_start, char *var_name)
 {
-    (void)ctx;
+	int	j;
 
-    while (tokens) {
-        char *token = tokens->value;
-        char *result = NULL;
+	j = 0;
+	while (ft_isalpha(var_start[j]) || var_start[j] == '_')
+		j++;
+	ft_strncpy(var_name, var_start, j);
+	var_name[j] = '\0';
+	return (j);
+}
 
-        for (int i = 0; token[i] != '\0'; i++)
-        {
-            if (token[i] == '$') {
-                // Si le prochain caractère est un guillemet, on ajoute `$` comme une chaîne et on ignore l'expansion
-                if (token[i + 1] == '"') {
-                    char single_char[2] = {'$', '\0'};
-                    char *tmp = result;
-                    result = ft_strjoin(result ? result : "", single_char);
-                    free(tmp);
-                    continue; // Passez au caractère suivant
-                }
-                char *var_start = &token[i + 1];
-                int j = 0;
-                while (ft_isalpha(var_start[j]) || var_start[j] == '_')
-                    j++;
-                if (j > 0)
-                {
-                    char var_name[j + 1];
-                    strncpy(var_name, var_start, j);
-                    var_name[j] = '\0';
-                    char *env_value = getenv(var_name);
-                    if (env_value)
-                    {
-                        char *tmp = result;
-                        result = ft_strjoin(result ? result : "", env_value);
-                        free(tmp);
-                    }
-                    i += j;
-                }
-            }
-            else
-            {
-                // Ajoutez les autres caractères directement dans la chaîne de résultat
-                char single_char[2] = {token[i], '\0'};
-                char *tmp = result;
-                result = ft_strjoin(result ? result : "", single_char);
-                free(tmp);
-            }
-        }
-        free(tokens->value);
-        tokens->value = result;
-        tokens = tokens->next;
-    }
+void	append_env_value(char **result, char *env_value)
+{
+	char	*tmp;
+
+	tmp = *result;
+	if (env_value != NULL)
+	{
+		if (*result != NULL)
+			*result = ft_strjoin(*result, env_value);
+		else
+			*result = ft_strjoin("", env_value);
+	}
+	else
+	{
+		if (*result != NULL)
+			*result = ft_strjoin(*result, "");
+		else
+			*result = ft_strjoin("", "");
+	}
+	free(tmp);
+}
+
+///j'ai mis une taille fixe a voir si ca passe, le mettre en define c'est mieux
+int	expand_variable(char *token, char **result, int i, t_var *myEnv)
+{
+	char	var_name[256];
+	char	*var_start;
+	char	*env_value;
+	int		j;
+
+	var_start = &token[i + 1];
+	j = extract_var_name(var_start, var_name);
+	if (j > 0)
+	{
+		env_value = find_in_env(var_name, myEnv->env);
+		append_env_value(result, env_value);
+		return (j + 1);
+	}
+	return (1);
+}
+
+int	append_character(char c, char **result)
+{
+	char	single_char[2];
+	char	*tmp;
+
+	single_char[0] = c;
+	single_char[1] = '\0';
+	tmp = *result;
+	if (*result != NULL)
+		*result = ft_strjoin(*result, single_char);
+	else
+		*result = ft_strjoin("", single_char);
+	free(tmp);
+	return (1);
+}
+
+void	ps_expand_env(t_token *tokens, t_ctx *ctx, t_var *myEnv)
+{
+	char	*token;
+	char	*result;
+	int		i;
+
+	(void)ctx;
+	while (tokens)
+	{
+		token = tokens->value;
+		result = NULL;
+		i = 0;
+		while (token[i] != '\0')
+		{
+			if (token[i] == '$')
+				i += expand_variable(token, &result, i, myEnv);
+			else
+				i += append_character(token[i], &result);
+		}
+		free(tokens->value);
+		tokens->value = result;
+		tokens = tokens->next;
+	}
 }
 
 
