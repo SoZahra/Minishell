@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:07:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/30 14:51:28 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/13 11:50:10 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ char **prepare_args(t_token *tokens, int *exit_status)
 // }
 
 
-void	exec(t_token *cmd_tokens, char **env)
+int	exec(t_token *cmd_tokens, char **env)
 {
 	char	**option_cmd;
 	char	*path;
@@ -132,7 +132,7 @@ void	exec(t_token *cmd_tokens, char **env)
 	{
 		ft_cd(option_cmd);
 		free_tab_2(option_cmd);
-		return ;
+		return (0);
 	}
 	path = get_path(option_cmd[0], env);
 	if (execve(path, option_cmd, env) == -1)
@@ -142,6 +142,7 @@ void	exec(t_token *cmd_tokens, char **env)
 		exit(EXIT_FAILURE);
 	}
 	free_tab_2(option_cmd);
+	return (0);
 }
 
 void	child(t_token *tokens, int *pipe_fd, char **env)

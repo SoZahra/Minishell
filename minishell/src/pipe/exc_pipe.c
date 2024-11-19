@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 15:02:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/10/25 18:21:08 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/13 11:49:24 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ int	valide_pipes(t_token *tokens)
 	return (0);
 }
 
-void	exc_error(t_token *tokens)
+int	exc_error(t_token *tokens)
 {
 	int		pipefd[2];
 	pid_t	pid1;
@@ -69,17 +69,18 @@ void	exc_error(t_token *tokens)
 	if (pipe(pipefd) == -1)
 	{
 		perror("pipe failed");
-		return ;
+		return 0;
 	}
 	pid1 = fork();
 	if (pid1 == -1)
 	{
 		perror("fork failed");
-		return ;
+		return 0;
 	}
+	return 0;
 }
 
-void	exc_pipe(t_token *tokens)
+int	exc_pipe(t_token *tokens)
 {
 	int		pipefd[2];
 	pid_t	pid1;
@@ -92,13 +93,13 @@ void	exc_pipe(t_token *tokens)
 	if (pipe(pipefd) == -1)
 	{
 		perror("pipe failed");
-		return ;
+		return (0);
 	}
 	pid1 = fork();
 	if (pid1 == -1)
 	{
 		perror("fork failed");
-		return ;
+		return (0);
 	}
 	if (pid1 == 0)
 	{
@@ -114,7 +115,7 @@ void	exc_pipe(t_token *tokens)
 	if (pid2 == -1)
 	{
 		perror("fork failed");
-		return ;
+		return (0);
 	}
 	if (pid2 == 0)
 	{
@@ -143,4 +144,5 @@ void	exc_pipe(t_token *tokens)
 	close(pipefd[1]);
 	waitpid(pid1, &status, 0);
 	waitpid(pid2, &status, 0);
+	return(0);
 }

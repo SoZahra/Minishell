@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 13:47:00 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/19 19:53:53 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     args = prepare_args(tokens, &ctx->exit_status);
     if (!args) {
         perror("Erreur d'allocation de mémoire pour les arguments");
-        return;
+        return 0;
     }
     if (exec_builtin_cmd(args, myEnv)) 
 	{
@@ -140,6 +140,8 @@ void exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     }
     waitpid(pid, NULL, 0);
     free_tab_2(args);
+    free(args); // Libérer les arguments après exécution
+	return 0;
 }
 
 // void exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
@@ -201,8 +203,10 @@ void split_env_v(const char *input, char **var, char **value)
 	}
 }
 
-/* int exec_builtin_cmd(char **args, char **env)
+int exec_builtin_cmd(char **args, char **env)
 {
+	t_ctx *ctx = NULL;
+
 	if(ft_strcmp(args[0], "export") == 0 && args[1])
 	{
 		char *var = NULL;
@@ -217,6 +221,7 @@ void split_env_v(const char *input, char **var, char **value)
 		}
 		else
 			fprintf(stderr, "not good caracter %s\n", args[1]);
+		ctx->exit_status = 0;
 		return (free(var), free(value), 1);
 	}
 	if(ft_strcmp(args[0], "unset") == 0 && args[1])
@@ -224,7 +229,7 @@ void split_env_v(const char *input, char **var, char **value)
 	if (ft_strcmp(args[0], "cd") == 0)
 		return (ft_cd(args), 1);
 	return (0);
-} */
+}
 
 int exec_builtin_cmd(char **args, t_var *myEnv)
 {
@@ -277,8 +282,8 @@ int exec_builtin_cmd(char **args, t_var *myEnv)
 void read_and_exec(t_var *myEnv)
 {
     char *line;
-    t_ctx ctx; // Déclarez une variable de type t_ctx
-    ctx.exit_status = 0; // Initialisez le statut de sortie
+    t_ctx ctx;
+    ctx.exit_status = 0;
 
     line = readline(PROMPT); // Afficher le prompt et lire la ligne
     if (line == NULL)
@@ -288,32 +293,16 @@ void read_and_exec(t_var *myEnv)
         free(line); // Si readline échoue, affichez exit et sortez
         exit(0);
     }
-    // Vérifier si la commande est "exit"
-    if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' '))
-    {
-        write(1, "exit\n", 5); // Afficher exit
-        if (line[4] != '\0' && line[5] != '\0')
-        {
-            char *arg = &line[5];
-            int i = 0; // Réinitialiser l'index pour vérifier les arguments
-            // Vérifier si l'argument est numérique
-            while (arg[i] && ft_isdigit(arg[i]))
-                i++;
-            if (arg[i] != '\0') // Si ce n'est pas un argument numérique valide
-            {
-                fprintf(stderr, "Exit : %s : numeric argument required\n", arg);
-                exit(255);
-            }
-            exit(ft_atoi(arg)); // Convertir l'argument en entier et quitter
-        }
-        free_environment(myEnv->env);
-        exit(0); // Quitter avec succès
+
+    if (ft_strncmp(line, "exit", 4) == 0 && (line[4] == '\0' || line[4] == ' ')) {
+        write(1, "exit\n", 5);
+        exit(ctx.exit_status);
     }
-    // Si la ligne n'est pas vide, traiter la ligne
+
     if (*line)
         handle_line(line, myEnv, &ctx); // Passez ctx ici
-    //free_environment(myEnv->env);
-    free(line); // Libérer la mémoire allouée pour la ligne
+    free(line);
+    return ctx.exit_status;
 }
 
 
@@ -351,9 +340,10 @@ void read_and_exec(t_var *myEnv)
 // 	free(line);
 // }
 
-void	loop(t_var *myEnv)
+int	loop(char **env)
 {
 	// int exit_status = 0;
 	while (1)
-		read_and_exec(myEnv);
+		read_and_exec(env);
+	return (0);
 }
