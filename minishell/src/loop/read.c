@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 20:14:09 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 13:30:38 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,6 @@ int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     pid_t pid;
 
     ps_expand_env(tokens, ctx, myEnv); 
-	fprintf(stderr, "am i in ?\n");
     args = prepare_args(tokens, &ctx->exit_status);
     if (!args) {
         perror("Erreur d'allocation de mémoire pour les arguments");
@@ -202,11 +201,39 @@ void split_env_v(const char *input, char **var, char **value)
 	}
 }
 
+char *strip_quotes(char *arg)
+{
+    if ((*arg == '"' || *arg == '\'') && arg[strlen(arg) - 1] == *arg) {
+        return ft_strndup(arg + 1, strlen(arg) - 2); // Supprimer les quotes
+    }
+    return ft_strdup(arg);
+}
+
+int is_numeric_argument(const char *arg)
+{
+    if (!arg || (*arg != '+' && *arg != '-' && !ft_isdigit(*arg)))
+        return 0; // L'argument doit commencer par +, -, ou un chiffre
+    if (*arg == '+' || *arg == '-')
+        arg++; // Ignorer le signe initial
+    while (*arg)
+	{
+        if (!ft_isdigit(*arg))
+            return 0; // Tous les caractères restants doivent être numériques
+        arg++;
+    }
+    return 1;
+}
+
 int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
 {
     int i;
 
-    fprintf(stderr, "It went in2\n\n");
+    if (ft_strcmp(args[0], "exit") == 0)
+    {
+        if (process_exit_arg(args, ctx))
+            return 1;
+        return 1;
+    }
     if (ft_strcmp(args[0], "export") == 0 && args[1])
     {
         i = 1;
@@ -226,7 +253,6 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
             }
             else
             {
-                fprintf(stderr, "Invalid character in variable name: %s\n", args[i]);
                 ctx->exit_status = 0;
                 return (free(var), free(value), 1);
             }
@@ -234,7 +260,6 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
             free(value);
             i++;
         }
-		fprintf(stderr, "Test 1 before print_env\n\n");
         // print_env(env);  // Affiche l'environnement après l'export
         return 1;
     }

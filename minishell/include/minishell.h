@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 20:13:16 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 12:11:03 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,9 @@ void					split_env_v(const char *input, char **var,
 							char **value);
 int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
 int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx);
+char *strip_quotes(char *arg);
+int is_numeric_argument(const char *arg);
+int process_exit_arg(char **args, t_ctx *ctx);
 void print_env(char **env);
 // void					read_and_exec(char **env);
 int read_and_exec(t_var *myEnv);
