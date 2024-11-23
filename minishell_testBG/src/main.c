@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/21 23:17:24 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/11/23 12:14:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1177,7 +1177,6 @@ t_token *add_token(t_token **token_list, t_token_type type, const char *value)
     }
     new_token->type = type;
     new_token->next = NULL;
-
     if (!*token_list)
     {
         *token_list = new_token; // Set the head if the list is empty
@@ -1189,7 +1188,6 @@ t_token *add_token(t_token **token_list, t_token_type type, const char *value)
             current = current->next;
         current->next = new_token; // Append to the end of the list
     }
-
     return new_token; // Return the newly created token
 }
 
@@ -1844,7 +1842,7 @@ int	check_consecutive_pipes(t_token *tokens)
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
     (void)env;
-    
+
     if (!args || !args[0])
         return 0;
     if (ft_strcmp(args[0], "exit") == 0)
@@ -2245,13 +2243,9 @@ int loop_with_pipes(char **env, t_ctx *ctx)
                         exit(1); // Quitte le processus enfant si erreur
                     }
                     if (contains_pipe(tokens)) // Si des pipes sont présents
-                    {
-                        process_pline(tokens, env, ctx); // Exécuter les commandes avec pipes
-                    }
+                        process_pline(tokens, env, ctx); // Exécuter les commandes avec pipe
                     else // Pas de pipes, commande simple
-                    {
                         exec_simple_cmd(tokens, env, ctx);
-                    }
                     free_tokens(tokens);
                     exit(ctx->exit_status); // Quitter l'enfant proprement
                 }
@@ -2598,11 +2592,11 @@ t_token *get_next_command(t_token *start)
     // Avance jusqu'au prochain pipe
     while (start && start->type != TOKEN_PIPE)
         start = start->next;
-    
+
     // Si on trouve un pipe, retourne la commande suivante
     if (start && start->type == TOKEN_PIPE)
         return start->next;
-    
+
     return NULL;
 }
 
@@ -2718,7 +2712,7 @@ t_pipe_cmd *create_pipe_cmd(t_token *cmd_tokens)
         {
             if (current->next)
             {
-                new_cmd->output_fd = open(current->next->value, 
+                new_cmd->output_fd = open(current->next->value,
                     O_WRONLY | O_CREAT | O_TRUNC, 0644);
                 if (new_cmd->output_fd == -1)
                 {
@@ -2739,7 +2733,7 @@ t_pipe_cmd *create_pipe_cmd(t_token *cmd_tokens)
 char *ft_strjoin_free(char *s1, char *s2, int free_str)
 {
     char *result = ft_strjoin(s1, s2);
-    
+
     if (!result)
         return NULL;
 
@@ -2747,7 +2741,7 @@ char *ft_strjoin_free(char *s1, char *s2, int free_str)
         free(s1);
     if (free_str & 2) // Si free_str est 2 ou 3
         free(s2);
-        
+
     return result;
 }
 
@@ -2755,14 +2749,14 @@ char *ft_strjoin_char(char *str, char c)
 {
     size_t len = ft_strlen(str);
     char *result = malloc(len + 2); // +1 pour le nouveau char, +1 pour \0
-    
+
     if (!result)
         return NULL;
-        
+
     strcpy(result, str);
     result[len] = c;
     result[len + 1] = '\0';
-    
+
     free(str); // Libère la chaîne d'origine
     return result;
 }
@@ -2981,18 +2975,20 @@ void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect
     int input_fd;
 
     if (redir_token->type == TOKEN_HEREDOC)
-        input_fd = here_doc(redir_token->next->value); // Process heredoc and get input FD 
-    else 
+        input_fd = here_doc(redir_token->next->value); // Process heredoc and get input FD
+    else
     {
         input_fd = open(redir_token->next->value, O_RDONLY); // Open file for input redirection
     }
-    if (input_fd == -1) 
+    if (input_fd == -1)
     {
-    if (errno == EACCES)
-        perror("Permission denied");
-    else
-        perror("No such file or directory");
-        exit(EXIT_FAILURE);
+        if (errno == EACCES)
+            perror("Permission denied");
+        else
+        {
+            perror("No such file or directory");
+            exit(EXIT_FAILURE);
+        }
     }
     dup2(input_fd, STDIN_FILENO); // Redirect input to STDIN
     close(input_fd);
@@ -3004,9 +3000,9 @@ void handle_output_redirection(t_token *redir_token, int *redirect, int *redirec
 {
     int output_fd;
     int flags = O_WRONLY | O_CREAT;
-    
+
     flags |= (redir_token->type == TOKEN_REDIRECT_APPEND) ? O_APPEND : O_TRUNC;
-    
+
     output_fd = open(redir_token->next->value, flags, 0644);
     if (output_fd == -1)
     {
@@ -3339,7 +3335,7 @@ int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
             // Handle explicitly called directories (e.g., ./test_files)
             if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
             {
-                fprintf(stderr, "bash: %s: is a directory\n", option_cmd[0]);
+                fprintf(stderr, "bash: %s: Is a directory\n", option_cmd[0]);
                 free_tab(option_cmd);
                 exit(126);
             }
@@ -3368,7 +3364,6 @@ int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
             exit(126);
         }
     }
-
     // Find the command in PATH
     path = get_path(option_cmd[0], env);
     if (execve(path, option_cmd, env) == -1)

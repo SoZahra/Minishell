@@ -71,7 +71,7 @@ typedef struct s_token
 	struct s_token		*next;
 }						t_token;
 
-typedef struct s_pipe_cmd 
+typedef struct s_pipe_cmd
 {
     t_token *cmd;
     int input_fd;

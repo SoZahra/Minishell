@@ -1,0 +1,4 @@
+include
+libft
+Makefile
+minishell
