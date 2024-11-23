@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/23 12:08:47 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:52:50 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 // 							char **value);
 // int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
 int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx);
-int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx);
+int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 char *strip_quotes(const char *arg);
 void free_args(char **args);
 int count_args(char **args);
@@ -245,7 +245,8 @@ void					print_tokens(t_token *tokens);
 // pipex
 
 // int	exec(t_token *cmd_tokens, char **env);
-int exec(t_token *cmd_tokens, t_var *env, t_ctx *ctx);
+// int exec(t_token *cmd_tokens, t_var *env, t_ctx *ctx); #<# same here as process_pline
+int exec(t_token *cmd_tokens, char **env);
 // void	child(t_token *tokens, int *pipe_fd, char **env);
 void    child(t_token *tokens, int *pipe_fd, t_var *env, t_ctx *ctx);
 void	parent(t_token *tokens, int *pipe_fd,t_var *env, t_ctx *ctx);
@@ -261,8 +262,9 @@ void	exit_error(void);
 //char **prepare_args(t_token *tokens);
 //t_token *extract_command(t_token *tokens);
 // int process_pline(t_token *tokens, char **env);
-int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx);
+//int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx); #<# your process_pline but it doesnt compile so i'm changing it quickly
 int	**pipe_tab(t_token *tokens);
+int process_pline(t_token *tokens, t_var *myEnv);
 int	count_commands(t_token *tokens);
 char **get_environment(char **envp);
 int get_output_fd(t_token *input_token);

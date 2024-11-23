@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:06:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/23 12:25:58 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:29:40 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ int handle_line(char *line, t_var *myEnv, t_ctx *ctx)
         }
         // print_tokens(tokens);
         if (contains_pipe(tokens))
-            process_pline(tokens, myEnv, ctx);
+            process_pline(tokens, myEnv);
         else
             exec_simple_cmd(tokens, myEnv, ctx); // Passer le contexte ici
         free_tokens(tokens);

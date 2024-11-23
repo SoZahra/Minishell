@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   read.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/23 14:25:04 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:53:24 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
 		ctx->exit_status = 1;
         return 0;
     }
-    if (exec_builtin_cmd(args, myEnv, ctx))
+    if (exec_builtin_cmd(args, myEnv->env, ctx))
 	{
         free(args);
 		// ctx->exit_status = 0;
@@ -137,7 +137,7 @@ int exec_simple_cmd(t_token *tokens, t_var *myEnv, t_ctx *ctx)
     }
     if (pid == 0)
 	{   // Processus enfant: exécuter la commande
-        exec(tokens, myEnv, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
+        exec(tokens, myEnv->env); // Assurez-vous que cette fonction exécute correctement `execve`
         free(args); // Libérer les arguments dans le processus enfant aussi
         exit(127);
     }
@@ -261,9 +261,9 @@ void free_args(char **args)
     free(args);
 }
 
-int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
+int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
-    (void)myEnv;
+    // (void)myEnv;
 
     if (!args || !args[0])
         return 0;
@@ -289,12 +289,14 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
         printf("testttxxxxxxxxxxxxxx");
         if (!args[1])
         {
-            t_env_var *current = ctx->env_vars;
-            while (current)
+            int i = -1;
+            //t_env_var *current = ctx->env_vars;
+            while (env && env[++i])
             {
-                printf("declare -x %s=\"%s\"\n", current->name, current->value ? current->value : "");
-                current = current->next;
+                //printf("declare -x %s=\"%s\"\n", myEnv->env->name, myEnv->env->value ? myEnv->env->value : "");
+                env[i] = env[i + 1];
             }
+            printf("it didn3t leave \n\n");
             ctx->exit_status = 0;
             return 1;
         }

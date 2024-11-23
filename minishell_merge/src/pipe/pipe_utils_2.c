@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 14:40:45 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:27:12 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,7 +284,7 @@ void wait_for_all_children()
     while (wait(&status) > 0);
 }
 
-int process_pline(t_token *tokens, char **env) {
+int process_pline(t_token *tokens, t_var *myEnv) {
     int pipe_fd[2], prev_fd = -1;
     t_token *cmd_start = tokens;
     
@@ -296,7 +296,7 @@ int process_pline(t_token *tokens, char **env) {
             cmd_end = cmd_end->next;
 
         initialize_pipe_if_needed(pipe_fd, cmd_end);
-        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, env);
+        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, myEnv->env);
         //wait(0);  //that was useless...
 
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
