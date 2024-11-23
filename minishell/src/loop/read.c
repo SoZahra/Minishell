@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 13:30:38 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 17:17:10 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,9 +245,8 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
 
             if (var && is_valid_id(var))
             {
-                if (value){
+                if (value)
                     myEnv->env = export_v(myEnv->env, var, value);
-                }
                 else
                     myEnv->env = export_v(myEnv->env, var, "");
             }
@@ -269,9 +268,7 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
         return (ft_cd(args), 1);
     if (ft_strcmp(args[0], "env") == 0)
     {
-		fprintf(stderr, "Test 2 before second print_env\n\n");
         print_env(myEnv->env);  // Utilise *env pour afficher l'environnement actuel
-        fprintf(stderr, "It didn't crashed ! \n\n");
         return 1;
     }
     return 0;

@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 15:06:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 19:54:20 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 15:11:26 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,10 +69,9 @@ int handle_line(char *line, t_var *myEnv, t_ctx *ctx)
             return 0;
         }
         // print_tokens(tokens);
-        if (contains_pipe(tokens))
-            process_pline(tokens, myEnv->env);
-        else
-            exec_simple_cmd(tokens, myEnv, ctx); // Passer le contexte ici
+        process_pline(tokens, myEnv, ctx);
+       /*  else
+            exec_simple_cmd(tokens, myEnv, ctx); // Passer le contexte ici */
         free_tokens(tokens);
         init_sig();
     }

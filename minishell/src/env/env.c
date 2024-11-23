@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 11:41:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/18 15:11:57 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 15:56:10 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,6 @@ char **export_v(char **env_copy, const char *var, const char *value)
     {
         if (ft_strncmp_export(env_copy[i], var, len) == 0 && env_copy[i][len] == '=')
         {
-            fprintf(stderr, "why am i not in ? %s\n\ns", var);
             free(env_copy[i]);
             new_var = ft_strjoin(var, "=");
             if (!new_var) {
@@ -165,13 +164,16 @@ int unset_v(char **env_copy, const char *var)
 {
 	int i;
 	size_t len;
+    char    **to_unset;
 
 	i = 0;
-	len = ft_strlen(var);
+    to_unset = ft_split(var, 'c');
+    len = ft_strlen(to_unset[0]);
 
-	while((*env_copy)[i++])
+    
+	while(env_copy[i])
 	{
-		if(ft_strncmp_export(env_copy[i], var, len) == 0 && env_copy[i][len] == '=')
+		if(ft_strncmp_export(env_copy[i], to_unset[0], len) == 0)
 		{
 			free(env_copy[i]);
 			while(env_copy[i + 1])
@@ -182,7 +184,7 @@ int unset_v(char **env_copy, const char *var)
 			env_copy[i] = NULL;
 			return (0);
 		}
-		//i++;
+		i++;
 	}
 	return(-1);
 }

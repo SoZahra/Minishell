@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:42:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 12:11:03 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 15:09:17 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,7 @@ void	*free_tab(char **tab);
 void	exit_error(void);
 //char **prepare_args(t_token *tokens);
 //t_token *extract_command(t_token *tokens);
-int process_pline(t_token *tokens, char **env);
+int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx);
 int	**pipe_tab(t_token *tokens);
 int	count_commands(t_token *tokens);
 char **get_environment(char **envp);
@@ -248,11 +248,9 @@ void					exit_error(void);
 // char					**prepare_args(t_token *tokens);
 t_token					*extract_command(t_token *tokens);
 t_token					*extract_command_after(t_token *tokens);
-int						process_pline(t_token *tokens, char **env);
 char					**get_environment(char **envp);
 
 /// pipe_utils_2
-int						process_pline(t_token *tokens, char **env);
 void wait_for_all_children();
 void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t_token *cmd_end);
 void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, char **env);

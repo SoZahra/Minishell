@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:52:38 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 20:06:18 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 13:35:57 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ char	*ps_get_env_var(char *var_name, t_ctx *ctx, char **env)
 	char	*env_value;
 
 	if (ft_strcmp(var_name, "?") == 0)
-	{
 		return (ft_itoa(ctx->exit_status));
-	}
 	env_value = find_in_env(var_name, env);
 	if (env_value != NULL)
 		return (ft_strdup(env_value));

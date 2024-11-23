@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 14:10:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 12:00:59 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/22 13:46:57 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,19 +30,6 @@ void	write_echo_content(t_token *token_list, int n_option)
 	}
 	if (!n_option)
 		write(STDOUT_FILENO, "\n", 1);
-}
-
-void	handle_echo(t_token *token_list)
-{
-	int		n_option = 0;
-
-	// Vérifie si le premier argument est "-n" pour ne pas ajouter de saut de ligne
-	if (token_list && ft_strcmp(token_list->value, "-n") == 0)
-	{
-		n_option = 1;
-		token_list = token_list->next; // Passe au token suivant
-	}
-	write_echo_content(token_list, n_option);
 }
 
 int	handle_quotes(char **line, int *in_quotes, char *quote_char, char *buffer,

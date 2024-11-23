@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/04 15:39:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 11:58:03 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/22 13:38:42 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,6 @@ int	handle_env_var(char **ptr, t_token **head, t_token **tail, int *first_token)
 	char	*start = *ptr;
 	int		len = 1;
 
-	// Vérifier si le prochain caractère est une lettre ou un underscore
 	if (!isalpha(start[1]) && start[1] != '_')
 		return (0); // Si ce n'est pas un nom valide de variable, on retourne 0
 
@@ -130,13 +129,9 @@ int	handle_env_var(char **ptr, t_token **head, t_token **tail, int *first_token)
 		(*ptr)++;
 		len++;
 	}
-
-	// Extraire le nom de la variable (sans le '$')
 	char *var_name = ft_strndup(start + 1, len - 1);
 	if (!var_name)
 		return (-1);
-
-	// Ajouter un token pour cette variable d'environnement
 	if (*first_token)
 		add_token(head, TOKEN_COMMAND, var_name);
 	else

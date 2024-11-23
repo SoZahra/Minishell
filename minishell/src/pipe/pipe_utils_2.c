@@ -6,14 +6,11 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/14 14:40:45 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/22 19:43:35 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdlib.h>
 
 /* int process_pline(t_token *tokens, char **env)
 {
@@ -198,6 +195,13 @@ void handle_output_redirection(t_token *redir_token, int *redirect, int *redirec
     *redirect_output = 1;
 }
 
+void    skip_export(t_token *redir_token)
+{
+    while(redir_token->value != NULL || redir_token->type == TOKEN_ARGUMENT 
+    || redir_token->type == TOKEN_COMMAND)
+            redir_token = redir_token->next;
+}
+
 void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
 {
     t_token **exec_tokens_tail = exec_tokens;
@@ -205,6 +209,8 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
 
     while (redir_token != cmd_end) 
 	{
+        if (ft_strcmp(redir_token->value, "export") == 0 || ft_strcmp(redir_token->value, "unset") == 0)
+            skip_export(redir_token);
         if (redir_token->type == TOKEN_REDIRECT_INPUT || redir_token->type == TOKEN_HEREDOC) 
 		{
             handle_input_redirection(redir_token, redirect, redirect_input);
@@ -284,21 +290,28 @@ void wait_for_all_children()
     while (wait(&status) > 0);
 }
 
-int process_pline(t_token *tokens, char **env) {
-    int pipe_fd[2], prev_fd = -1;
+int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx) 
+{
+    int     pipe_fd[2], prev_fd = -1;
     t_token *cmd_start = tokens;
+    char    **args;
     
-    //signal(SIGTSTP, SIG_DFL);
+    ps_expand_env(tokens, ctx, myEnv); 
+    args = prepare_args(tokens, &ctx->exit_status);
+    if (!args)
+        return (perror("Erreur d'allocation de mémoire"), 0);
+    if (exec_builtin_cmd(args, myEnv, ctx)) 
+	{
+        ps_expand_env(tokens, ctx, myEnv);
+        free_tab_2(args);
+    }
     while (cmd_start != NULL) 
 	{
         t_token *cmd_end = cmd_start;
         while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
             cmd_end = cmd_end->next;
-
         initialize_pipe_if_needed(pipe_fd, cmd_end);
-        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, env);
-        //wait(0);  //that was useless...
-
+        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, myEnv->env);
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
     } 
     wait_for_all_children();
