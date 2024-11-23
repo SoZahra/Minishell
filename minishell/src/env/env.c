@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 11:41:18 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 15:56:10 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:46:55 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,10 +167,9 @@ int unset_v(char **env_copy, const char *var)
     char    **to_unset;
 
 	i = 0;
-    to_unset = ft_split(var, 'c');
+    to_unset = ft_split(var, '=');
     len = ft_strlen(to_unset[0]);
 
-    
 	while(env_copy[i])
 	{
 		if(ft_strncmp_export(env_copy[i], to_unset[0], len) == 0)

@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 11:37:16 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 17:17:10 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:48:10 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,11 +259,31 @@ int exec_builtin_cmd(char **args, t_var *myEnv, t_ctx *ctx)
             free(value);
             i++;
         }
-        // print_env(env);  // Affiche l'environnement après l'export
         return 1;
     }
     if (ft_strcmp(args[0], "unset") == 0 && args[1])
-        return (unset_v(myEnv->env, args[1]), 1);
+    {
+        i = 1;
+        while (args[i])
+        {
+            char *var = NULL;
+            char *value = NULL;
+            split_env_v(args[i], &var, &value);
+
+            if (var && is_valid_id(var))
+                    unset_v(myEnv->env, var);
+            else
+            {
+                ctx->exit_status = 0;
+                return (free(var), free(value), 1);
+            }
+            free(var);
+            free(value);
+            i++;
+        }
+        return 1;
+    }
+        //return (unset_v(myEnv->env, args[1]), 1);
     if (ft_strcmp(args[0], "cd") == 0)
         return (ft_cd(args), 1);
     if (ft_strcmp(args[0], "env") == 0)
