@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/25 19:01:05 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/26 18:10:14 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -722,36 +722,48 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
         }
     }
 
+
 void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
 {
     t_token *current = token_list;
     int first_arg = 1;
+    int prev_was_quote = 0;  // Flag pour suivre si le token précédent était entre quotes
+
+    // printf("\nDEBUG 5 - write_echo_content: Début du traitement echo\n");
 
     while (current)
     {
-        if (current->value && current->value[0] != '\0')
+        // printf("DEBUG 6 - write_echo_content: Traitement token type='%c', valeur='%s'\n",
+        //        (char)current->type, current->value);
+
+        // On ajoute un espace seulement si :
+        // - Ce n'est pas le premier argument
+        // - Le token précédent n'était pas entre quotes OU le token actuel n'est pas entre quotes
+        if (!first_arg && !(prev_was_quote && (current->type == '\'' || current->type == '"')))
+            write(STDOUT_FILENO, " ", 1);
+
+        if (current->type == '"')  // Double quote: On expand
         {
-            char *output;
-            if (current->type == SINGLE_QUOTE)
+            char *expanded = expand_variables(current->value, ctx, current->type);
+            if (expanded)
             {
-                // Pour les single quotes, pas d'expansion du tout
-                output = ft_strdup(current->value);
+                write(STDOUT_FILENO, expanded, ft_strlen(expanded));
+                free(expanded);
             }
-            else
-            {
-                // Pour les double quotes et les strings normaux, faire l'expansion
-                output = expand_variables(current->value, ctx, current->type);
-            }
-
-            if (!output)
-                output = ft_strdup("");
-
-            if (!first_arg)
-                write(STDOUT_FILENO, " ", 1);
-            write(STDOUT_FILENO, output, ft_strlen(output));
-            free(output);
-            first_arg = 0;
+            prev_was_quote = 1;  // Marquer que c'était une quote
         }
+        else if (current->type == '\'') // Single quote: pas d'expansion
+        {
+            write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+            prev_was_quote = 1;  // Marquer que c'était une quote
+        }
+        else // Texte normal
+        {
+            write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+            prev_was_quote = 0;  // Réinitialiser le flag
+        }
+
+        first_arg = 0;
         current = current->next;
     }
 
@@ -759,7 +771,44 @@ void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
         write(STDOUT_FILENO, "\n", 1);
 }
 
+// void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
+// {
+//     t_token *current = token_list;
+//     int first_arg = 1;
+//     int prev_was_quote = 0;
 
+//     // printf("\nDEBUG 5 - write_echo_content: Début du traitement echo\n");
+
+//     while (current)
+//     {
+//         // printf("DEBUG 6 - write_echo_content: Traitement token type='%c', valeur='%s'\n",
+//             //    (char)current->type, current->value);
+//         if (!first_arg)
+//             write(STDOUT_FILENO, " ", 1);
+
+//         if (current->type == '"')  // Double quote: On expand
+//         {
+//             char *expanded = expand_variables(current->value, ctx, current->type);
+//             // printf("DEBUG 7 - write_echo_content: Double quote, expansion: '%s' -> '%s'\n",
+//                 //    current->value, expanded ? expanded : "NULL");
+//             if (expanded)
+//             {
+//                 write(STDOUT_FILENO, expanded, ft_strlen(expanded));
+//                 free(expanded);
+//             }
+//         }
+//         else // Single quote ou texte normal: pas d'expansion
+//         {
+//             // printf("DEBUG 8 - write_echo_content: Sans expansion: '%s'\n", current->value);
+//             write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+//         }
+
+//         first_arg = 0;
+//         current = current->next;
+//     }
+//     if (!n_option)
+//         write(STDOUT_FILENO, "\n", 1);
+// }
 
 void handle_echo(t_token *token_list, t_ctx *ctx)
 {
@@ -882,58 +931,248 @@ t_token	*create_token_from_pipe(t_token **head, t_token **tail)
 //     return res;
 // }
 
+// char *get_sub_quote(char *line, int *i)
+// {
+//     char *res;
+//     int j;
+//     char quote_type;
+
+//     quote_type = line[*i];
+//     j = ++(*i);
+//     while (line[*i] && line[*i] != quote_type)
+//         (*i)++;
+//     if (!line[*i])
+//         return NULL;
+//     res = ft_substr(line, j, *i - j);
+//     return res;
+// }
+
+int check_invalid_quotes(char *line)
+{
+    char quote_type = 0;  // Garde le type de quote qu'on cherche à fermer
+    int i = 0;
+
+    while (line[i])
+    {
+        if ((line[i] == '\'' || line[i] == '"') && !quote_type)
+            quote_type = line[i];
+        else if (line[i] == quote_type)
+            quote_type = 0;
+        else if ((line[i] == '\'' || line[i] == '"') && !quote_type)
+            return 1;
+        i++;
+    }
+    if (quote_type)  // Quote non fermée
+        return 1;
+    return 0;
+}
+
 t_token *parse_command_line(char *line, t_ctx *ctx)
 {
-	(void)ctx;
+    if (check_invalid_quotes(line))
+    {
+        fprintf(stderr, "Error: quote found without matching opening quote\n");
+        return NULL;
+    }
+
     t_token *token_list = NULL;
     char buffer[1024];
     int i = 0;
-    int in_single_quotes = 0;
-    int in_double_quotes = 0;
+    int j = 0;
+    char current_quote = 0;  // Pour suivre si on est dans des quotes
+    char *temp = NULL;  // Pour joindre les tokens
+    (void)ctx;
 
-    while (*line)
+    // printf("DEBUG - Parsing: '%s'\n", line);
+
+    // Premier mot (echo)
+    while (line[i] && is_whitespace(line[i]))
+        i++;
+    while (line[i] && !is_whitespace(line[i]))
+        buffer[j++] = line[i++];
+    if (j > 0)
     {
-        // Handle single quotes
-        if (*line == '\'' && !in_double_quotes)
+        buffer[j] = '\0';
+        add_token(&token_list, 'T', buffer);
+        j = 0;
+    }
+
+    // Skip les espaces
+    while (line[i] && is_whitespace(line[i]))
+        i++;
+
+    // Traitement des autres mots
+    while (line[i])
+    {
+        if ((line[i] == '\'' || line[i] == '"') && !current_quote)
         {
-            in_single_quotes = !in_single_quotes;
-            line++;
-            continue;
-        }
-        // Handle double quotes
-        if (*line == '"' && !in_single_quotes)
-        {
-            in_double_quotes = !in_double_quotes;
-            line++;
-            continue;
-        }
-        // Handle whitespace
-        if (is_whitespace(*line) && !in_single_quotes && !in_double_quotes)
-        {
-            if (i > 0)
+            current_quote = line[i];  // Début des quotes
+            i++;
+            j = 0;  // Reset buffer
+
+            // Capture jusqu'à la quote fermante
+            while (line[i] && line[i] != current_quote)
+                buffer[j++] = line[i++];
+
+            if (!line[i])
             {
-                buffer[i] = '\0';
-                t_token *new_token = add_token(&token_list, TOKEN_ARGUMENT, buffer);
-                new_token->type = in_single_quotes ? SINGLE_QUOTE : (in_double_quotes ? DOUBLEQUOTE : STRING);
-                i = 0;
+                fprintf(stderr, "Error: unclosed quote\n");
+                free_tokens(token_list);
+                return NULL;
             }
-            line++;
-            continue;
+
+            buffer[j] = '\0';
+            // printf("DEBUG - Found quoted content: '%s' with type '%c'\n", buffer, current_quote);
+
+            // Si le prochain caractère est aussi une quote, on continue
+            if (line[i + 1] && (line[i + 1] == '\'' || line[i + 1] == '"'))
+            {
+                if (!temp)
+                    temp = ft_strdup(buffer);
+                else
+                {
+                    char *new_temp = ft_strjoin(temp, buffer);
+                    free(temp);
+                    temp = new_temp;
+                }
+            }
+            else
+            {
+                // Ajouter le token combiné ou simple
+                if (temp)
+                {
+                    char *final = ft_strjoin(temp, buffer);
+                    add_token(&token_list, current_quote, final);
+                    // printf("DEBUG - Added combined token: '%s'\n", final);
+                    free(final);
+                    free(temp);
+                    temp = NULL;
+                }
+                else
+                {
+                    add_token(&token_list, current_quote, buffer);
+                    // printf("DEBUG - Added single token: '%s'\n", buffer);
+                }
+            }
+
+            i++;  // Skip la quote fermante
+            current_quote = 0;
+            j = 0;
         }
-        // Normal characters
-        buffer[i++] = *line++;
+        else if (is_whitespace(line[i]))
+        {
+            i++;
+        }
+        else
+        {
+            // Texte normal
+            while (line[i] && !is_whitespace(line[i]) && line[i] != '\'' && line[i] != '"')
+                buffer[j++] = line[i++];
+            if (j > 0)
+            {
+                buffer[j] = '\0';
+                add_token(&token_list, 'T', buffer);
+                j = 0;
+            }
+        }
     }
 
-
-    // Add last token
-    if (i > 0)
-    {
-        buffer[i] = '\0';
-        t_token *new_token = add_token(&token_list, TOKEN_ARGUMENT, buffer);
-        new_token->type = in_single_quotes ? SINGLE_QUOTE : (in_double_quotes ? DOUBLEQUOTE : STRING);
-    }
+    if (temp)
+        free(temp);
     return token_list;
 }
+
+// t_token *parse_command_line(char *line, t_ctx *ctx)
+// {
+//     if (check_invalid_quotes(line))
+//     {
+//         fprintf(stderr, "Error: quote found without matching opening quote\n");
+//         return NULL;
+//     }
+
+//     t_token *token_list = NULL;
+//     char buffer[1024];
+//     int i = 0;
+//     int j = 0;
+//     (void)ctx;
+
+//     // Premier mot (echo)
+//     while (line[i] && is_whitespace(line[i]))
+//         i++;
+//     while (line[i] && !is_whitespace(line[i]))
+//         buffer[j++] = line[i++];
+//     if (j > 0)
+//     {
+//         buffer[j] = '\0';
+//         add_token(&token_list, 'T', buffer);
+//         j = 0;
+//     }
+
+//     // Skip les espaces
+//     while (line[i] && is_whitespace(line[i]))
+//         i++;
+
+//     // Traitement des autres mots
+//     while (line[i])  // On continue tant qu'il y a des caractères
+//     {
+//         if (line[i] == '\'')
+//         {
+//             i++;
+//             while (line[i] && line[i] != '\'')
+//                 buffer[j++] = line[i++];
+//             if (!line[i])
+//             {
+//                 fprintf(stderr, "Error: unclosed single quote\n");
+//                 free_tokens(token_list);
+//                 return NULL;
+//             }
+//             buffer[j] = '\0';
+//             add_token(&token_list, '\'', buffer);
+//             i++; // Skip la dernière quote
+//             j = 0;  // Reset le buffer pour le prochain mot
+//         }
+//         else if (line[i] == '"')
+//         {
+//             i++;
+//             while (line[i] && line[i] != '"')
+//                 buffer[j++] = line[i++];
+//             if (!line[i])
+//             {
+//                 fprintf(stderr, "Error: unclosed double quote\n");
+//                 free_tokens(token_list);
+//                 return NULL;
+//             }
+//             buffer[j] = '\0';
+//             add_token(&token_list, '"', buffer);
+//             i++;
+//             j = 0;  // Reset le buffer pour le prochain mot
+//         }
+//         else if (is_whitespace(line[i]))
+//         {
+//             if (j > 0)
+//             {
+//                 buffer[j] = '\0';
+//                 add_token(&token_list, 'T', buffer);
+//                 j = 0;
+//             }
+//             i++;
+//         }
+//         else
+//         {
+//             buffer[j++] = line[i++];
+//         }
+//     }
+
+//     // Dernier mot s'il y en a un
+//     if (j > 0)
+//     {
+//         buffer[j] = '\0';
+//         add_token(&token_list, 'T', buffer);
+//     }
+
+//     return token_list;
+// }
+
 
 t_token	*add_pipe_token(t_token **head, t_token **tail)
 {
@@ -962,9 +1201,9 @@ int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 	if (!token_str)
 		return (0);
 	if (first_token)
-		add_token(head, TOKEN_COMMAND, token_str);
+		add_token(head, STRING, token_str);
 	else
-		add_token(head, TOKEN_ARGUMENT, token_str);
+		add_token(head, STRING, token_str);
 	free(token_str);
 	return (0);
 }
@@ -1038,7 +1277,7 @@ int handle_env_var(char **line, t_token **token_list, t_ctx *ctx)
         exit_code_str = ft_itoa(ctx->exit_status);
         if (!exit_code_str)
             return -1;
-        add_token(token_list, TOKEN_ARGUMENT, exit_code_str);
+        add_token(token_list, STRING, exit_code_str);
         free(exit_code_str);
         (*line)++;
         return 1;
@@ -1060,7 +1299,7 @@ int handle_env_var(char **line, t_token **token_list, t_ctx *ctx)
 
     value = find_env_value(var_name, ctx->env_vars); // Récupérer la valeur de la variable
     if (value)
-        add_token(token_list, TOKEN_ARGUMENT, value);
+        add_token(token_list, STRING, value);
     free(var_name);
     return 1;
 }
@@ -1196,8 +1435,13 @@ t_token *add_token(t_token **token_list, t_token_type type, const char *value)
         return NULL;
     }
     new_token->value = ft_strdup(value); // Duplicate the string
-    if (!new_token->value)
+    new_token->content = ft_strdup(value); // Duplicate aussi pour content
+    if (!new_token->value || !new_token->content)
     {
+        if (new_token->value)
+            free(new_token->value);
+        if (new_token->content)
+            free(new_token->content);
         free(new_token);
         perror("ft_strdup failed");
         return NULL;
@@ -1206,49 +1450,49 @@ t_token *add_token(t_token **token_list, t_token_type type, const char *value)
     new_token->next = NULL;
     if (!*token_list)
     {
-        *token_list = new_token; // Set the head if the list is empty
+        *token_list = new_token;
     }
     else
     {
         t_token *current = *token_list;
         while (current->next)
             current = current->next;
-        current->next = new_token; // Append to the end of the list
+        current->next = new_token;
     }
-    return new_token; // Return the newly created token
+    return new_token;
 }
 
 
-t_token_type	get_token_type(const char *str)
-{
-	if (ft_strcmp(str, "|") == 0)
-		return (TOKEN_PIPE);
-	if (ft_strcmp(str, "<") == 0)
-		return (TOKEN_REDIRECT_INPUT);
-	if (ft_strcmp(str, ">") == 0)
-		return (TOKEN_REDIRECT_OUTPUT);
-	if (ft_strcmp(str, ">>") == 0)
-		return (TOKEN_REDIRECT_APPEND);
-	if (ft_strcmp(str, "<<") == 0)
-		return (TOKEN_HEREDOC);
-	return (TOKEN_ARGUMENT);
-}
+// t_token_type	get_token_type(const char *str)
+// {
+// 	if (ft_strcmp(str, "|") == 0)
+// 		return (TOKEN_PIPE);
+// 	if (ft_strcmp(str, "<") == 0)
+// 		return (TOKEN_REDIRECT_INPUT);
+// 	if (ft_strcmp(str, ">") == 0)
+// 		return (TOKEN_REDIRECT_OUTPUT);
+// 	if (ft_strcmp(str, ">>") == 0)
+// 		return (TOKEN_REDIRECT_APPEND);
+// 	if (ft_strcmp(str, "<<") == 0)
+// 		return (TOKEN_HEREDOC);
+// 	return (TOKEN_ARGUMENT);
+// }
 
-int	finalize_tokens(int in_quotes, char quote_char, char *buffer, int *i,
-		t_token **token_list)
-{
-	if (in_quotes)
-	{
-		fprintf(stderr, "Syntax error : unmatched %c\n", quote_char);
-		return (-1);
-	}
-	if (*i > 0)
-	{
-		buffer[*i] = '\0';
-		add_token(token_list, TOKEN_ARGUMENT, buffer);
-	}
-	return (0);
-}
+// int	finalize_tokens(int in_quotes, char quote_char, char *buffer, int *i,
+// 		t_token **token_list)
+// {
+// 	if (in_quotes)
+// 	{
+// 		fprintf(stderr, "Syntax error : unmatched %c\n", quote_char);
+// 		return (-1);
+// 	}
+// 	if (*i > 0)
+// 	{
+// 		buffer[*i] = '\0';
+// 		add_token(token_list, TOKEN_ARGUMENT, buffer);
+// 	}
+// 	return (0);
+// }
 
 void	handle_child(t_token *cmd_tokens, int fd_in, int pipe_fd[2],
 		t_ctx *ctx)
@@ -1326,7 +1570,7 @@ int ft_cd(char **args, t_ctx *ctx)
     }
 
     // Expansion de la variable si nécessaire
-	path = expand_variables(args[1], ctx, TOKEN_ARGUMENT);
+	path = expand_variables(args[1], ctx, STRING);
 	if (!path || ft_strlen(path) == 0) // Si l'expansion échoue ou retourne une chaîne vide
 	{
 		fprintf(stderr, "cd: %s: No such file or directoryxxxxxx\n", args[1]);
@@ -1585,6 +1829,44 @@ int count_tokens(t_token *tokens)
     return (count);
 }
 
+char **convert_env_to_array(t_env_var *env)
+{
+    int count = 0;
+    t_env_var *current = env;
+    char **env_array;
+
+    // Compter le nombre de variables
+    while (current)
+    {
+        count++;
+        current = current->next;
+    }
+
+    // Allouer de la mémoire pour le tableau
+    env_array = malloc((count + 1) * sizeof(char *));
+    if (!env_array)
+        return NULL;
+
+    current = env;
+    for (int i = 0; i < count; i++)
+    {
+        int len = strlen(current->name) + strlen(current->value) + 2; // +2 pour '=' et '\0'
+        env_array[i] = malloc(len);
+        if (!env_array[i])
+        {
+            // Libérer en cas d'erreur
+            for (int j = 0; j < i; j++)
+                free(env_array[j]);
+            free(env_array);
+            return NULL;
+        }
+        snprintf(env_array[i], len, "%s=%s", current->name, current->value);
+        current = current->next;
+    }
+    env_array[count] = NULL; // Terminer par un NULL
+    return env_array;
+}
+
 int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
 {
     char **args;
@@ -1613,6 +1895,7 @@ int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
     }
     if (pid == 0)
 	{   // Processus enfant: exécuter la commande
+        // ICI FAUT CHNGER WSH
         exec(tokens, env->env, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
         free(args); // Libérer les arguments dans le processus enfant aussi
         exit(127);
@@ -1908,6 +2191,21 @@ int	check_consecutive_pipes(t_token *tokens)
 // }
 
 
+void print_env(t_env_var *env_list)
+{
+    t_env_var *current;
+
+    current = env_list;
+    while (current)
+    {
+        if (current->value)
+            printf("%s=%s\n", current->name, current->value);
+        else
+            printf("%s\n", current->name);
+        current = current->next;
+    }
+}
+
 int exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx)
 {
     (void)env;
@@ -2041,6 +2339,11 @@ int exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx)
 		free_args(expanded_args); // Libérer les arguments expandis
 		return 1;
 	}
+    if(ft_strcmp(args[0], "env") == 0)
+    {
+        print_env(ctx->env_vars);
+        return 1;
+    }
     return 0; // Not a built-in command
 }
 
@@ -2416,7 +2719,6 @@ t_env_var *build_env_vars(char **envp)
         char *sep = strchr(envp[i], '=');
         if (!sep)
             continue;
-
         t_env_var *new_var = malloc(sizeof(t_env_var));
         if (!new_var)
         {
@@ -2424,11 +2726,9 @@ t_env_var *build_env_vars(char **envp)
             free_env_vars(head); // Libère tout si erreur
             return NULL;
         }
-
         new_var->name = strndup(envp[i], sep - envp[i]);
         new_var->value = strdup(sep + 1);
         new_var->next = NULL;
-
         if (!new_var->name || !new_var->value)
         {
             free(new_var->name);
@@ -2437,7 +2737,6 @@ t_env_var *build_env_vars(char **envp)
             free_env_vars(head);
             return (perror("malloc failed"), NULL);
         }
-
         if (!head)
             head = new_var;
         else
@@ -2445,7 +2744,6 @@ t_env_var *build_env_vars(char **envp)
 
         current = new_var;
     }
-
     return head;
 }
 
@@ -3677,46 +3975,76 @@ void wait_for_all_children(void)
 //     return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
 // }
 
-
 char **prepare_args(t_token *tokens, t_ctx *ctx)
 {
-	(void)ctx;
-    int count = 0;
-    t_token *current = tokens;
-    char **args;
-    int i = 0;
+   (void)ctx;
+   int count = 0;
+   t_token *current = tokens;
+   char **args;
+   int i = 0;
 
-    // Compter les arguments jusqu'au prochain pipe
-    while (current && current->type != TOKEN_PIPE)
-    {
-        count++;
-        current = current->next;
-    }
+//    printf("\n=== Debug Tokens ===\n");
+//    t_token *debug = tokens;
+//    while (debug)
+//    {
+//        printf("Token type: '%c', Value: '%s'\n",
+//               (char)debug->type, debug->value);
+//        debug = debug->next;
+//    }
+//    printf("=================\n\n");
+   while (current)
+   {
+       count++;
+       current = current->next;
+   }
+   args = malloc((count + 1) * sizeof(char *));
+   if (!args)
+   {
+       perror("malloc failed");
+       return NULL;
+   }
+   current = tokens;
+   i = 0;
+   while (current)
+   {
+    //    printf("Processing token %d: type = '%c'\n", i, (char)current->type);
 
-    args = malloc((count + 1) * sizeof(char *));
-    if (!args)
-    {
-        perror("malloc failed");
-        return NULL;
-    }
-    current = tokens;
-    i = 0;
-    while (current && current->type != TOKEN_PIPE)
-    {
-        args[i] = ft_strdup(current->value); // Dupliquer la valeur après expansion
-        if (!args[i])
-        {
-            perror("Duplication de mémoire échouée");
-            for (int j = 0; j < i; j++)
-                free(args[j]);
-            free(args);
-            return NULL;
-        }
-        i++;
-        current = current->next;
-    }
-    args[i] = NULL;  // Ajouter NULL à la fin pour `execve`
-    return args;
+       if (current->type == '\'') // Vérifie explicitement la quote simple
+       {
+        //    printf("Found single quote: using value '%s' without expansion\n", current->value);
+           args[i] = ft_strdup(current->value);
+       }
+       else if (current->type == '"') // Vérifie explicitement la quote double
+       {
+        //    printf("Found double quote: expanding value '%s'\n", current->value);
+           args[i] = expand_variables(current->value, ctx, current->type);
+       }
+       else // Cas normal (STRING ou autres)
+       {
+        //    printf("Found normal token: expanding value '%s'\n", current->value);
+           args[i] = expand_variables(current->value, ctx, current->type);
+       }
+
+       if (!args[i])
+       {
+           // Gestion d'erreur...
+           while (i > 0)
+               free(args[--i]);
+           free(args);
+           return NULL;
+       }
+       i++;
+       current = current->next;
+   }
+   args[i] = NULL;
+   // Debug du résultat final
+//    printf("\n=== Final Args ===\n");
+//    for (int j = 0; args[j] != NULL; j++)
+//    {
+//        printf("arg[%d]: '%s'\n", j, args[j]);
+//    }
+//    printf("=================\n\n");
+   return args;
 }
 
 //nv
@@ -3753,6 +4081,92 @@ void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd,
     }
 }
 
+int is_builtin(char *cmd)
+{
+    char *builtins[] = {"echo", "cd", "pwd", "export", "unset", "env", "exit", NULL};
+    int i = 0;
+
+    while (builtins[i])
+    {
+        if (strcmp(cmd, builtins[i]) == 0)
+            return 1;
+        i++;
+    }
+    return 0;
+}
+
+int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
+{
+    char **option_cmd;
+    char *path;
+    struct stat path_stat;
+    // char **env_array;
+    (void)env;
+
+    t_var env_var;
+    env_var.env = convert_env_to_array(ctx->env_vars);
+    option_cmd = prepare_args(cmd_tokens, ctx);
+    if (!option_cmd || !option_cmd[0])
+    {
+        fprintf(stderr, "Error: Command is empty\n");
+        free_tab(option_cmd);
+        exit(EXIT_FAILURE);
+    }
+    // if (!env_array)
+    // {
+    //     fprintf(stderr, "Error: Failed to convert environment\n");
+    //     free_tab(option_cmd);
+    //     exit(EXIT_FAILURE);
+    // }
+
+    // Check if the command is a builtin
+    if (is_builtin(option_cmd[0]))
+    {
+        // Execute the builtin command
+        exec_builtin_cmd(option_cmd, &env_var, ctx);
+        free_tab(option_cmd);
+        // free_tab(env_var);
+        free_tab(env_var.env);
+        exit(ctx->exit_status);
+    }
+
+    // Find the command in PATH
+    path = get_path(option_cmd[0], env_var.env);
+    if (!path)
+    {
+        fprintf(stderr, "%s: command not found\n", option_cmd[0]);
+        free_tab(option_cmd);
+        free_tab(env_var.env);
+        exit(127);
+    }
+    if (stat(path, &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+    {
+        fprintf(stderr, "%s: Is a directory\n", path);
+        free_tab(option_cmd);
+        free_tab(env_var.env);
+        exit(126);
+    }
+
+    if (access(path, X_OK) != 0)
+    {
+        fprintf(stderr, "%s: Permission denied\n", path);
+        free_tab(option_cmd);
+        free_tab(env_var.env);
+        exit(126);
+    }
+
+    if (execve(path, option_cmd, env_var.env) == -1)
+    {
+        perror("execve");
+        free_tab(option_cmd);
+        free_tab(env_var.env);
+        exit(EXIT_FAILURE);
+    }
+
+    free_tab(option_cmd);
+    free_tab(env_var.env);
+    return 0;
+}
 
 // int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
 // {
@@ -3764,173 +4178,88 @@ void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd,
 //     if (!option_cmd[0])
 //     {
 //         fprintf(stderr, "Error: Command is empty\n");
-//         free_tab_2(option_cmd);
-//         exit(0); // Bash retourne 0 pour une commande vide
+//         free_tab(option_cmd);
+//         exit(EXIT_FAILURE);
 //     }
-
-//     // Gestion des variables shell vides
+//     // Special case for "$"
+//     if (strcmp(option_cmd[0], "$") == 0)
+//     {
+//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
+//         free_tab(option_cmd);
+//         exit(127);
+//     }
+//     // Expand variables for the first argument if it starts with "$"
 //     if (option_cmd[0][0] == '$')
 //     {
 //         char *expanded = expand_variables(option_cmd[0], ctx, STRING);
-//         free(option_cmd[0]);
-//         option_cmd[0] = expanded;
+//         if ((!expanded || expanded[0] == '\0') && option_cmd[1])
+//         {
+//             free(expanded);
+//             free(option_cmd[0]);
+//             for (int i = 0; option_cmd[i + 1]; i++)
+//                 option_cmd[i] = option_cmd[i + 1];
+//             option_cmd[count_args(option_cmd) - 1] = NULL;
+//         }
+//         else
+//         {
+//             free(option_cmd[0]);
+//             option_cmd[0] = expanded;
+//         }
 
 //         if (!option_cmd[0] || option_cmd[0][0] == '\0')
 //         {
-//             if (option_cmd[1]) // Décaler les arguments suivants
-//             {
-//                 for (int i = 0; option_cmd[i + 1]; i++)
-//                     option_cmd[i] = option_cmd[i + 1];
-//                 option_cmd[count_args(option_cmd) - 1] = NULL;
-//             }
-//             else
-//             {
-//                 free_tab_2(option_cmd);
-//                 exit(0); // Succès silencieux
-//             }
+//             free_tab(option_cmd);
+//             exit(0);  // Exit with success
 //         }
 //     }
-//     // Vérification si c'est un répertoire
+//     // Check if it's a directory
 //     if (stat(option_cmd[0], &path_stat) == 0)
 //     {
 //         if (S_ISDIR(path_stat.st_mode))
 //         {
-//             fprintf(stderr, "%s: Is a directory\n", option_cmd[0]);
-//             free_tab_2(option_cmd);
-//             exit(126); // Répertoire
+//             // Handle explicitly called directories (e.g., ./test_files)
+//             if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
+//             {
+//                 fprintf(stderr, "bash: %s: Is a directory\n", option_cmd[0]);
+//                 free_tab(option_cmd);
+//                 exit(126);
+//             }
+//             else // Implicit directory call (e.g., test_files)
+//             {
+//                 fprintf(stderr, "%s: command not found\n", option_cmd[0]);
+//                 free_tab(option_cmd);
+//                 exit(127);
+//             }
 //         }
 //     }
-//     // Vérification explicite pour ./ ou /
+//     // Handle explicit paths (e.g., "./missing.out")
 //     if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
 //     {
 //         if (access(option_cmd[0], F_OK) != 0)
 //         {
 //             fprintf(stderr, "%s: No such file or directory\n", option_cmd[0]);
-//             free_tab_2(option_cmd);
-//             exit(127); // Fichier introuvable
+//             free_tab(option_cmd);
+//             exit(127);
 //         }
 //         else if (access(option_cmd[0], X_OK) != 0)
 //         {
 //             fprintf(stderr, "%s: Permission denied\n", option_cmd[0]);
-//             free_tab_2(option_cmd);
-//             exit(126); // Permission refusée
+//             free_tab(option_cmd);
+//             exit(126);
 //         }
 //     }
-//     // Recherche dans PATH
+//     // Find the command in PATH
 //     path = get_path(option_cmd[0], env);
-//     if (!path)
-//     {
-//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//         free_tab_2(option_cmd);
-//         exit(127); // Commande introuvable
-//     }
-
-//     // Exécution de la commande
 //     if (execve(path, option_cmd, env) == -1)
 //     {
-//         perror("execve");
-//         free_tab_2(option_cmd);
-//         free(path);
-//         exit(127); // Commande introuvable
+//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
+//         free_tab(option_cmd);
+//         exit(127);
 //     }
-//     free_tab_2(option_cmd);
-//     free(path);
+
+//     free_tab(option_cmd);
 //     return 0;
 // }
-
-
-int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
-{
-    char **option_cmd;
-    char *path;
-    struct stat path_stat;
-
-    option_cmd = prepare_args(cmd_tokens, ctx);
-    if (!option_cmd[0])
-    {
-        fprintf(stderr, "Error: Command is empty\n");
-        free_tab(option_cmd);
-        exit(EXIT_FAILURE);
-    }
-    // Special case for "$"
-    if (strcmp(option_cmd[0], "$") == 0)
-    {
-        fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-        free_tab(option_cmd);
-        exit(127);
-    }
-    // Expand variables for the first argument if it starts with "$"
-    if (option_cmd[0][0] == '$')
-    {
-        char *expanded = expand_variables(option_cmd[0], ctx, STRING);
-        if ((!expanded || expanded[0] == '\0') && option_cmd[1])
-        {
-            free(expanded);
-            free(option_cmd[0]);
-            for (int i = 0; option_cmd[i + 1]; i++)
-                option_cmd[i] = option_cmd[i + 1];
-            option_cmd[count_args(option_cmd) - 1] = NULL;
-        }
-        else
-        {
-            free(option_cmd[0]);
-            option_cmd[0] = expanded;
-        }
-
-        if (!option_cmd[0] || option_cmd[0][0] == '\0')
-        {
-            free_tab(option_cmd);
-            exit(0);  // Exit with success
-        }
-    }
-    // Check if it's a directory
-    if (stat(option_cmd[0], &path_stat) == 0)
-    {
-        if (S_ISDIR(path_stat.st_mode))
-        {
-            // Handle explicitly called directories (e.g., ./test_files)
-            if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-            {
-                fprintf(stderr, "bash: %s: Is a directory\n", option_cmd[0]);
-                free_tab(option_cmd);
-                exit(126);
-            }
-            else // Implicit directory call (e.g., test_files)
-            {
-                fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-                free_tab(option_cmd);
-                exit(127);
-            }
-        }
-    }
-    // Handle explicit paths (e.g., "./missing.out")
-    if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-    {
-        if (access(option_cmd[0], F_OK) != 0)
-        {
-            fprintf(stderr, "%s: No such file or directory\n", option_cmd[0]);
-            free_tab(option_cmd);
-            exit(127);
-        }
-        else if (access(option_cmd[0], X_OK) != 0)
-        {
-            fprintf(stderr, "%s: Permission denied\n", option_cmd[0]);
-            free_tab(option_cmd);
-            exit(126);
-        }
-    }
-    // Find the command in PATH
-    path = get_path(option_cmd[0], env);
-    if (execve(path, option_cmd, env) == -1)
-    {
-        fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-        free_tab(option_cmd);
-        exit(127);
-    }
-
-    free_tab(option_cmd);
-    return 0;
-}
 
 
 // int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
@@ -4160,6 +4489,7 @@ void	free_tokens(t_token *tokens)
 		tmp = tokens;
 		tokens = tokens->next;
 		free(tmp->value);
+        free(tmp->content);
 		free(tmp);
 	}
 }
