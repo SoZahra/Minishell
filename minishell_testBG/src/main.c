@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/26 18:10:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/27 18:42:00 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,46 +114,68 @@ char **copy_envp(char **envp)
 // 	return (env_copy[i] = NULL, env_copy);
 // }
 
-int export_v(char ***env_copy, const char *var, const char *value)
-{
-    int i;
-    size_t len;
-    char *new_var;
+t_env_var *export_v(t_env_var *env_vars, const char *var, const char *value) {
+    printf("DEBUG - export_v: updating '%s' to '%s'\n", var, value);
 
-    i = 0;
-    len = strlen(var);
-
-    // Recherche si la variable existe déjà
-    while ((*env_copy)[i]) {
-        if (ft_strncmp_export((*env_copy)[i], var, len) == 0 && (*env_copy)[i][len] == '=') {
-            // Libère l'ancienne valeur et crée une nouvelle variable
-            free((*env_copy)[i]);
-            new_var = ft_strjoin(var, "="); // Crée une nouvelle chaîne de base
-            char *value_joined = value ? ft_strjoin(new_var, value) : strdup(new_var); // Gérer valeur NULL
-
-            // Met à jour la variable dans l'environnement
-            (*env_copy)[i] = value_joined;
-            free(new_var); // Libère la mémoire de la chaîne intermédiaire
-            return 0;
+    t_env_var *current = env_vars;
+    while (current) {
+        if (ft_strcmp(current->name, var) == 0) {
+            free(current->value);
+            current->value = value ? strdup(value) : strdup("");
+            printf("DEBUG - export_v: updated existing var '%s' to '%s'\n", var, current->value);
+            return env_vars;
         }
-        i++;
+        current = current->next;
     }
-    // Si la variable n'existe pas, ajoute-la
-    new_var = ft_strjoin(var, "=");
-    char *new_entry = value ? ft_strjoin(new_var, value) : strdup(new_var);
-    free(new_var); // Libère la mémoire de la chaîne intermédiaire
 
-    // Réalloue l'espace pour ajouter une nouvelle variable
-    size_t current_size = i; // Nombre actuel d'éléments
-    *env_copy = realloc(*env_copy, (current_size + 2) * sizeof(char *));
-    if (!*env_copy) {
-        perror("realloc failed");
-        return -1; // Erreur de réallocation
-    }
-    (*env_copy)[current_size] = new_entry; // Ajoute la nouvelle entrée
-    (*env_copy)[current_size + 1] = NULL; // Termine avec NULL
-    return 0;
+    t_env_var *new_var = malloc(sizeof(t_env_var));
+    new_var->name = strdup(var);
+    new_var->value = value ? strdup(value) : strdup("");
+    new_var->next = env_vars;
+    printf("DEBUG - export_v: added new var '%s' with value '%s'\n", new_var->name, new_var->value);
+    setenv(var, value, 1);
+    return new_var;
 }
+
+// int export_v(char ***env_copy, const char *var, const char *value)
+// {
+//     int i;
+//     size_t len;
+//     char *new_var;
+
+//     i = 0;
+//     len = strlen(var);
+
+//     // Recherche si la variable existe déjà
+//     while ((*env_copy)[i]) {
+//         if (ft_strncmp_export((*env_copy)[i], var, len) == 0 && (*env_copy)[i][len] == '=') {
+//             // Libère l'ancienne valeur et crée une nouvelle variable
+//             free((*env_copy)[i]);
+//             new_var = ft_strjoin(var, "="); // Crée une nouvelle chaîne de base
+//             char *value_joined = value ? ft_strjoin(new_var, value) : strdup(new_var); // Gérer valeur NULL
+
+//             // Met à jour la variable dans l'environnement
+//             (*env_copy)[i] = value_joined;
+//             free(new_var); // Libère la mémoire de la chaîne intermédiaire
+//             return 0;
+//         }
+//         i++;
+//     }
+//     // Si la variable n'existe pas, ajoute-la
+//     new_var = ft_strjoin(var, "=");
+//     char *new_entry = value ? ft_strjoin(new_var, value) : strdup(new_var);
+//     free(new_var); // Libère la mémoire de la chaîne intermédiaire
+//     // Réalloue l'espace pour ajouter une nouvelle variable
+//     size_t current_size = i; // Nombre actuel d'éléments
+//     *env_copy = realloc(*env_copy, (current_size + 2) * sizeof(char *));
+//     if (!*env_copy) {
+//         perror("realloc failed");
+//         return -1; // Erreur de réallocation
+//     }
+//     (*env_copy)[current_size] = new_entry; // Ajoute la nouvelle entrée
+//     (*env_copy)[current_size + 1] = NULL; // Termine avec NULL
+//     return 0;
+// }
 
 
 // int export_v(char ***env_copy, const char *var, const char *value)
@@ -1828,85 +1850,130 @@ int count_tokens(t_token *tokens)
 	}
     return (count);
 }
-
-char **convert_env_to_array(t_env_var *env)
+char **convert_env_to_array(t_ctx *ctx)
 {
+    printf("DEBUG - convert_env_to_array start\n");
+    if (!ctx || !ctx->env_vars)
+    {
+        printf("DEBUG - NULL context or env_vars\n");
+        return NULL;
+    }
     int count = 0;
-    t_env_var *current = env;
+    t_env_var *current = ctx->env_vars;
     char **env_array;
 
-    // Compter le nombre de variables
     while (current)
     {
         count++;
         current = current->next;
     }
 
-    // Allouer de la mémoire pour le tableau
     env_array = malloc((count + 1) * sizeof(char *));
     if (!env_array)
         return NULL;
 
-    current = env;
-    for (int i = 0; i < count; i++)
+    current = ctx->env_vars;
+    for (int i = 0; i < count && current; i++)
     {
-        int len = strlen(current->name) + strlen(current->value) + 2; // +2 pour '=' et '\0'
+        int len = strlen(current->name) + (current->value ? ft_strlen(current->value) : 0) + 2;
         env_array[i] = malloc(len);
         if (!env_array[i])
         {
-            // Libérer en cas d'erreur
-            for (int j = 0; j < i; j++)
-                free(env_array[j]);
-            free(env_array);
+            free_tab(env_array);
             return NULL;
         }
-        snprintf(env_array[i], len, "%s=%s", current->name, current->value);
+        if (current->value)
+            snprintf(env_array[i], len, "%s=%s", current->name, current->value);
+        else
+            snprintf(env_array[i], len, "%s=", current->name);
         current = current->next;
     }
-    env_array[count] = NULL; // Terminer par un NULL
+    env_array[count] = NULL;
     return env_array;
 }
 
-int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
+int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
 {
     char **args;
     pid_t pid;
-	int status;
+    int status;
+	(void)env;
 
-    args = prepare_args(tokens, ctx); // Passer les tokens ici, pas une chaîne de caractères
-    if (!args)
-	{
+    // Préparer les arguments
+    args = prepare_args(tokens, ctx);
+    if (!args || !args[0])
+    {
         perror("Erreur d'allocation de mémoire pour les arguments");
-		ctx->exit_status = 1;
+        free_tab(args);
+        ctx->exit_status = 1;
         return 0;
     }
-    if (exec_builtin_cmd(args, env, ctx))
-	{
-        free(args);
-		// ctx->exit_status = 0;
-        return 0;
+
+    // Vérifier si c'est une commande builtin
+    if (is_builtin(args[0]))
+    {
+        // Convertir env_vars en tableau pour les builtins
+        char **env_array = convert_env_to_array(ctx);
+        if (!env_array)
+        {
+            free_tab(args);
+            ctx->exit_status = 1;
+            return 0;
+        }
+
+        int ret = exec_builtin_cmd(args, env_array, ctx);
+        free_tab(args);
+        free_tab(env_array);
+        return ret;
     }
+
+    // Si ce n'est pas un builtin, fork et exécuter
     pid = fork();
-    if (pid == -1) {
-        perror("Echec fork");
-		ctx->exit_status = 1;
-        free(args);
-        return (-1);
+    if (pid == -1)
+    {
+        perror("fork failed");
+        free_tab(args);
+        return -1;
     }
+
     if (pid == 0)
-	{   // Processus enfant: exécuter la commande
-        // ICI FAUT CHNGER WSH
-        exec(tokens, env->env, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
-        free(args); // Libérer les arguments dans le processus enfant aussi
+    {
+        // Convertir env_vars en tableau pour execve
+        char **env_array = convert_env_to_array(ctx);
+        if (!env_array)
+        {
+            free_tab(args);
+            exit(EXIT_FAILURE);
+        }
+
+        // Trouver le chemin de la commande
+        char *path = get_path(args[0], env_array);
+        if (!path)
+        {
+            fprintf(stderr, "%s: command not found\n", args[0]);
+            free_tab(args);
+            free_tab(env_array);
+            exit(127);
+        }
+
+        // Exécuter la commande
+        execve(path, args, env_array);
+        free(path);
+        free_tab(args);
+        free_tab(env_array);
+        perror("execve");
         exit(127);
     }
+
+    // Parent
+    free_tab(args);
     waitpid(pid, &status, 0);
-	if(WIFEXITED(status))
-		ctx->exit_status = WEXITSTATUS(status);
-	else
-		ctx->exit_status = 1;
-    free(args); // Libérer les arguments après exécution
-	return 0;
+    if (WIFEXITED(status))
+        ctx->exit_status = WEXITSTATUS(status);
+    else if (WIFSIGNALED(status))
+        ctx->exit_status = 128 + WTERMSIG(status);
+
+    return 0;
 }
 
 // int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
@@ -1914,6 +1981,8 @@ int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
 //     char **args;
 //     pid_t pid;
 // 	int status;
+//     char **env_array;
+//     (void)env;
 
 //     args = prepare_args(tokens, ctx); // Passer les tokens ici, pas une chaîne de caractères
 //     if (!args)
@@ -1922,10 +1991,18 @@ int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
 // 		ctx->exit_status = 1;
 //         return 0;
 //     }
-//     if (exec_builtin_cmd(args, env, ctx))
+//     env_array = convert_env_to_array(ctx);
+//     if(!env_array)
+//     {
+//         perror("Erreur de conversion de l'env");
+//         free(args);
+//         ctx->exit_status = 1;
+//         return (0);
+//     }
+//     if (exec_builtin_cmd(args, env_array, ctx))
 // 	{
 //         free(args);
-// 		// ctx->exit_status = 0;
+// 		free_tab(env_array);
 //         return 0;
 //     }
 //     pid = fork();
@@ -1937,7 +2014,8 @@ int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
 //     }
 //     if (pid == 0)
 // 	{   // Processus enfant: exécuter la commande
-//         exec(tokens, env, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
+//         // ICI FAUT CHNGER WSH
+//         exec(tokens, NULL, ctx); // Assurez-vous que cette fonction exécute correctement `execve`
 //         free(args); // Libérer les arguments dans le processus enfant aussi
 //         exit(127);
 //     }
@@ -1950,24 +2028,6 @@ int exec_simple_cmd(t_token *tokens, t_var *env, t_ctx *ctx)
 // 	return 0;
 // }
 
-
-// void split_env_v(const char *input, char **var, char **value)
-// {
-// 	const char *equal_sign;
-
-// 	equal_sign = ft_strchr(input, '=');
-// 	if(equal_sign)
-// 	{
-// 		size_t	var_len = equal_sign - input;
-// 		*var = ft_strndup(input, var_len);
-// 		*value = ft_strdup(equal_sign + 1); //apres le =
-// 	}
-// 	else
-// 	{
-// 		*var = ft_strdup(input);
-// 		*value = NULL;
-// 	}
-// }
 
 int split_env_v(char *arg, char **var, char **value)
 {
@@ -2190,24 +2250,16 @@ int	check_consecutive_pipes(t_token *tokens)
 // 	return (0);
 // }
 
-
-void print_env(t_env_var *env_list)
+void print_env(char **env_array)
 {
-    t_env_var *current;
-
-    current = env_list;
-    while (current)
-    {
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
-        else
-            printf("%s\n", current->name);
-        current = current->next;
+    for (int i = 0; env_array[i]; i++) {
+        printf("%s\n", env_array[i]);
     }
 }
 
-int exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx)
+int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
+    int i;
     (void)env;
 
     if (!args || !args[0])
@@ -2233,45 +2285,27 @@ int exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx)
 
     if (ft_strcmp(args[0], "export") == 0)
     {
-        if (!args[1])
-        {
-            t_env_var *current = ctx->env_vars;
-            while (current)
-            {
-                printf("declare -x %s=\"%s\"\n", current->name, current->value ? current->value : "");
-                current = current->next;
-            }
-            ctx->exit_status = 0;
-            return 1;
-        }
-
-        for (int i = 1; args[i]; i++)
+        i = 1;
+        while (args[i])
         {
             char *var = NULL;
             char *value = NULL;
+            split_env_v(args[i], &var, &value);
 
-            if (!split_env_v(args[i], &var, &value))
+            if (var && is_valid_id(var))
             {
-                fprintf(stderr, "export: `%s`: not a valid identifier\n", args[i]);
-                ctx->exit_status = 1;
-                free(var);
-                free(value);
-                continue;
+                if (value)
+                {
+                    printf("DEBUG - env_vars before export: %p\n", (void*)ctx->env_vars);
+                    ctx->env_vars = export_v(ctx->env_vars, var, value);
+                    printf("DEBUG - env_vars after export: %p\n", (void*)ctx->env_vars);
+                }
+                else
+                    ctx->env_vars = export_v(ctx->env_vars, var, "");
             }
-            if (!is_valid_id(var))
-            {
-                fprintf(stderr, "export: `%s`: not a valid identifier\n", var);
-                free(var);
-                free(value);
-                ctx->exit_status = 1;
-                continue;
-            }
-
-            if (ft_export(ctx, var, value) == -1)
-                ctx->exit_status = 1;
-
             free(var);
             free(value);
+            i++;
         }
         return 1;
     }
@@ -2339,9 +2373,11 @@ int exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx)
 		free_args(expanded_args); // Libérer les arguments expandis
 		return 1;
 	}
-    if(ft_strcmp(args[0], "env") == 0)
+    if (ft_strcmp(args[0], "env") == 0)
     {
-        print_env(ctx->env_vars);
+        char **env_array = convert_env_to_array(ctx);
+        print_env(env_array);
+        free_tab(env_array);
         return 1;
     }
     return 0; // Not a built-in command
@@ -2710,33 +2746,41 @@ int is_numeric_argument(const char *arg)
 //     return ctx.exit_status; // Retourner le dernier code de sortie
 // }
 
-t_env_var *build_env_vars(char **envp)
+t_env_var *build_env_list(char **envp)
 {
-    t_env_var *head = NULL, *current = NULL;
+    printf("DEBUG - build_env_list start\n");
+    t_env_var *head = NULL;
+    t_env_var *current = NULL;
 
     for (int i = 0; envp[i]; i++)
     {
+        printf("DEBUG - Processing env: %s\n", envp[i]);
         char *sep = strchr(envp[i], '=');
         if (!sep)
             continue;
+
         t_env_var *new_var = malloc(sizeof(t_env_var));
         if (!new_var)
         {
             perror("malloc failed");
-            free_env_vars(head); // Libère tout si erreur
+            free_env(head);
             return NULL;
         }
+
+        // Copier le nom et la valeur
         new_var->name = strndup(envp[i], sep - envp[i]);
         new_var->value = strdup(sep + 1);
         new_var->next = NULL;
+
         if (!new_var->name || !new_var->value)
         {
             free(new_var->name);
             free(new_var->value);
             free(new_var);
-            free_env_vars(head);
+            free_env(head);
             return (perror("malloc failed"), NULL);
         }
+
         if (!head)
             head = new_var;
         else
@@ -2744,94 +2788,130 @@ t_env_var *build_env_vars(char **envp)
 
         current = new_var;
     }
+    printf("DEBUG - build_env_list end\n");
     return head;
 }
 
+// t_ctx *build_env_vars(char **envp)
+// {
+//     t_ctx *head = NULL;
+//     t_ctx *current = NULL;
 
-int loop_with_pipes(t_var *env, t_ctx *ctx)
-{
+//     for (int i = 0; envp[i]; i++)
+//     {
+//         char *sep = strchr(envp[i], '=');
+//         if (!sep)
+//             continue;
+//         t_ctx *new_var = malloc(sizeof(t_ctx));
+//         if (!new_var)
+//         {
+//             perror("malloc failed");
+//             free_ctx(head); // Libère tout si erreur
+//             return NULL;
+//         }
+//         new_var->env_vars = NULL;
+//         new_var->exit_status = 0;
+//         new_var->num_pipes = 0;
+//         new_var->oldpwd = NULL;
+//         new_var->pwd = NULL;
+//         new_var->next = NULL;
+
+//         new_var->name = strndup(envp[i], sep - envp[i]);
+//         new_var->value = strdup(sep + 1);
+//         if (!new_var->name || !new_var->value)
+//         {
+//             free(new_var->name);
+//             free(new_var->value);
+//             free(new_var);
+//             free_ctx(head);
+//             return (perror("malloc failed"), NULL);
+//         }
+//         if (!head)
+//             head = new_var;
+//         else
+//             current->next = new_var;
+//         current = new_var;
+//     }
+//     return head;
+// }
+int loop_with_pipes(char **env, t_ctx *ctx) {
     char *line;
     t_token *tokens;
     int status = 0;
+    (void)env;
 
-    env->env = get_environment(env->env); // Corrigé
-    if (!env->env) // Vérifiez que l'environnement est initialisé correctement
-        return (perror("Failed to initialize environment variables"), 1);
-
-    ctx->env_vars = build_env_vars(env->env); // Créez la structure `t_env_var`
-    if (!ctx->env_vars)
-        return (perror("Failed to initialize context environment variables"), 1);
-
-    while (1)
-    {
-        line = readline(PROMPT); // Affiche le prompt et lit la commande
-        if (line == NULL) // Gestion de Ctrl+D
-        {
+    while (1) {
+        printf("DEBUG - loop_with_pipes: Waiting for user input\n");
+        line = readline(PROMPT);
+        if (line == NULL) {
             write(1, "exit\n", 5);
-            free_env_vars(ctx->env_vars); // Libérer les variables d'environnement
             exit(ctx->exit_status);
         }
-        if (*line) // Si la ligne n'est pas vide
-        {
-            add_history(line); // Ajouter à l'historique
-            tokens = parse_command_line(line, ctx); // Parsing de la commande
-            if (tokens)
-            {
-                int pid = fork();
-                if (pid == -1)
-                {
+        if (*line) {
+            add_history(line);
+            printf("DEBUG - loop_with_pipes: Parsing command line: '%s'\n", line);
+            tokens = parse_command_line(line, ctx);
+            if (tokens) {
+                pid_t pid = fork();
+                if (pid == -1) {
                     perror("fork failed");
                     free_tokens(tokens);
                     free(line);
                     continue;
                 }
 
-                if (pid == 0) // Processus enfant
-                {
-                    if (validate_pipes(tokens) == -1) // Vérification des pipes
-                    {
+                if (pid == 0) { // Child process
+                    char **cmd_env = convert_env_to_array(ctx);
+                    if (!cmd_env) {
                         free_tokens(tokens);
-                        exit(1); // Quitte le processus enfant si erreur
+                        exit(1);
                     }
-                    if (contains_pipe(tokens)) // Si des pipes sont présents
-                        process_pline(tokens, env, ctx); // Passez directement `env`
-                    else // Pas de pipes, commande simple
-                        exec_simple_cmd(tokens, env, ctx); // Passez `env->env`
+
+                    printf("DEBUG - loop_with_pipes: Validating pipes\n");
+                    if (validate_pipes(tokens) == -1) {
+                        free_tokens(tokens);
+                        free_tab(cmd_env);
+                        exit(1);
+                    }
+
+                    printf("DEBUG - loop_with_pipes: Executing command sequence\n");
+                    if (contains_pipe(tokens))
+                        process_pline(tokens, cmd_env, ctx);
+                    else
+                        exec_simple_cmd(tokens, cmd_env, ctx);
+
+                    free_tab(cmd_env);
                     free_tokens(tokens);
-                    exit(ctx->exit_status); // Quitter l'enfant proprement
+                    exit(ctx->exit_status);
                 }
 
-                waitpid(pid, &status, 0); // Parent attend la fin de l'enfant
+                waitpid(pid, &status, 0);
                 if (WIFEXITED(status))
-                    ctx->exit_status = WEXITSTATUS(status); // Met à jour le code de sortie
+                    ctx->exit_status = WEXITSTATUS(status);
                 free_tokens(tokens);
             }
         }
-        free(line); // Libérer la mémoire de la ligne
+        free(line);
     }
-
-    return ctx->exit_status; // Retourner le code de sortie global
+    return ctx->exit_status;
 }
 
 
-// int loop_with_pipes(t_var *env, t_ctx *ctx)
+// int loop_with_pipes(char **env, t_ctx *ctx)
 // {
 //     char *line;
 //     t_token *tokens;
+//     // char **env_array;
 //     int status = 0;
+//     (void)env;
 
-//     // t_var myEnv;
-//     // myEnv.env = env;
-//     env->env = get_environment(env->env); // Initialisation des variables d'environnement
-//     if (!ctx->env_vars)
-//         return (perror("Failed to initialize environment variables"), 1);
 //     while (1)
 //     {
 //         line = readline(PROMPT); // Affiche le prompt et lit la commande
 //         if (line == NULL) // Gestion de Ctrl+D
 //         {
 //             write(1, "exit\n", 5);
-//             free_env_vars(ctx->env_vars); // Libérer les variables d'environnement
+//             free_ctx(ctx); // Libérer les variables d'environnement
 //             exit(ctx->exit_status);
 //         }
 //         if (*line) // Si la ligne n'est pas vide
@@ -2848,18 +2928,25 @@ int loop_with_pipes(t_var *env, t_ctx *ctx)
 //                     free(line);
 //                     continue;
 //                 }
-
 //                 if (pid == 0) // Processus enfant
 //                 {
-//                     if (validate_pipes(tokens) == -1) // Vérification des pipes
+//                     if (validate_pipes(tokens) == -1)
 //                     {
 //                         free_tokens(tokens);
-//                         exit(1); // Quitte le processus enfant si erreur
+//                         exit(1);
 //                     }
-//                     if (contains_pipe(tokens)) // Si des pipes sont présents
-//                         process_pline(tokens, &myEnv, ctx); // Exécuter les commandes avec pipe
+//                     char **cmd_env;
+//                     cmd_env = convert_env_to_array(ctx);
+//                     if(!cmd_env)
+//                     {
+//                         free_tokens(tokens);
+//                         exit(1);
+//                     }
+//                     if (contains_pipe(tokens))
+//                         process_pline(tokens, cmd_env, ctx); // Passez directement `env`
 //                     else // Pas de pipes, commande simple
-//                         exec_simple_cmd(tokens, env, ctx);
+//                         exec_simple_cmd(tokens, cmd_env, ctx); // Passez `env->env`
+//                     free_tab(cmd_env);
 //                     free_tokens(tokens);
 //                     exit(ctx->exit_status); // Quitter l'enfant proprement
 //                 }
@@ -2876,14 +2963,6 @@ int loop_with_pipes(t_var *env, t_ctx *ctx)
 //     return ctx->exit_status; // Retourner le code de sortie global
 // }
 
-
-// int	loop(, t_ctx *ctx)
-// {
-// 	// while (1)
-// 	// 	read_and_exec(env, ctx);
-// 	// return (0);
-//     return(loop_with_pipes(env, ctx));
-// }
 
 int	valide_pipes(t_token *tokens)
 {
@@ -3425,7 +3504,20 @@ int	append_character(char c, char **result)
 	return (1);
 }
 
-int	expand_variable(char *token, char **result, int i, t_var *myEnv)
+char *find_in_env(char *name, t_env_var *env_vars)
+{
+    t_env_var *current = env_vars;
+
+    while (current)
+    {
+        if (ft_strcmp(current->name, name) == 0)
+            return (current->value);
+        current = current->next;
+    }
+    return (NULL);
+}
+
+int	expand_variable(char *token, char **result, int i, t_ctx *ctx)
 {
 	char	var_name[256];
 	char	*var_start;
@@ -3436,14 +3528,14 @@ int	expand_variable(char *token, char **result, int i, t_var *myEnv)
 	j = extract_var_name(var_start, var_name);
 	if (j > 0)
 	{
-		env_value = find_in_env(var_name, myEnv->env);
+		env_value = find_in_env(var_name, ctx->env_vars);
 		append_env_value(result, env_value);
 		return (j + 1);
 	}
 	return (1);
 }
 
-void	ps_expand_env(t_token *tokens, t_ctx *ctx, t_var *myEnv)
+void	ps_expand_env(t_token *tokens, t_ctx *ctx)
 {
 	char	*token;
 	char	*result;
@@ -3458,7 +3550,7 @@ void	ps_expand_env(t_token *tokens, t_ctx *ctx, t_var *myEnv)
 		while (token[i] != '\0')
 		{
 			if (token[i] == '$')
-				i += expand_variable(token, &result, i, myEnv);
+				i += expand_variable(token, &result, i, ctx);
 			else
 				i += append_character(token[i], &result);
 		}
@@ -3469,19 +3561,24 @@ void	ps_expand_env(t_token *tokens, t_ctx *ctx, t_var *myEnv)
 }
 
 /// nv
-int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx)
+int process_pline(t_token *tokens, char **env, t_ctx *ctx)
 {
     int     pipe_fd[2], prev_fd = -1;
     t_token *cmd_start = tokens;
     char    **args;
+    char	**env_array;
+    (void)env;
 
-    ps_expand_env(tokens, ctx, myEnv);
+	env_array = convert_env_to_array(ctx);
+	if(!env_array)
+		return(perror("Erreur de conversion de l'env"), 0);
+    ps_expand_env(tokens, ctx);
     args = prepare_args(tokens, ctx);
     if (!args)
         return (perror("Erreur d'allocation de mémoire"), 0);
-    if (exec_builtin_cmd(args, myEnv, ctx))
+    if (exec_builtin_cmd(args, env_array, ctx))
 	{
-        ps_expand_env(tokens, ctx, myEnv);
+        ps_expand_env(tokens, ctx);
         free_tab_2(args);
     }
     while (cmd_start != NULL)
@@ -3490,7 +3587,7 @@ int process_pline(t_token *tokens, t_var *myEnv, t_ctx *ctx)
         while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
             cmd_end = cmd_end->next;
         initialize_pipe_if_needed(pipe_fd, cmd_end);
-        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, myEnv->env, ctx);
+        execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, env_array, ctx);
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
     }
     wait_for_all_children();
@@ -3580,20 +3677,21 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-char	*find_in_env(char *name, char **env)
+char *find_in_env_array(char *name, char **env)
 {
-	int	i;
-	int	len;
+    printf("DEBUG - find_in_env_array: searching for %s\n", name);
+    int i;
+    int len;
 
-	len = ft_strlen(name);
-	i = 0;
-	while (env[i])
-	{
-		if (ft_strncmp(env[i], name, len) == 0 && env[i][len] == '=')
-			return (env[i] + len + 1);
-		i++;
-	}
-	return (NULL);
+    len = ft_strlen(name);
+    i = 0;
+    while (env[i])
+    {
+        if (ft_strncmp(env[i], name, len) == 0 && env[i][len] == '=')
+            return (env[i] + len + 1);
+        i++;
+    }
+    return (NULL);
 }
 
 char	*join_path_cmd(char *path, char *cmd)
@@ -3627,27 +3725,77 @@ char	*join_path_cmd(char *path, char *cmd)
 //     return (full_path);
 // }
 
+// char *get_path(char *cmd, char **env)
+// {
+//     char **paths;
+//     char **s_cmd;
+//     char *full_path;
+//     int i;
+
+//     i = 0;
+//     s_cmd = ft_split(cmd, ' ');
+//     paths = ft_split(find_in_env_array("PATH", env), ':');
+//     while (paths[i])
+//     {
+//         full_path = join_path_cmd(paths[i], s_cmd[0]);
+//         if (access(full_path, F_OK | X_OK) == 0)
+//             return (free_tab(paths), free_tab(s_cmd), full_path);
+//         free(full_path);
+//         i++;
+//     }
+//     free_tab(paths);
+//     free_tab(s_cmd);
+//     return (cmd);
+// }
+
 char *get_path(char *cmd, char **env)
 {
+    // Si la commande contient un '/', c'est un chemin absolu/relatif
+    if (strchr(cmd, '/'))
+        return ft_strdup(cmd);
+
     char **paths;
     char **s_cmd;
     char *full_path;
-    int i;
+    int i = 0;
 
-    i = 0;
+    // Découper la commande pour avoir juste le premier mot
     s_cmd = ft_split(cmd, ' ');
-    paths = ft_split(find_in_env("PATH", env), ':');
+    if (!s_cmd)
+        return ft_strdup(cmd);
+
+    // Trouver et découper le PATH
+    char *path_value = find_in_env_array("PATH", env);
+    if (!path_value)
+    {
+        free_tab(s_cmd);
+        return ft_strdup(cmd);
+    }
+
+    paths = ft_split(path_value, ':');
+    if (!paths)
+    {
+        free_tab(s_cmd);
+        return ft_strdup(cmd);
+    }
+
+    // Essayer chaque chemin
     while (paths[i])
     {
         full_path = join_path_cmd(paths[i], s_cmd[0]);
         if (access(full_path, F_OK | X_OK) == 0)
-            return (free_tab(paths), free_tab(s_cmd), full_path);
+        {
+            free_tab(paths);
+            free_tab(s_cmd);
+            return full_path;
+        }
         free(full_path);
         i++;
     }
+
     free_tab(paths);
     free_tab(s_cmd);
-    return (cmd);
+    return ft_strdup(cmd);
 }
 
 void    read_heredoc(int fd, char *limiter)
@@ -4095,16 +4243,97 @@ int is_builtin(char *cmd)
     return 0;
 }
 
+// int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
+// {
+//     char **option_cmd;
+//     char *path;
+//     struct stat path_stat;
+//     // char **env_array;
+//     (void)env;
+// 	char **env_array;
+
+// 	env_array = convert_env_to_array(ctx);
+// 	if(!env_array)
+// 	{
+// 		fprintf(stderr, "Error : Failed to convert env\n");
+// 		exit(EXIT_FAILURE);
+// 	}
+//     option_cmd = prepare_args(cmd_tokens, ctx);
+//     if (!option_cmd || !option_cmd[0])
+//     {
+//         fprintf(stderr, "Error: Command is empty\n");
+//         free_tab(option_cmd);
+//         exit(EXIT_FAILURE);
+//     }
+//     // if (!env_array)
+//     // {
+//     //     fprintf(stderr, "Error: Failed to convert environment\n");
+//     //     free_tab(option_cmd);
+//     //     exit(EXIT_FAILURE);
+//     // }
+
+//     // Check if the command is a builtin
+//     if (is_builtin(option_cmd[0]))
+//     {
+// 		// char **env_array = convert_env_to_array(ctx);
+// 		// if(!env_array)
+// 		// {
+// 		// 	free_tab(option_cmd);
+// 		// 	exit(EXIT_FAILURE);
+// 		// }
+//         // Execute the builtin command
+//         exec_builtin_cmd(option_cmd, env_array, ctx);
+//         free_tab(option_cmd);
+//         free_tab(env_array);
+//         exit(ctx->exit_status);
+//     }
+
+//     // Find the command in PATH
+//     path = get_path(option_cmd[0], env_array);
+//     if (!path)
+//     {
+//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
+//         free_tab(option_cmd);
+//         free_tab(env_array);
+//         exit(127);
+//     }
+//     if (stat(path, &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+//     {
+//         fprintf(stderr, "%s: Is a directory\n", path);
+//         free_tab(option_cmd);
+//         free_tab(env_array);
+//         exit(126);
+//     }
+
+//     if (access(path, X_OK) != 0)
+//     {
+//         fprintf(stderr, "%s: Permission denied\n", path);
+//         free_tab(option_cmd);
+//         free_tab(env_array);
+//         exit(126);
+//     }
+
+//     if (execve(path, option_cmd, env_array) == -1)
+//     {
+//         perror("execve");
+//         free_tab(option_cmd);
+//         free_tab(env_array);
+//         exit(EXIT_FAILURE);
+//     }
+
+//     free_tab(option_cmd);
+//     free_tab(env_array);
+//     return 0;
+// }
+
 int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
 {
     char **option_cmd;
     char *path;
-    struct stat path_stat;
-    // char **env_array;
-    (void)env;
+    char **env_array;
+	(void)env;
 
-    t_var env_var;
-    env_var.env = convert_env_to_array(ctx->env_vars);
+    // Convertir les tokens en tableau d'arguments
     option_cmd = prepare_args(cmd_tokens, ctx);
     if (!option_cmd || !option_cmd[0])
     {
@@ -4112,304 +4341,65 @@ int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
         free_tab(option_cmd);
         exit(EXIT_FAILURE);
     }
-    // if (!env_array)
-    // {
-    //     fprintf(stderr, "Error: Failed to convert environment\n");
-    //     free_tab(option_cmd);
-    //     exit(EXIT_FAILURE);
-    // }
 
-    // Check if the command is a builtin
+    // Convertir env_vars en tableau
+    env_array = convert_env_to_array(ctx);
+    if (!env_array)
+    {
+        free_tab(option_cmd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Vérifier si c'est une commande builtin
     if (is_builtin(option_cmd[0]))
     {
-        // Execute the builtin command
-        exec_builtin_cmd(option_cmd, &env_var, ctx);
+        exec_builtin_cmd(option_cmd, env_array, ctx);
         free_tab(option_cmd);
-        // free_tab(env_var);
-        free_tab(env_var.env);
+        free_tab(env_array);
         exit(ctx->exit_status);
     }
 
-    // Find the command in PATH
-    path = get_path(option_cmd[0], env_var.env);
+    // Si ce n'est pas un builtin, chercher dans PATH
+    path = get_path(option_cmd[0], env_array);
     if (!path)
     {
         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
         free_tab(option_cmd);
-        free_tab(env_var.env);
+        free_tab(env_array);
         exit(127);
     }
+
+    // Vérifier si c'est un dossier
+    struct stat path_stat;
     if (stat(path, &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
     {
         fprintf(stderr, "%s: Is a directory\n", path);
+        free(path);
         free_tab(option_cmd);
-        free_tab(env_var.env);
+        free_tab(env_array);
         exit(126);
     }
 
+    // Vérifier les permissions
     if (access(path, X_OK) != 0)
     {
         fprintf(stderr, "%s: Permission denied\n", path);
+        free(path);
         free_tab(option_cmd);
-        free_tab(env_var.env);
+        free_tab(env_array);
         exit(126);
     }
 
-    if (execve(path, option_cmd, env_var.env) == -1)
-    {
-        perror("execve");
-        free_tab(option_cmd);
-        free_tab(env_var.env);
-        exit(EXIT_FAILURE);
-    }
+    // Exécuter la commande
+    execve(path, option_cmd, env_array);
 
+    // Si on arrive ici, execve a échoué
+    perror("execve");
+    free(path);
     free_tab(option_cmd);
-    free_tab(env_var.env);
-    return 0;
+    free_tab(env_array);
+    exit(EXIT_FAILURE);
 }
-
-// int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
-// {
-//     char **option_cmd;
-//     char *path;
-//     struct stat path_stat;
-
-//     option_cmd = prepare_args(cmd_tokens, ctx);
-//     if (!option_cmd[0])
-//     {
-//         fprintf(stderr, "Error: Command is empty\n");
-//         free_tab(option_cmd);
-//         exit(EXIT_FAILURE);
-//     }
-//     // Special case for "$"
-//     if (strcmp(option_cmd[0], "$") == 0)
-//     {
-//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//         free_tab(option_cmd);
-//         exit(127);
-//     }
-//     // Expand variables for the first argument if it starts with "$"
-//     if (option_cmd[0][0] == '$')
-//     {
-//         char *expanded = expand_variables(option_cmd[0], ctx, STRING);
-//         if ((!expanded || expanded[0] == '\0') && option_cmd[1])
-//         {
-//             free(expanded);
-//             free(option_cmd[0]);
-//             for (int i = 0; option_cmd[i + 1]; i++)
-//                 option_cmd[i] = option_cmd[i + 1];
-//             option_cmd[count_args(option_cmd) - 1] = NULL;
-//         }
-//         else
-//         {
-//             free(option_cmd[0]);
-//             option_cmd[0] = expanded;
-//         }
-
-//         if (!option_cmd[0] || option_cmd[0][0] == '\0')
-//         {
-//             free_tab(option_cmd);
-//             exit(0);  // Exit with success
-//         }
-//     }
-//     // Check if it's a directory
-//     if (stat(option_cmd[0], &path_stat) == 0)
-//     {
-//         if (S_ISDIR(path_stat.st_mode))
-//         {
-//             // Handle explicitly called directories (e.g., ./test_files)
-//             if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-//             {
-//                 fprintf(stderr, "bash: %s: Is a directory\n", option_cmd[0]);
-//                 free_tab(option_cmd);
-//                 exit(126);
-//             }
-//             else // Implicit directory call (e.g., test_files)
-//             {
-//                 fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//                 free_tab(option_cmd);
-//                 exit(127);
-//             }
-//         }
-//     }
-//     // Handle explicit paths (e.g., "./missing.out")
-//     if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-//     {
-//         if (access(option_cmd[0], F_OK) != 0)
-//         {
-//             fprintf(stderr, "%s: No such file or directory\n", option_cmd[0]);
-//             free_tab(option_cmd);
-//             exit(127);
-//         }
-//         else if (access(option_cmd[0], X_OK) != 0)
-//         {
-//             fprintf(stderr, "%s: Permission denied\n", option_cmd[0]);
-//             free_tab(option_cmd);
-//             exit(126);
-//         }
-//     }
-//     // Find the command in PATH
-//     path = get_path(option_cmd[0], env);
-//     if (execve(path, option_cmd, env) == -1)
-//     {
-//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//         free_tab(option_cmd);
-//         exit(127);
-//     }
-
-//     free_tab(option_cmd);
-//     return 0;
-// }
-
-
-// int exec(t_token *cmd_tokens, char **env, t_ctx *ctx)
-// {
-//     char **option_cmd;
-//     char *path;
-//     struct stat path_stat;
-
-//     option_cmd = prepare_args(cmd_tokens, ctx);
-//     if (!option_cmd[0])
-//     {
-//         fprintf(stderr, "Error: Command is empty\n");
-//         free_tab(option_cmd);
-//         exit(EXIT_FAILURE);
-//     }
-
-//     // Gestion de la commande "cat"
-//     if (strcmp(option_cmd[0], "cat") == 0)
-//     {
-//         int i = 1;
-//         int fd;
-//         char buffer[4096];
-//         ssize_t bytes_read;
-
-//         // Si aucun argument n'est donné, lire depuis stdin
-//         if (option_cmd[1] == NULL)
-//         {
-//             while ((bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer))) > 0)
-//                 write(STDOUT_FILENO, buffer, bytes_read);
-//         }
-//         else
-//         {
-//             while (option_cmd[i])
-//             {
-//                 // Vérifier si l'argument est un fichier ou un chemin explicite
-//                 if (option_cmd[i][0] == '<')
-//                 {
-//                     char *file_path = option_cmd[i] + 1;
-//                     fd = open(file_path, O_RDONLY);
-//                 }
-//                 else
-//                 {
-//                     fd = open(option_cmd[i], O_RDONLY);
-//                 }
-
-//                 if (fd == -1)
-//                 {
-//                     fprintf(stderr, "cat: %s: No such file or directory\n", option_cmd[i]);
-//                     i++;
-//                     continue;
-//                 }
-
-//                 while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0)
-//                     write(STDOUT_FILENO, buffer, bytes_read);
-
-//                 close(fd);
-//                 i++;
-//             }
-//         }
-
-//         free_tab(option_cmd);
-//         exit(EXIT_SUCCESS);
-//     }
-
-//     // Special case for "$"
-//     if (strcmp(option_cmd[0], "$") == 0)
-//     {
-//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//         free_tab(option_cmd);
-//         exit(127);
-//     }
-
-//     // Expand variables for the first argument if it starts with "$"
-//     if (option_cmd[0][0] == '$')
-//     {
-//         char *expanded = expand_variables(option_cmd[0], ctx, STRING);
-//         if ((!expanded || expanded[0] == '\0') && option_cmd[1])
-//         {
-//             free(expanded);
-//             free(option_cmd[0]);
-//             for (int i = 0; option_cmd[i + 1]; i++)
-//                 option_cmd[i] = option_cmd[i + 1];
-//             option_cmd[count_args(option_cmd) - 1] = NULL;
-//         }
-//         else
-//         {
-//             free(option_cmd[0]);
-//             option_cmd[0] = expanded;
-//         }
-
-//         if (!option_cmd[0] || option_cmd[0][0] == '\0')
-//         {
-//             free_tab(option_cmd);
-//             exit(0);  // Exit with success
-//         }
-//     }
-
-//     // Check if it's a directory
-//     if (stat(option_cmd[0], &path_stat) == 0)
-//     {
-//         if (S_ISDIR(path_stat.st_mode))
-//         {
-//             // Handle explicitly called directories (e.g., ./test_files)
-//             if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-//             {
-//                 fprintf(stderr, "bash: %s: Is a directory\n", option_cmd[0]);
-//                 free_tab(option_cmd);
-//                 exit(126);
-//             }
-//             else // Implicit directory call (e.g., test_files)
-//             {
-//                 fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//                 free_tab(option_cmd);
-//                 exit(127);
-//             }
-//         }
-//     }
-
-//     // Handle explicit paths (e.g., "./missing.out")
-//     if (option_cmd[0][0] == '.' || option_cmd[0][0] == '/')
-//     {
-//         if (access(option_cmd[0], F_OK) != 0)
-//         {
-//             fprintf(stderr, "%s: No such file or directory\n", option_cmd[0]);
-//             free_tab(option_cmd);
-//             exit(127);
-//         }
-//         else if (access(option_cmd[0], X_OK) != 0)
-//         {
-//             fprintf(stderr, "%s: Permission denied\n", option_cmd[0]);
-//             free_tab(option_cmd);
-//             exit(126);
-//         }
-//     }
-
-//     // Find the command in PATH
-//     path = get_path(option_cmd[0], env);
-//     if (execve(path, option_cmd, env) == -1)
-//     {
-//         fprintf(stderr, "%s: command not found\n", option_cmd[0]);
-//         free_tab(option_cmd);
-//         exit(127);
-//     }
-
-//     free_tab(option_cmd);
-//     return 0;
-// }
-
-
-
 
 void	parent(t_token *tokens, int *pipe_fd, char **env, t_ctx *ctx)
 {
@@ -4523,16 +4513,25 @@ t_ctx *initialize_ctx(void)
 
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
 {
-    t_var myEnv; // Déclarez une instance de `t_var`
+    printf("DEBUG - main start\n");
+    // t_env_var myEnv; // Déclarez une instance de `t_var`
     t_ctx *ctx = initialize_ctx(); // Initialisez `t_ctx`
 
     if (!ctx)
         return (perror("Failed to initialize context"), 1);
 
-    myEnv.env = envp; // `envp` est passé au champ `env` de `myEnv`
-    loop_with_pipes(&myEnv, ctx);
+    ctx->env_vars = build_env_list(envp);
+    // char **env_array = convert_env_to_array(ctx);
+    printf("DEBUG - env_vars built: %p\n", (void*)ctx->env_vars);
+    if(!ctx->env_vars)
+	{
+		free_ctx(ctx);
+		return(perror("Failed to build env list"), 1);
+	}
+
+	loop_with_pipes(envp, ctx);
     // Nettoyage
-    free_env_vars(ctx->env_vars);
+    free_ctx(ctx);
     free(ctx);
     return 0;
 }
@@ -4604,15 +4603,32 @@ void free_env_copy(char **env_copy)
     free(env_copy);
 }
 
-// Libère une liste chaînée de variables d'environnement
-void free_env_vars(t_env_var *env_vars)
+void free_env(t_env_var *env_var)
 {
-    while (env_vars)
+    while(env_var)
     {
-        t_env_var *to_free = env_vars;
-        env_vars = env_vars->next;
+        t_env_var *to_free = env_var;
+        env_var = env_var->next;
+
         free(to_free->name);
         free(to_free->value);
+        free(to_free);
+    }
+
+}
+
+// Libère une liste chaînée  de variables d'environnement
+void free_ctx(t_ctx *ctx)
+{
+    while (ctx)
+    {
+        t_ctx *to_free = ctx;
+        ctx = ctx->next;
+
+        free_env(to_free->env_vars);
+
+        free(to_free->oldpwd);
+        free(to_free->pwd);
         free(to_free);
     }
 }

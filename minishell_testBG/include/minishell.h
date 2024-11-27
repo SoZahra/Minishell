@@ -34,33 +34,34 @@ typedef struct s_env_var
 	char				*name;
 	char				*value;
 	struct s_env_var	*next;
+	// struct t_ctx 		*env_vars;
 }						t_env_var;
+
 typedef struct s_ctx
 {
-	t_env_var *env_vars; // Liste des variables d'environnement
+	t_env_var 			*env_vars; // Liste des variables d'environnement
 	unsigned char		exit_status;
 	int					num_pipes;
 	char				*oldpwd;
 	char				*pwd;
+	struct s_ctx		*next;
+	// char				*name;
+	// char				*value;
+
 }						t_ctx;
 
-typedef struct s_var
-{
-	char				**env;
-}						t_var;
+// typedef struct s_var
+// {
+// 	char				**env;
+// }						t_var;
 
 typedef enum token_type
 {
-	// TOKEN_COMMAND = 'C',
-	// TOKEN_ARGUMENT = 'A',
 	TOKEN_HEREDOC = 'H',
 	TOKEN_REDIRECT_INPUT = '<',  // <
 	TOKEN_REDIRECT_OUTPUT = '>', // >
 	TOKEN_REDIRECT_APPEND = 'A', // >>
 	TOKEN_PIPE = '|',            // |
-	// TOKEN_FILENAME,
-		// Ajoute ce type pour les fichiers après redirectio
-	// TOKEN_END = 'E',
 	STRING = 'T',
 	DOUBLEQUOTE = '"',
 	SINGLE_QUOTE = '\'',
@@ -87,8 +88,9 @@ typedef struct s_pipe_cmd
 
 char					**get_environment(char **envp);
 // t_env_var *get_environment(char **envp);
-int						export_v(char ***env_copy, const char *var,
-							const char *value);
+// int						export_v(char ***env_copy, const char *var,
+// 							const char *value);
+t_env_var *export_v(t_env_var *env_vars, const char *var, const char *value);
 // int unset_v(char ***env_copy, const char *var);
 // int unset_v(char ***env_copy, const char *var);
 // int unset_v(t_env_var **env_vars, const char *var, t_ctx *ctx);
@@ -163,15 +165,16 @@ void					exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2],
 							t_ctx *ctx);
 // void	process_tokens(t_token *cmd_tokens, int num_pipes);
 int						count_tokens(t_token *tokens);
-int						exec_simple_cmd(t_token *tokens, t_var *env,
-							t_ctx *ctx);
+int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 // int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 // void split_env_v(const char *input, char **var, char **value);
 // int exec_builtin_cmd(char **args, char **env);
 int						split_env_v(char *arg, char **var, char **value);
 // int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
-int						exec_builtin_cmd(char **args, t_var *env, t_ctx *ctx);
+// int						exec_builtin_cmd(char **args, t_env_var *env, t_ctx *ctx);
+int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 t_token					*create_token_list(char **args);
+
 // int read_and_exec(char **env);
 int						read_and_exec(char **env, t_ctx *ctx);
 char					*strip_quotes(char *arg);
@@ -189,10 +192,14 @@ t_token					*extract_command_after(t_token *tokens);
 // int	process_pline(t_token *tokens, char **env);
 // int	process_pline(t_token *tokens, char **env, t_ctx *ctx);
 // int process_pline(t_token *tokens, char **env, t_ctx *ctx);
-int						process_pline(t_token *tokens, t_var *myEnv,
-							t_ctx *ctx);
+// int						process_pline(t_token *tokens, t_var *myEnv,
+// 							t_ctx *ctx);
+// int process_pline(t_token *tokens, t_env_var *myEnv, t_ctx *ctx);
+int process_pline(t_token *tokens, char **env, t_ctx *ctx);
 void					*free_tab(char **tab);
-char					*find_in_env(char *name, char **env);
+// char					*find_in_env(char *name, char **env);
+char *find_in_env_array(char *name, char **env);
+char	*find_in_env(char *name, t_env_var *env_vars);
 char					*join_path_cmd(char *path, char *cmd);
 char					*get_path(char *cmd, char **env);
 // char **prepare_args(t_token *tokens, int *exit_status);
@@ -251,7 +258,8 @@ void					collect_exec_tokens(t_token *cmd_start,
 							int *redirect, int *redirect_input,
 							int *redirect_output);
 // int loop_with_pipes(char **env, t_ctx *ctx);
-int						loop_with_pipes(t_var *env, t_ctx *ctx);
+// int						loop_with_pipes(t_env_var *env, t_ctx *ctx);
+int loop_with_pipes(char **env, t_ctx *ctx);
 
 t_pipe_cmd				*create_pipe_cmd(t_token *cmd_tokens);
 int						execute_pipe_sequence(t_pipe_cmd *cmds, char **env,
@@ -264,15 +272,23 @@ void					execute_command_in_child(t_token *cmd_start,
 							char **env, t_ctx *ctx);
 void					handle_output_redirection(t_token *redir_token,
 							int *redirect, int *redirect_output);
-void					ps_expand_env(t_token *tokens, t_ctx *ctx,
-							t_var *myEnv);
-int						expand_variable(char *token, char **result, int i,
-							t_var *myEnv);
+// void					ps_expand_env(t_token *tokens, t_ctx *ctx,
+// 							t_env_var *myEnv);
+void	ps_expand_env(t_token *tokens, t_ctx *ctx);
+int	expand_variable(char *token, char **result, int i, t_ctx *ctx);
+// int						expand_variable(char *token, char **result, int i,
+// 							t_env_var *myEnv);
 int						extract_var_name(char *var_start, char *var_name);
 void					append_env_value(char **result, char *env_value);
 void					*free_tab_2(char **tab);
 t_ctx					*initialize_ctx(void);
 
 int						is_builtin(char *cmd);
+
+void free_ctx(t_ctx *ctx);
+void free_env(t_env_var *env_var);
+
+t_env_var *build_env_list(char **envp);
+void print_env(char **env_array);
 
 #endif
