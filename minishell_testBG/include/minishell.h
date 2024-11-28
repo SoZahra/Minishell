@@ -281,7 +281,7 @@ int	expand_variable(char *token, char **result, int i, t_ctx *ctx);
 int						extract_var_name(char *var_start, char *var_name);
 void					append_env_value(char **result, char *env_value);
 void					*free_tab_2(char **tab);
-t_ctx					*initialize_ctx(void);
+int					initialize_ctx(t_ctx *ctx);
 
 int						is_builtin(char *cmd);
 
@@ -289,6 +289,6 @@ void free_ctx(t_ctx *ctx);
 void free_env(t_env_var *env_var);
 
 t_env_var *build_env_list(char **envp);
-void print_env(char **env_array);
-
+// void (char **env_array);
+void print_env(t_ctx *ctx);
 #endif
