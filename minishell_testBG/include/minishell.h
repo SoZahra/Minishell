@@ -293,5 +293,6 @@ void print_env(t_ctx *ctx);
 
 t_env_var *get_last_env_node(t_env_var **env);
 t_ctx *get_ctx(void);
+void print_export(t_ctx *ctx);
 
 #endif
