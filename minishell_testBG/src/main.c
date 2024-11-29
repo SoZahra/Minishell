@@ -6,12 +6,18 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/27 18:42:00 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/29 15:46:33 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
+
+t_ctx *get_ctx(void)
+{
+    static t_ctx ctx;
+    return (&ctx);
+}
 
 t_env_var *create_env_var(const char *env_entry)
 {
@@ -1908,7 +1914,6 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
         ctx->exit_status = 1;
         return 0;
     }
-
     // Vérifier si c'est une commande builtin
     if (is_builtin(args[0]))
     {
@@ -1920,7 +1925,6 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
             ctx->exit_status = 1;
             return 0;
         }
-
         int ret = exec_builtin_cmd(args, env_array, ctx);
         free_tab(args);
         free_tab(env_array);
@@ -2250,11 +2254,27 @@ int	check_consecutive_pipes(t_token *tokens)
 // 	return (0);
 // }
 
-void print_env(char **env_array)
+void print_env(t_ctx *ctx)
 {
-    for (int i = 0; env_array[i]; i++) {
-        printf("%s\n", env_array[i]);
+    t_env_var *current = ctx->env_vars;
+    while (current) {
+        if (current->value)
+            printf("%s=%s\n", current->name, current->value);
+        current = current->next;
+        // else
+        //     printf("%s\n", current->name);
     }
+}
+
+
+
+t_env_var *get_last_env_node(t_env_var **env)
+{
+    t_env_var *tmp;
+    tmp = *env;
+    while (tmp->next)
+        tmp = tmp->next;
+    return tmp;
 }
 
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
@@ -2291,20 +2311,13 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
             char *var = NULL;
             char *value = NULL;
             split_env_v(args[i], &var, &value);
-
-            if (var && is_valid_id(var))
-            {
-                if (value)
-                {
-                    printf("DEBUG - env_vars before export: %p\n", (void*)ctx->env_vars);
-                    ctx->env_vars = export_v(ctx->env_vars, var, value);
-                    printf("DEBUG - env_vars after export: %p\n", (void*)ctx->env_vars);
-                }
-                else
-                    ctx->env_vars = export_v(ctx->env_vars, var, "");
-            }
-            free(var);
-            free(value);
+            if (!var)
+                return 1;
+            t_env_var *new = malloc(sizeof(t_env_var));
+            new->name = var;
+            new->value = value;
+            get_last_env_node(&get_ctx()->env_vars)->next = new;
+            print_env(ctx);
             i++;
         }
         return 1;
@@ -2375,9 +2388,7 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 	}
     if (ft_strcmp(args[0], "env") == 0)
     {
-        char **env_array = convert_env_to_array(ctx);
-        print_env(env_array);
-        free_tab(env_array);
+        print_env(get_ctx());
         return 1;
     }
     return 0; // Not a built-in command
@@ -4483,14 +4494,14 @@ void	free_tokens(t_token *tokens)
 		free(tmp);
 	}
 }
-t_ctx *initialize_ctx(void)
+int initialize_ctx(t_ctx *ctx)
 {
     // Allouer de la mémoire pour la structure t_ctx
-    t_ctx *ctx = (t_ctx *)malloc(sizeof(t_ctx));
+    // t_ctx *ctx = (t_ctx *)malloc(sizeof(t_ctx));
     if (!ctx)
     {
         perror("Failed to allocate memory for t_ctx");
-        return NULL;
+        return 1;
     }
 
     // Initialiser les champs de la structure
@@ -4503,36 +4514,34 @@ t_ctx *initialize_ctx(void)
     {
         perror("Failed to get current working directory");
         free(ctx);                  // Libérer la mémoire si une erreur survient
-        return NULL;
+        return 1;
     }
 
-    return ctx;
+    return 0;
 }
 
 
 
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
 {
-    printf("DEBUG - main start\n");
-    // t_env_var myEnv; // Déclarez une instance de `t_var`
-    t_ctx *ctx = initialize_ctx(); // Initialisez `t_ctx`
+    if (initialize_ctx(get_ctx()))
+        return 1; // Initialisez `t_ctx`
 
-    if (!ctx)
+    if (!get_ctx())
         return (perror("Failed to initialize context"), 1);
 
-    ctx->env_vars = build_env_list(envp);
-    // char **env_array = convert_env_to_array(ctx);
-    printf("DEBUG - env_vars built: %p\n", (void*)ctx->env_vars);
-    if(!ctx->env_vars)
+    get_ctx()->env_vars = build_env_list(envp);
+    printf("DEBUG - env_vars built: %p\n", get_ctx()->env_vars);
+    if(!get_ctx()->env_vars)
 	{
-		free_ctx(ctx);
+		free_ctx(get_ctx());
 		return(perror("Failed to build env list"), 1);
 	}
-
-	loop_with_pipes(envp, ctx);
+    // return 0;
+	loop_with_pipes(envp, get_ctx());
     // Nettoyage
-    free_ctx(ctx);
-    free(ctx);
+    free_ctx(get_ctx());
+    // free(ctx);
     return 0;
 }
 
