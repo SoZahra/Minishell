@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/29 15:46:33 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/29 15:48:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1914,6 +1914,7 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
         ctx->exit_status = 1;
         return 0;
     }
+
     // Vérifier si c'est une commande builtin
     if (is_builtin(args[0]))
     {
@@ -1925,6 +1926,7 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
             ctx->exit_status = 1;
             return 0;
         }
+
         int ret = exec_builtin_cmd(args, env_array, ctx);
         free_tab(args);
         free_tab(env_array);
