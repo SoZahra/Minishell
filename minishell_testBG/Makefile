@@ -88,7 +88,7 @@ SIGNALS_DIR	=	$(SRC_PATH)signals
 UTILS_DIR	=	$(SRC_PATH)utils
 
 # Liste des fichiers source
-SRCS_FILES	=	main.c \
+SRCS_FILES	=	test.c \
 				# env/env.c env/utils_env.c env/expand.c\
 				# loop/parsing.c loop/read.c loop/handle.c loop/read_utils.c\
 				# lexer/lexer.c lexer/lexer_utils.c lexer/handle.c lexer/tokens.c\
