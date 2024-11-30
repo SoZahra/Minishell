@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   test.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/30 14:49:42 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/30 17:42:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/11/30 21:32:40 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -394,18 +394,6 @@ int is_valid_id(const char *var)
     return 1;
 }
 
-void print_export(t_ctx *ctx)
-{
-    t_env_var *current = ctx->env_vars;
-    while (current) {
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
-        else
-            printf("%s\n", current->name);
-        current = current->next;
-    }
-}
-
 t_env_var *get_last_env_node(t_env_var **env)
 {
     t_env_var *tmp;
@@ -522,6 +510,29 @@ int process_exit_arg(char **args, t_ctx *ctx)
     return 1; // Pour respecter les conventions de retour (même si unreachable ici)
 }
 
+
+void print_env(t_ctx *ctx) 
+{
+    t_env_var *current = ctx->env_vars;
+    while (current) {
+        if (current->value)
+            printf("%s=%s\n", current->name, current->value);
+        current = current->next;
+    }
+}
+
+void print_export(t_ctx *ctx) 
+{
+    t_env_var *current = ctx->env_vars;
+    while (current) 
+    {
+        if (current->value)
+            printf("%s=%s\n", current->name, current->value);
+        else
+            printf("%s\n", current->name);
+        current = current->next;
+    }
+}
 
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
@@ -661,11 +672,11 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 		// free_args(expanded_args); // Libérer les arguments expandis
 		// return 1;
 	}
-    // if (ft_strcmp(args[0], "env") == 0)
-    // {
-    //     print_env(get_ctx());
-    //     return 1;
-    // }
+    if (ft_strcmp(args[0], "env") == 0)
+    {
+        print_env(get_ctx());
+        return 1;
+    }
     return 0; // Not a built-in command
 }
 
