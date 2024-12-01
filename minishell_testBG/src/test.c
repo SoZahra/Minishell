@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/30 14:49:42 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/30 21:32:40 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/01 16:57:23 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,60 @@ t_ctx *get_ctx(void)
     return (&ctx);
 }
 
+int		g_var_global = 0;
+
+char *empty_completion(const char *text, int state) 
+{
+    (void)text;
+    (void)state;
+    return NULL;
+}
+
+void	handle_sigint(int sig)
+{
+	(void)sig;
+	printf("\n");
+	rl_on_new_line();
+	rl_replace_line("", 0);
+	rl_redisplay();
+	g_var_global = 1;
+}
+
+void	handle_sigquit(int sig)
+{
+	(void)sig;
+}
+
+void	init_sig(void)
+{
+	signal(SIGINT, handle_sigint);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+// void init_sig(void)
+// {
+//     struct sigaction sa_int;
+//     struct sigaction sa_quit;
+
+//     // Configuration pour SIGINT (Ctrl+C)
+//     sigemptyset(&sa_int.sa_mask);
+//     sa_int.sa_handler = handle_sigint;
+//     sa_int.sa_flags = 0;
+//     sigaction(SIGINT, &sa_int, NULL);
+
+//     // Configuration pour SIGQUIT (Ctrl+\)
+//     sigemptyset(&sa_quit.sa_mask);
+//     sa_quit.sa_handler = handle_sigquit;
+//     sa_quit.sa_flags = 0;
+//     sigaction(SIGQUIT, &sa_quit, NULL);
+
+//     // Configurer le terminal pour désactiver l'affichage des caractères spéciaux
+//     struct termios term;
+//     tcgetattr(0, &term);
+//     term.c_lflag &= ~ECHOCTL; // Désactive l'affichage des caractères de contrôle
+//     tcsetattr(0, TCSANOW, &term);
+// }
+
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
 {
     if (initialize_ctx(get_ctx()))
@@ -25,7 +79,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 
     if (!get_ctx())
         return (perror("Failed to initialize context"), 1);
-
+    init_sig();
     get_ctx()->env_vars = build_env_list(envp);
     if(!get_ctx()->env_vars)
 	{
@@ -163,59 +217,52 @@ char *reconstruct_line(t_token *token_list)
 
 char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
 {
-    // Pour les single quotes, retourner la chaîne telle quelle sans expansion
     if (token_type == SINGLE_QUOTE)
-    {
         return ft_strdup(str);
-    }
 
     char *expanded = ft_strdup("");
     char *temp;
 
     while (*str)
     {
-        if (*str == '$' && token_type != SINGLE_QUOTE) // Ne jamais expandre dans les single quotes
+        if (*str == '$' && token_type != SINGLE_QUOTE)
         {
-            str++; // Skip the '$'
-            if (*str == '?') // Special case for `$?`
+            str++; // Skip the $
+            // Vérifier si le caractère suivant est valide pour une variable
+            if (*str && (ft_isalpha(*str) || *str == '_' || *str == '?'))
             {
-                char *exit_code = ft_itoa(ctx->exit_status);
-                temp = ft_strjoin(expanded, exit_code);
-                free(expanded);
-                free(exit_code);
-                expanded = temp;
-                str++;
-            }
-            else if (ft_isalnum(*str) || *str == '_') // Valid variable name
-            {
-                char buffer[1024];
-                int i = 0;
-                while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+                if (*str == '?') // Cas spécial pour $?
                 {
-                    buffer[i] = str[i];
-                    i++;
+                    char *exit_code = ft_itoa(ctx->exit_status);
+                    temp = ft_strjoin(expanded, exit_code);
+                    free(expanded);
+                    free(exit_code);
+                    expanded = temp;
+                    str++;
                 }
-                buffer[i] = '\0';
-                str += i;
+                else // Variable normale
+                {
+                    char buffer[1024];
+                    int i = 0;
+                    while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+                    {
+                        buffer[i] = str[i];
+                        i++;
+                    }
+                    buffer[i] = '\0';
+                    str += i;
 
-                char *value = find_env_value(buffer, ctx->env_vars);
-                temp = ft_strjoin(expanded, value ? value : "");
-                free(expanded);
-                expanded = temp;
+                    char *value = find_env_value(buffer, ctx->env_vars);
+                    temp = ft_strjoin(expanded, value ? value : "");
+                    free(expanded);
+                    expanded = temp;
+                }
             }
-            else // Invalid variable, keep the $
+            else // Si le caractère suivant n'est pas valide, on garde le $
             {
                 temp = ft_strjoin(expanded, "$");
                 free(expanded);
                 expanded = temp;
-                if (*str && *str != ' ') // Si ce n'est pas un espace
-                {
-                    char curr[2] = {*str, '\0'};
-                    temp = ft_strjoin(expanded, curr);
-                    free(expanded);
-                    expanded = temp;
-                    str++;
-                }
             }
         }
         else
@@ -309,42 +356,48 @@ void handle_echo(t_token *token_list, t_ctx *ctx)
     ctx->exit_status = 0;
 }
 
+char *clean_dollar_quotes(const char *str)
+{
+    if (!str || strlen(str) < 4)  // Minimum "$""" ou "$''"
+        return ft_strdup(str);
+
+    if (str[0] == '$' && (str[1] == '"' || str[1] == '\''))
+    {
+        char quote_type = str[1];
+        const char *content_start = str + 2;  // Skip $"
+        const char *content_end = strchr(content_start, quote_type);
+        
+        if (content_end)
+        {
+            // Extraire uniquement le contenu entre les quotes
+            return ft_strndup(content_start, content_end - content_start);
+        }
+    }
+    return ft_strdup(str);
+}
+
+
 void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
 {
     t_token *current = token_list;
     int first_arg = 1;
     int prev_was_quote = 0;
-	(void)ctx;
+    (void)ctx;
 
     while (current)
     {
         if (!first_arg && !(prev_was_quote))
             write(STDOUT_FILENO, " ", 1);
-
         if (current->value)
         {
-            if (current->type == SINGLE_QUOTE)
-            {
-                // Ne pas expandre les variables entre single quotes
-                write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-            }
-            else if (current->type == DOUBLEQUOTE)
-            {
-                // Les variables ont déjà été expandées dans parse_command_line
-                write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-            }
-            else
-            {
-                // Les variables ont déjà été expandées dans parse_command_line
-                write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-            }
+            char *cleaned = clean_dollar_quotes(current->value);
+            write(STDOUT_FILENO, cleaned, ft_strlen(cleaned));
+            free(cleaned);
         }
-
         first_arg = 0;
         prev_was_quote = (current->type == SINGLE_QUOTE || current->type == DOUBLEQUOTE);
         current = current->next;
     }
-
     if (!n_option)
         write(STDOUT_FILENO, "\n", 1);
 }
@@ -683,11 +736,9 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
 {
     char **args;
-    // pid_t pid;
-    // int status;
 	(void)env;
 
-    args = prepare_args(tokens, ctx);// Préparer les arguments
+    args = prepare_args(tokens, ctx);
     if (!args || !args[0])
     {
         perror("Erreur d'allocation de mémoire pour les arguments");
@@ -710,7 +761,14 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
         free_tab(env_array);
         return ret;
     }
-    return 0;
+    else
+    {
+        fprintf(stderr, "miniBG: %s: command not found\n", args[0]);
+        ctx->exit_status = 127;
+        free_tab(args);
+        return 0;
+    }
+    // return 0;
 }
 
 int check_invalid_quotes(char *line)
@@ -827,11 +885,35 @@ t_token *add_token(t_token **token_list, t_token_type type, const char *value)
     return new_token;
 }
 
+t_token *create_single_token(char *value, t_token_type type)
+{
+    t_token *token = malloc(sizeof(t_token));
+    if (!token)
+        return NULL;
+    token->value = value;
+    token->type = type;
+    token->next = NULL;
+    return token;
+}
+
+t_token *handle_special_cases(const char *line, t_ctx *ctx)
+{
+    if (ft_strcmp(line, "$") == 0)
+        return create_single_token(ft_strdup("$"), STRING);
+    if (ft_strcmp(line, "$?") == 0)
+        return create_single_token(ft_itoa(ctx->exit_status), STRING);
+    return NULL;
+}
+
 t_token *parse_command_line(char *line, t_ctx *ctx)
 {
+    t_token *special_case = handle_special_cases(line, ctx);
+    if(special_case)
+        return (special_case);
     if (check_invalid_quotes(line))
     {
-        fprintf(stderr, "Error: quote found without matching opening quote\n");
+        fprintf(stderr, "miniBG: syntax error near unexpected token `newline'\n");
+        ctx->exit_status = 2;
         return NULL;
     }
 
@@ -846,6 +928,19 @@ t_token *parse_command_line(char *line, t_ctx *ctx)
 
     while (line[i])
     {
+
+        if (line[i] == '$' && line[i + 1] && (line[i + 1] == '"' || line[i + 1] == '\''))
+        {
+            buffer[j++] = line[i++]; // Ajouter le $
+            // Ajouter le mot entre quotes tel quel
+            buffer[j++] = line[i++]; // Ajouter la quote
+            while (line[i] && line[i] != line[i - 1]) // Jusqu'à la quote fermante
+                buffer[j++] = line[i++];
+            if (line[i])  // Ajouter la quote fermante si elle existe
+                buffer[j++] = line[i++];
+            continue;
+        }
+        
         if ((line[i] == '\'' || line[i] == '"') && !current_quote_type)
         {
             current_quote_type = line[i];

@@ -16,6 +16,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
+# include <termios.h>
 
 extern char				**environ;
 
@@ -295,5 +296,8 @@ t_env_var *get_last_env_node(t_env_var **env);
 t_ctx *get_ctx(void);
 void print_export(t_ctx *ctx);
 char *reconstruct_line(t_token *token_list);
+
+t_token *create_single_token(char *value, t_token_type type);
+t_token *handle_special_cases(const char *line, t_ctx *ctx);
 
 #endif
