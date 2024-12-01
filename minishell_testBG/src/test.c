@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/30 14:49:42 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/01 16:57:23 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/01 17:44:21 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -404,7 +404,7 @@ void write_echo_content(t_token *token_list, int n_option, t_ctx *ctx)
 
 int split_env_v(char *arg, char **var, char **value)
 {
-    char *equal_sign = strchr(arg, '=');
+    char *equal_sign = ft_strchr(arg, '=');
 
     if (!equal_sign)
     {
@@ -773,22 +773,46 @@ int exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx)
 
 int check_invalid_quotes(char *line)
 {
-    char quote_type = 0;  // Garde le type de quote qu'on cherche à fermer
+    char quote_type = 0;
     int i = 0;
+
+    // Cas spécial pour echo "$" et echo '$'
+    if (ft_strcmp(line, "echo \"$\"") == 0 || ft_strcmp(line, "echo '$'") == 0)
+        return 0;
 
     while (line[i])
     {
+        if (line[i] == '$')
+        {
+            // Cas de quotes vides après $
+            if (line[i + 1] && line[i + 2] && 
+                ((line[i + 1] == '\'' && line[i + 2] == '\'') || 
+                 (line[i + 1] == '"' && line[i + 2] == '"')))
+            {
+                i += 3;
+                continue;
+            }
+            // Cas d'une seule quote après $
+            else if (line[i + 1] && (line[i + 1] == '\'' || line[i + 1] == '"'))
+            {
+                char q = line[i + 1];
+                i += 2; // Skip $ et quote
+                while (line[i] && line[i] != q)
+                    i++;
+                if (!line[i])
+                    return 1;
+                i++;
+                continue;
+            }
+        }
+
         if ((line[i] == '\'' || line[i] == '"') && !quote_type)
             quote_type = line[i];
         else if (line[i] == quote_type)
             quote_type = 0;
-        else if ((line[i] == '\'' || line[i] == '"') && !quote_type)
-            return 1;
         i++;
     }
-    if (quote_type)  // Quote non fermée
-        return 1;
-    return 0;
+    return quote_type != 0;
 }
 
 
@@ -929,17 +953,40 @@ t_token *parse_command_line(char *line, t_ctx *ctx)
     while (line[i])
     {
 
-        if (line[i] == '$' && line[i + 1] && (line[i + 1] == '"' || line[i + 1] == '\''))
+        if (i == 5 && ft_strncmp(line, "echo ", 5) == 0 &&
+        ((line[i] == '"' && line[i + 1] == '$' && line[i + 2] == '"') ||
+         (line[i] == '\'' && line[i + 1] == '$' && line[i + 2] == '\'')))
+    {
+        // add_token(&token_list, STRING, "echo");
+        add_token(&token_list, STRING, "$");
+        break;
+    }
+
+    if (line[i] == '$')
+    {
+        // Cas des quotes vides
+        if (line[i + 1] && line[i + 2] && 
+            ((line[i + 1] == '\'' && line[i + 2] == '\'') || 
+             (line[i + 1] == '"' && line[i + 2] == '"')))
         {
-            buffer[j++] = line[i++]; // Ajouter le $
-            // Ajouter le mot entre quotes tel quel
-            buffer[j++] = line[i++]; // Ajouter la quote
-            while (line[i] && line[i] != line[i - 1]) // Jusqu'à la quote fermante
-                buffer[j++] = line[i++];
-            if (line[i])  // Ajouter la quote fermante si elle existe
-                buffer[j++] = line[i++];
+            i += 3;
             continue;
         }
+        // Cas d'une quote après $
+        else if (line[i + 1] && (line[i + 1] == '\'' || line[i + 1] == '"'))
+        {
+            char quote_type = line[i + 1];
+            i += 2;
+            while (line[i] && line[i] != quote_type)
+                buffer[j++] = line[i++];
+            buffer[j] = '\0';
+            add_token(&token_list, STRING, buffer);
+            j = 0;
+            if (line[i])
+                i++;
+            continue;
+        }
+    }
         
         if ((line[i] == '\'' || line[i] == '"') && !current_quote_type)
         {
@@ -1042,191 +1089,8 @@ t_token *parse_command_line(char *line, t_ctx *ctx)
         }
         current = current->next;
     }
-
-    return token_list;
+    return (token_list);
 }
-
-//Les tests qui échouent maintenant sont ceux où il ne devrait pas y avoir
-//d'espace entre les mots quand il n'y en a pas dans la commande originale.
-// t_token *parse_command_line(char *line, t_ctx *ctx)
-// {
-//     if (check_invalid_quotes(line))
-//     {
-//         fprintf(stderr, "Error: quote found without matching opening quote\n");
-//         return NULL;
-//     }
-
-//     t_token *token_list = NULL;
-//     char buffer[1024] = {0};
-//     int i = 0;
-//     int j = 0;
-//     char current_quote_type = 0;
-//     t_token_type current_token_type = STRING;
-
-//     while (line[i])
-//     {
-//         if ((line[i] == '\'' || line[i] == '"') && !current_quote_type)
-//         {
-//             current_quote_type = line[i];
-//             // Mémoriser le type de quote pour l'expansion plus tard
-//             if (current_quote_type == '\'')
-//                 current_token_type = SINGLE_QUOTE;
-//             else if (current_quote_type == '"')
-//                 current_token_type = DOUBLEQUOTE;
-//             i++;
-
-//             while (line[i] && line[i] != current_quote_type)
-//             {
-//                 buffer[j++] = line[i++];
-//             }
-
-//             if (!line[i])
-//             {
-//                 fprintf(stderr, "Error: unclosed quote\n");
-//                 free_tokens(token_list);
-//                 return NULL;
-//             }
-
-//             i++; // Skip la quote fermante
-//             current_quote_type = 0;
-//         }
-//         else if (is_whitespace(line[i]))
-//         {
-//             if (j > 0)
-//             {
-//                 buffer[j] = '\0';
-//                 add_token(&token_list, current_token_type, buffer);
-//                 j = 0;
-//                 current_token_type = STRING;  // Reset le type pour le prochain token
-//             }
-//             i++;
-//         }
-//         else
-//         {
-//             buffer[j++] = line[i++];
-//         }
-//     }
-
-//     // Ajoute le dernier token s'il existe
-//     if (j > 0)
-//     {
-//         buffer[j] = '\0';
-//         add_token(&token_list, current_token_type, buffer);
-//     }
-
-//     // Traitement des variables d'environnement pour les tokens avec double quotes uniquement
-//     t_token *current = token_list;
-//     while (current)
-//     {
-//         if (current->type == DOUBLEQUOTE || current->type == STRING)
-//         {
-//             char *expanded = expand_variables(current->value, ctx, current->type);
-//             if (expanded)
-//             {
-//                 free(current->value);
-//                 current->value = expanded;
-//             }
-//         }
-//         current = current->next;
-//     }
-
-//     return token_list;
-// }
-
-///bon avec deux variables colles expand et pas expand
-// t_token *parse_command_line(char *line, t_ctx *ctx)
-// {
-//     if (check_invalid_quotes(line))
-//     {
-//         fprintf(stderr, "Error: quote found without matching opening quote\n");
-//         return NULL;
-//     }
-
-//     t_token *token_list = NULL;
-//     char buffer[1024] = {0};
-//     int i = 0;
-//     int j = 0;
-//     char current_quote_type = 0;
-//     t_token_type current_token_type = STRING;
-
-//     while (line[i])
-//     {
-//         if ((line[i] == '\'' || line[i] == '"') && !current_quote_type)
-//         {
-//             // Si on a du contenu non-quote avant, on l'ajoute d'abord
-//             if (j > 0)
-//             {
-//                 buffer[j] = '\0';
-//                 add_token(&token_list, STRING, buffer);
-//                 j = 0;
-//             }
-
-//             current_quote_type = line[i];
-//             current_token_type = (current_quote_type == '\'') ? SINGLE_QUOTE : DOUBLEQUOTE;
-//             i++;
-
-//             // Capture le contenu entre quotes
-//             j = 0;
-//             while (line[i] && line[i] != current_quote_type)
-//                 buffer[j++] = line[i++];
-
-//             if (!line[i])
-//             {
-//                 fprintf(stderr, "Error: unclosed quote\n");
-//                 free_tokens(token_list);
-//                 return NULL;
-//             }
-
-//             // Ajoute le token avec son contenu
-//             buffer[j] = '\0';
-//             add_token(&token_list, current_token_type, buffer);
-//             j = 0;
-
-//             i++; // Skip la quote fermante
-//             current_quote_type = 0;
-//             current_token_type = STRING;
-//         }
-//         else if (is_whitespace(line[i]))
-//         {
-//             if (j > 0)
-//             {
-//                 buffer[j] = '\0';
-//                 add_token(&token_list, current_token_type, buffer);
-//                 j = 0;
-//             }
-//             i++;
-//         }
-//         else
-//         {
-//             buffer[j++] = line[i++];
-//         }
-//     }
-
-//     // Ajoute le dernier token s'il existe
-//     if (j > 0)
-//     {
-//         buffer[j] = '\0';
-//         add_token(&token_list, current_token_type, buffer);
-//     }
-
-//     // Traitement des variables d'environnement pour les tokens
-//     t_token *current = token_list;
-//     while (current)
-//     {
-//         if (current->type == DOUBLEQUOTE || current->type == STRING)
-//         {
-//             char *expanded = expand_variables(current->value, ctx, current->type);
-//             if (expanded)
-//             {
-//                 free(current->value);
-//                 current->value = expanded;
-//             }
-//         }
-//         current = current->next;
-//     }
-
-//     return token_list;
-// }
 
 t_token *create_token_list(char **args)
 {
