@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   test.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/30 14:49:42 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/01 17:44:21 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/02 13:33:12 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ t_ctx *get_ctx(void)
 
 int		g_var_global = 0;
 
-char *empty_completion(const char *text, int state) 
+char *empty_completion(const char *text, int state)
 {
     (void)text;
     (void)state;
@@ -317,7 +317,7 @@ int loop_with_pipes(char **env, t_ctx *ctx) {
                 char **cmd_env = convert_env_to_array(ctx);
                 exec_simple_cmd(tokens, cmd_env, ctx);
                 free_tab(cmd_env);
-                free_tokens(tokens);
+                // free_tokens(tokens);
                 // exit(ctx->exit_status);
                 // free_tokens(tokens);
             }
@@ -366,7 +366,7 @@ char *clean_dollar_quotes(const char *str)
         char quote_type = str[1];
         const char *content_start = str + 2;  // Skip $"
         const char *content_end = strchr(content_start, quote_type);
-        
+
         if (content_end)
         {
             // Extraire uniquement le contenu entre les quotes
@@ -429,16 +429,13 @@ int split_env_v(char *arg, char **var, char **value)
 
 int is_valid_id(const char *var)
 {
-    char *equal_sign = strchr(var, '=');
-    size_t len = equal_sign ? (size_t)(equal_sign - var) : strlen(var);
+    char *equal_sign = ft_strchr(var, '=');
+    size_t len = equal_sign ? (size_t)(equal_sign - var) : ft_strlen(var);
 
     if (!var || !*var)
-        return 0;
-
-    // Vérifier seulement la partie avant le '=' si présent
+        return 0;    // Vérifier seulement la partie avant le '=' si présent
     if (!ft_isalpha(var[0]) && var[0] != '_')
         return 0;
-
     for (size_t i = 1; i < len; i++)
     {
         if (!ft_isalnum(var[i]) && var[i] != '_')
@@ -564,7 +561,7 @@ int process_exit_arg(char **args, t_ctx *ctx)
 }
 
 
-void print_env(t_ctx *ctx) 
+void print_env(t_ctx *ctx)
 {
     t_env_var *current = ctx->env_vars;
     while (current) {
@@ -574,10 +571,10 @@ void print_env(t_ctx *ctx)
     }
 }
 
-void print_export(t_ctx *ctx) 
+void print_export(t_ctx *ctx)
 {
     t_env_var *current = ctx->env_vars;
-    while (current) 
+    while (current)
     {
         if (current->value)
             printf("%s=%s\n", current->name, current->value);
@@ -612,19 +609,42 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
     }
     if (ft_strcmp(args[0], "export") == 0)
     {
+        if (args[1] && (ft_strcmp(args[1], "\"\"") == 0 || ft_strlen(args[1]) == 0))
+        {
+            fprintf(stderr, "bash: export: `': not a valid identifier\n");
+            ctx->exit_status = 1;
+            return 1;
+        }
+
+        // Cas spécial pour $ seul
+        if (args[1] && ft_strcmp(args[1], "$") == 0)
+        {
+            fprintf(stderr, "bash: export: `$': not a valid identifier\n");
+            ctx->exit_status = 1;
+            return 1;
+        }
+
+        // Si pas d'arguments
         if (!args[1])
         {
             print_export(ctx);
             ctx->exit_status = 0;
             return 1;
         }
-
         i = 1;
         int has_error = 0;
         while (args[i])
         {
             char *var = NULL;
             char *value = NULL;
+
+
+            if (args[i][0] == '$')
+            {
+                print_export(ctx);
+                i++;
+                continue;
+            }
             if (!split_env_v(args[i], &var, &value))
             {
                 has_error = 1;
@@ -641,7 +661,6 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
                 i++;
                 continue;
             }
-
             t_env_var *new = malloc(sizeof(t_env_var));
             if (!new)
             {
@@ -652,7 +671,6 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
                 i++;
                 continue;
             }
-
             new->name = var;
             new->value = value; // La valeur peut contenir n'importe quoi
             new->next = NULL;
@@ -785,8 +803,8 @@ int check_invalid_quotes(char *line)
         if (line[i] == '$')
         {
             // Cas de quotes vides après $
-            if (line[i + 1] && line[i + 2] && 
-                ((line[i + 1] == '\'' && line[i + 2] == '\'') || 
+            if (line[i + 1] && line[i + 2] &&
+                ((line[i + 1] == '\'' && line[i + 2] == '\'') ||
                  (line[i + 1] == '"' && line[i + 2] == '"')))
             {
                 i += 3;
@@ -962,32 +980,32 @@ t_token *parse_command_line(char *line, t_ctx *ctx)
         break;
     }
 
-    if (line[i] == '$')
-    {
-        // Cas des quotes vides
-        if (line[i + 1] && line[i + 2] && 
-            ((line[i + 1] == '\'' && line[i + 2] == '\'') || 
-             (line[i + 1] == '"' && line[i + 2] == '"')))
+        if (line[i] == '$')
         {
-            i += 3;
-            continue;
+            // Cas des quotes vides
+            if (line[i + 1] && line[i + 2] &&
+                ((line[i + 1] == '\'' && line[i + 2] == '\'') ||
+                (line[i + 1] == '"' && line[i + 2] == '"')))
+            {
+                i += 3;
+                continue;
+            }
+            // Cas d'une quote après $
+            else if (line[i + 1] && (line[i + 1] == '\'' || line[i + 1] == '"'))
+            {
+                char quote_type = line[i + 1];
+                i += 2;
+                while (line[i] && line[i] != quote_type)
+                    buffer[j++] = line[i++];
+                buffer[j] = '\0';
+                add_token(&token_list, STRING, buffer);
+                j = 0;
+                if (line[i])
+                    i++;
+                continue;
+            }
         }
-        // Cas d'une quote après $
-        else if (line[i + 1] && (line[i + 1] == '\'' || line[i + 1] == '"'))
-        {
-            char quote_type = line[i + 1];
-            i += 2;
-            while (line[i] && line[i] != quote_type)
-                buffer[j++] = line[i++];
-            buffer[j] = '\0';
-            add_token(&token_list, STRING, buffer);
-            j = 0;
-            if (line[i])
-                i++;
-            continue;
-        }
-    }
-        
+
         if ((line[i] == '\'' || line[i] == '"') && !current_quote_type)
         {
             current_quote_type = line[i];
