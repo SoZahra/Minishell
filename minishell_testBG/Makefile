@@ -88,13 +88,16 @@ SIGNALS_DIR	=	$(SRC_PATH)signals
 UTILS_DIR	=	$(SRC_PATH)utils
 
 # Liste des fichiers source
-SRCS_FILES	=	test.c \
-				# env/env.c env/utils_env.c env/expand.c\
-				# loop/parsing.c loop/read.c loop/handle.c loop/read_utils.c\
-				# lexer/lexer.c lexer/lexer_utils.c lexer/handle.c lexer/tokens.c\
-				# pipe/exc_pipe.c pipe/pipe.c pipe/pipe_utils.c pipe/pipe_utils_2.c\
-				# signals/signal.c \
-				# utils/error.c utils/free.c
+SRCS_FILES	=	main.c \
+				builtins/echo_utils.c builtins/echo.c builtins/env.c builtins/exit.c builtins/gestion_builtins.c builtins/utils_env.c\
+				env/build_env_list.c \
+				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c \
+				expand/expand_variables.c\
+				loop/loop.c loop/parse_command.c loop/utils_parse_2.c loop/utils_parse_command.c \
+				signaux/handle_signal.c \
+				tokens/add_tokens.c tokens/args.c \
+				utils/free.c utils/init.c utils/list.c utils/utils.c
+
 
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
 

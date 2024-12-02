@@ -299,5 +299,8 @@ char *reconstruct_line(t_token *token_list);
 
 t_token *create_single_token(char *value, t_token_type type);
 t_token *handle_special_cases(const char *line, t_ctx *ctx);
+char *clean_dollar_quotes(const char *str);
+char **convert_env_to_array(t_ctx *ctx);
+int check_invalid_quotes(char *line);
 
 #endif
