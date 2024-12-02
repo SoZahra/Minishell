@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:22:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 15:22:44 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/02 19:24:45 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 
 int		g_var_global = 0;
 
-char *empty_completion(const char *text, int state)
+char	*empty_completion(const char *text, int state)
 {
-    (void)text;
-    (void)state;
-    return NULL;
+	(void)text;
+	(void)state;
+	return (NULL);
 }
 
 void	handle_sigint(int sig)
