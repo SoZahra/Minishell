@@ -24,18 +24,26 @@ extern char				**environ;
 #  define PATH_MAX 4096
 # endif
 
+
+// typedef struct s_var
+// {
+//     char **env;
+// } t_var;
 typedef struct s_env_var
 {
 	char				*name;
 	char				*value;
+	char				**env;
 	struct s_env_var	*next;
-}	
+}
 					t_env_var;
 typedef struct s_ctx
 {
     t_env_var *env_vars;  // Liste des variables d'environnement
 	unsigned char exit_status;
 	int	num_pipes;
+	char *oldpwd;
+	char *pwd;
 } t_ctx;
 
 typedef enum token_type
@@ -121,8 +129,10 @@ int handle_line(char *line, char **env, t_ctx *ctx);
 // int	ft_cd_home(void);
 int	ft_cd_home(t_ctx *ctx);
 int	ft_cd(char **args, t_ctx *ctx);
-int	ft_cd_oldpwd(char **oldpwd);
-int	ft_update_pwd(char **oldpwd);
+// int	ft_cd_oldpwd(char **oldpwd);
+int	ft_cd_oldpwd(t_ctx *ctx);
+int ft_update_pwd(t_ctx *ctx);
+// int	ft_update_pwd(char **oldpwd);
 void	print_all_cmds(t_token *cmd_tokens, int num_pipes);
 void	create_pipe(int pipe_fd[2]);
 // char	**prepare_print_args(t_token *cmd);
@@ -152,7 +162,8 @@ int	exc_pipe(t_token *tokens);
 t_token	*extract_command(t_token *tokens);
 t_token	*extract_command_after(t_token *tokens);
 // int	process_pline(t_token *tokens, char **env);
-int	process_pline(t_token *tokens, char **env, t_ctx *ctx);
+// int	process_pline(t_token *tokens, char **env, t_ctx *ctx);
+int process_pline(t_token *tokens, char **env, t_ctx *ctx);
 void	*free_tab(char **tab);
 char	*find_in_env(char *name, char **env);
 char	*join_path_cmd(char *path, char *cmd);
@@ -187,5 +198,17 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type);
 
 int count_args(char **args);
 void free_args(char **args);
+
+void    read_heredoc(int fd, char *limiter);
+int here_doc(char *limiter);
+void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input) ;
+void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output);
+void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end);
+void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, char **env, t_ctx *ctx);
+void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t_token *cmd_end);
+void wait_for_all_children();
+void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end);
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output);
+int loop_with_pipes(char **env, t_ctx *ctx);
 
 #endif

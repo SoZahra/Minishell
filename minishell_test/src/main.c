@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 14:03:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/19 00:18:08 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/11/20 19:51:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
+
 
 t_env_var *create_env_var(const char *env_entry)
 {
@@ -226,7 +227,7 @@ int unset_v(t_env_var **env_vars, const char *var)
         prev = current;
         current = current->next;
     }
-    return -1; // Variable not found
+    return (0); // Variable not found
 }
 
 
@@ -433,7 +434,7 @@ char *find_env_value(const char *name, t_env_var *env_vars)
 
 //         for (int i = 0; token[i] != '\0'; i++)
 //         {
-//             if (token[i] == '$') 
+//             if (token[i] == '$')
 // 			{
 //                 // Si le prochain caractère est un guillemet, on ajoute `$` comme une chaîne et on ignore l'expansion
 //                 if (token[i + 1] == '"') {
@@ -515,7 +516,6 @@ int is_valid_id(const char *var)
 {
     if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
         return 0;
-
     for (int i = 1; var[i]; i++)
     {
         if (!ft_isalnum(var[i]) && var[i] != '_')
@@ -523,6 +523,68 @@ int is_valid_id(const char *var)
     }
     return 1;
 }
+
+// char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
+// {
+//     if (token_type == SINGLE_QUOTE)
+//         return ft_strdup(str); // Return as-is for single-quoted strings
+
+//     char *expanded = ft_strdup("");
+//     char *temp;
+
+//     while (*str)
+//     {
+//         if (*str == '$')
+//         {
+//             str++; // Skip the '$'
+//             if (*str == '\0') // Standalone '$'
+//             {
+//                 temp = ft_strjoin(expanded, "$");
+//                 free(expanded);
+//                 expanded = temp;
+//             }
+//             else if (*str == '?') // Special case for `$?`
+//             {
+//                 char *exit_code = ft_itoa(ctx->exit_status);
+//                 temp = ft_strjoin(expanded, exit_code);
+//                 free(expanded);
+//                 expanded = temp;
+//                 free(exit_code);
+//                 str++;
+//             }
+//             else if (ft_isalnum(*str) || *str == '_') // Valid variable name
+//             {
+//                 char buffer[1024];
+//                 int i = 0;
+
+//                 while (ft_isalnum(*str) || *str == '_')
+//                     buffer[i++] = *str++;
+//                 buffer[i] = '\0';
+
+//                 char *value = find_env_value(buffer, ctx->env_vars);
+//                 temp = ft_strjoin(expanded, value ? value : "");
+//                 free(expanded);
+//                 expanded = temp;
+//             }
+//             else // Invalid variable, treat as literal
+//             {
+//                 temp = ft_strjoin(expanded, "$");
+//                 free(expanded);
+//                 expanded = temp;
+//             }
+//         }
+//         else
+//         {
+//             char char_as_str[2] = {*str, '\0'};
+//             temp = ft_strjoin(expanded, char_as_str);
+//             free(expanded);
+//             expanded = temp;
+//             str++;
+//         }
+//     }
+
+//     return expanded;
+// }
 
 char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
 {
@@ -534,16 +596,10 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
 
     while (*str)
     {
-        if (*str == '$')
+        if (*str == '$') // Variable detected
         {
             str++; // Skip the '$'
-            if (*str == '\0') // Standalone '$'
-            {
-                temp = ft_strjoin(expanded, "$");
-                free(expanded);
-                expanded = temp;
-            }
-            else if (*str == '?') // Special case for `$?`
+            if (*str == '?') // Special case for `$?`
             {
                 char *exit_code = ft_itoa(ctx->exit_status);
                 temp = ft_strjoin(expanded, exit_code);
@@ -557,10 +613,12 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
                 char buffer[1024];
                 int i = 0;
 
+                // Extract variable name
                 while (ft_isalnum(*str) || *str == '_')
                     buffer[i++] = *str++;
                 buffer[i] = '\0';
 
+                // Fetch value from environment
                 char *value = find_env_value(buffer, ctx->env_vars);
                 temp = ft_strjoin(expanded, value ? value : "");
                 free(expanded);
@@ -573,7 +631,7 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
                 expanded = temp;
             }
         }
-        else
+        else // Literal character
         {
             char char_as_str[2] = {*str, '\0'};
             temp = ft_strjoin(expanded, char_as_str);
@@ -585,6 +643,8 @@ char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
 
     return expanded;
 }
+
+
 
 
 // char *expand_variables(const char *str, t_ctx *ctx, t_token_type token_type)
@@ -737,7 +797,7 @@ void handle_echo(t_token *token_list, t_ctx *ctx)
     if (token_list && ft_strcmp(token_list->value, "-n") == 0)
     {
         n_option = 1;
-        token_list = token_list->next; 
+        token_list = token_list->next;
     }
     write_echo_content(token_list, n_option, ctx);
 	ctx->exit_status = 0;
@@ -1012,6 +1072,7 @@ t_token	*add_pipe_token(t_token **head, t_token **tail)
 	}
 	return (n_token);
 }
+
 
 int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 		int first_token)
@@ -1354,7 +1415,7 @@ int handle_line(char *line, char **env, t_ctx *ctx)
     t_token *tokens;
 
     tokens = parse_command_line(line, ctx);
-    if (tokens) 
+    if (tokens)
     {
         if (validate_pipes(tokens) == -1)
         {
@@ -1370,84 +1431,102 @@ int handle_line(char *line, char **env, t_ctx *ctx)
     return 0;
 }
 
-int	ft_cd(char **args, t_ctx *ctx)
-{
-	static char	*oldpwd = NULL;
 
-	if (args[1] && args[2])
-        ;
-	if (args[1] == NULL || ft_strcmp(args[1], "~") == 0)
+int ft_cd(char **args, t_ctx *ctx)
+{
+    char *path;
+
+    // Vérifier si trop d'arguments sont passés
+    if (args[1] && args[2])
 	{
-		if(ft_cd_home(ctx) != 0)
-			return(1);
-	}
-	else if (ft_strcmp(args[1], "-") == 0)
+        fprintf(stderr, "cd: too many arguments\n");
+        ctx->exit_status = 1;
+        return 1;
+    }
+    if (!args[1] || ft_strcmp(args[1], "~") == 0) {
+        return ft_cd_home(ctx);
+    } else if (ft_strcmp(args[1], "-") == 0) {
+        return ft_cd_oldpwd(ctx);
+    }
+
+    // Expansion de la variable si nécessaire
+	path = expand_variables(args[1], ctx, TOKEN_ARGUMENT);
+	if (!path || ft_strlen(path) == 0) // Si l'expansion échoue ou retourne une chaîne vide
 	{
-		if(ft_cd_oldpwd(&oldpwd) != 0)
-			return (1);
+		fprintf(stderr, "cd: %s: No such file or directory\n", args[1]);
+		free(path);
+		ctx->exit_status = 1;
+		return 1;
 	}
-	else
+	// Vérification de chdir
+	if (chdir(path) != 0)
 	{
-		if (chdir(args[1]) != 0)
-		{
-			perror("cd");
-			return (1);
-		}
+		perror("cd");
+		free(path);
+		ctx->exit_status = 1;
+		return 1;
 	}
-	ft_update_pwd(&oldpwd);
-	return (0);
+	free(path);
+	return ft_update_pwd(ctx);
 }
 
-int	ft_cd_home(t_ctx *ctx)
-{
-	char	*home;
 
-	// home = getenv("HOME");
-	// home = get_environment("HOME");
-	home = find_env_value("HOME", ctx->env_vars);
-	if (home == NULL)
-		return (fprintf(stderr, "cd: HOME not set\n"), 1);
-	if (chdir(home) != 0)
-		return(perror("cd"), 1);
-	return (0);
+int ft_cd_home(t_ctx *ctx) {
+    char *home = find_env_value("HOME", ctx->env_vars);
+    if (!home) {
+        fprintf(stderr, "cd: HOME not set\n");
+        return 1;
+    }
+    if (chdir(home) != 0) {
+        perror("cd");
+        return 1;
+    }
+    return ft_update_pwd(ctx);
 }
 
-int	ft_cd_oldpwd(char **oldpwd)
+
+// int	ft_cd_home(t_ctx *ctx)
+// {
+// 	char	*home;
+
+// 	// home = getenv("HOME");
+// 	// home = get_environment("HOME");
+// 	home = find_env_value("HOME", ctx->env_vars);
+// 	if (home == NULL)
+// 		return (fprintf(stderr, "cd: HOME not set\n"), 1);
+// 	if (chdir(home) != 0)
+// 		return(perror("cd"), 1);
+// 	return (0);
+// }
+
+int	ft_cd_oldpwd(t_ctx *ctx)
 {
-	if (*oldpwd == NULL)
+	if (!(ctx->oldpwd == NULL))
 	{
 		fprintf(stderr, "cd: OLDPWD not set\n");
 		return (0);
 	}
-	if (chdir(*oldpwd) != 0)
+	if (chdir(ctx->oldpwd) != 0)
 	{
 		perror("cd");
 		return (0);
 	}
-	printf("%s\n", *oldpwd);
+	printf("%s\n", ctx->oldpwd);
 	return(0);
 }
-
-int	ft_update_pwd(char **oldpwd)
-{
-	char	*cwd;
-
-	cwd = getcwd(NULL, 0);
-	if (*oldpwd)
-		free(*oldpwd);
-	if (cwd != NULL)
-	{
-		*oldpwd = strdup(cwd);
-		// printf("Current directory: %s\n", cwd);
-		free(cwd);
-	}
-	else
-	{
-		perror("getcwd() error");
-		*oldpwd = NULL;
-	}
-	return(0);
+int ft_update_pwd(t_ctx *ctx) {
+    char *cwd = getcwd(NULL, 0); // Obtenir le répertoire actuel
+    if (!cwd) {
+        perror("getcwd");
+        return 1;
+    }
+    if (ctx->oldpwd)
+        free(ctx->oldpwd);   // Libérer l'ancien `OLDPWD`
+    ctx->oldpwd = ctx->pwd;  // Mettre à jour `OLDPWD`
+    ctx->pwd = cwd;          // Attribuer le nouveau chemin à `PWD`
+    return 0;
 }
+
 
 void	print_all_cmds(t_token *cmd_tokens, int num_pipes)
 {
@@ -1551,35 +1630,70 @@ void	exec_cmd(t_token *cmd, int fd_in, int pipe_fd[2], t_ctx *ctx)
 // 	}
 // }
 
-void	process_tokens(t_token *cmd_tokens, int num_pipes, t_ctx *ctx)
+void process_tokens(t_token *cmd_tokens, int num_pipes, t_ctx *ctx)
 {
-	int		pipe_fd[2];
-	int		fd_in;
-	int		j;
-	pid_t	pid;
+    int pipe_fd[2];
+    int fd_in = 0; // Descripteur d'entrée pour les pipes
+    pid_t pid;
 
-	fd_in = 0;
-	j = 0;
-	print_all_cmds(cmd_tokens, num_pipes);
-	while (j <= num_pipes)
-	{
-		if (j < num_pipes)
-			create_pipe(pipe_fd);
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("Echec de fork");
-			exit(EXIT_FAILURE);
-		}
-		if (pid == 0)
-		{
-			ctx->num_pipes = j;
-			handle_child(&cmd_tokens[j], fd_in, pipe_fd, ctx);
-		}
-		else
-			handle_parent(pipe_fd, &fd_in, pid);
-		j++;
-	}
+    // Debug: Affichage des commandes et du nombre de pipes
+    printf("Number of pipes: %d\n", num_pipes);
+    for (int k = 0; k <= num_pipes; k++) {
+        t_token *cmd = &cmd_tokens[k];
+        printf("Command %d: ", k);
+        while (cmd) {
+            printf("%s ", cmd->value);
+            cmd = cmd->next;
+        }
+        printf("\n");
+    }
+    for (int j = 0; j <= num_pipes; j++) {
+        if (j < num_pipes) {
+            if (pipe(pipe_fd) == -1) {
+                perror("Échec de pipe");
+                exit(EXIT_FAILURE);
+            }
+        }
+        if ((pid = fork()) == -1) {
+            perror("Échec de fork");
+            exit(EXIT_FAILURE);
+        }
+        if (pid == 0)// Processus enfant
+        {
+            if (fd_in != 0) {
+                dup2(fd_in, STDIN_FILENO); // Rediriger l'entrée
+            }
+            if (j < num_pipes) {
+                dup2(pipe_fd[1], STDOUT_FILENO); // Rediriger la sortie vers le pipe
+            }
+            close(pipe_fd[1]); // Fermer le descripteur d'écriture du pipe
+            close(pipe_fd[0]); // Fermer le descripteur de lecture du pipe
+            t_token *cmd = &cmd_tokens[j];// Préparer les arguments pour la commande actuelle
+            char **args = prepare_args(cmd, ctx);
+            if (args == NULL || args[0] == NULL) {
+                fprintf(stderr, "Erreur lors de la préparation des arguments pour la commande\n");
+                exit(EXIT_FAILURE);
+            }
+            printf("Exécution de la commande : %s\n", args[0]);// Debug: Afficher les arguments
+            for (int k = 0; args[k] != NULL; k++) {
+                printf("Argument %d : %s\n", k, args[k]);
+            }
+            if (execvp(args[0], args) == -1) {
+                perror("Échec de exec");
+                free(args); // Libérer la mémoire avant de sortir
+                exit(EXIT_FAILURE);
+            }
+        }
+        else// Processus parent
+        {
+            close(pipe_fd[1]); // Fermer le descripteur d'écriture du pipe dans le parent
+            waitpid(pid, NULL, 0); // Attendre que l'enfant termine
+            if (fd_in != 0) {
+                close(fd_in); // Fermer l'ancien pipe d'entrée
+            }
+            fd_in = pipe_fd[0]; // Le prochain processus lira à partir de ce pipe
+        }
+    }
 }
 
 
@@ -1714,7 +1828,7 @@ int process_exit_arg(char **args, t_ctx *ctx)
 		{
             fprintf(stderr, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
             free(cleaned_arg);
-            ctx->exit_status = 255;
+            ctx->exit_status = 2;
             return 1; // Indique une sortie immédiate avec code 2
         }
         exit_code = ft_atoi(cleaned_arg);
@@ -1727,7 +1841,7 @@ int process_exit_arg(char **args, t_ctx *ctx)
         }
         ctx->exit_status = (exit_code % 256 + 256) % 256; // Calculer modulo 256
     }
-	else 
+	else
 		ctx->exit_status = 0;
     write(1, "exit\n", 5);
     exit(ctx->exit_status);
@@ -1813,6 +1927,34 @@ int ft_export(t_ctx *ctx, char *key, char *value)
     return 0;
 }
 
+int	check_consecutive_pipes(t_token *tokens)
+{
+	t_token	*current;
+
+	current = tokens;
+	while (current)
+	{
+		if (current->type == TOKEN_PIPE && (!current->next
+				|| current->next->type == TOKEN_PIPE))
+		{
+			fprintf(stderr, "Error: Consecutive pipes or missing command\n");
+			return (-1);
+		}
+		current = current->next;
+	}
+	return (0);
+}
+
+// int	contains_pipe(t_token *tokens)
+// {
+// 	while (tokens)
+// 	{
+// 		if (tokens->type == TOKEN_PIPE)
+// 			return (1);
+// 		tokens = tokens->next;
+// 	}
+// 	return (0);
+// }
 
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
 {
@@ -1898,8 +2040,7 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
             }
             unset_v(&(ctx->env_vars), args[i]);
         }
-		if(ctx->exit_status == 0)
-        	ctx->exit_status = 0;
+        ctx->exit_status = 0;
         return 1;
     }
 	if (ft_strcmp(args[0], "pwd") == 0)
@@ -1926,7 +2067,7 @@ int exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
         // else
         //     ctx->exit_status = 1;
         // return 1;
-			char **expanded_args = malloc((sizeof(char *) * (count_args(args) + 1)));
+		char **expanded_args = malloc((sizeof(char *) * (count_args(args) + 1)));
 		if (!expanded_args)
 		{
 			perror("malloc failed for expanded_args");
@@ -1993,7 +2134,7 @@ void free_args(char **args)
 // 		{
 //             // Cas: `export` sans argument - afficher les variables
 //             char **env_ptr = env;
-//             while (*env_ptr) 
+//             while (*env_ptr)
 // 			{
 //                 printf("declare -x %s\n", *env_ptr);
 //                 env_ptr++;
@@ -2112,7 +2253,7 @@ int is_numeric_argument(const char *arg)
         return 0; // L'argument doit commencer par +, -, ou un chiffre
     if (*arg == '+' || *arg == '-')
         arg++; // Ignorer le signe initial
-    while (*arg) 
+    while (*arg)
 	{
         if (!ft_isdigit(*arg))
             return 0; // Tous les caractères restants doivent être numériques
@@ -2121,35 +2262,36 @@ int is_numeric_argument(const char *arg)
     return 1;
 }
 
-int read_and_exec(char **env, t_ctx *ctx)
-{
-    char *line;
+// int read_and_exec(char **env, t_ctx *ctx)
+// {
+//     char *line;
+//     t_token *tokens;
+//     int pid; // besoin de fork, read est un processus a part entiere, ici le parent
+//     int status = 0;
 
-    ctx->exit_status = 0;
-
-    // Construire les variables d'environnement
-    ctx->env_vars = get_environment(env);
-    if (!ctx->env_vars)
-        return (perror("Failed to initialize environment variables"), 1);
-    while (1)
-    {
-        line = readline(PROMPT);
-        if (line == NULL)
-        {
-            write(1, "exit\n", 5);
-            free_env_vars(ctx->env_vars);
-            exit(ctx->exit_status); 
-        }
-        if (*line)
-        {
-            add_history(line);
-            handle_line(line, env, ctx); // Passer `ctx` pour le contexte global
-        }
-        free(line);
-    }
-    // free_env_vars(ctx->env_vars);
-    return (ctx->exit_status);
-}
+//     ctx->exit_status = 0;    // Construire les variables d'environnement
+//     ctx->env_vars = get_environment(env);
+//     if (!ctx->env_vars)
+//         return (perror("Failed to initialize environment variables"), 1);
+//     while (1)
+//     {
+//         line = readline(PROMPT);
+//         if (line == NULL)
+//         {
+//             write(1, "exit\n", 5);
+//             free_env_vars(ctx->env_vars);
+//             exit(ctx->exit_status);
+//         }
+//         if (*line)
+//         {
+//             add_history(line);
+//             handle_line(line, env, ctx); // Passer `ctx` pour le contexte global
+//         }
+//         free(line);
+//     }
+//     // free_env_vars(ctx->env_vars);
+//     return (ctx->exit_status);
+// }
 
 // int read_and_exec(char **env)
 // {
@@ -2174,11 +2316,80 @@ int read_and_exec(char **env, t_ctx *ctx)
 //     return ctx.exit_status; // Retourner le dernier code de sortie
 // }
 
+int loop_with_pipes(char **env, t_ctx *ctx)
+{
+    char *line;
+    t_token *tokens;
+    int status = 0;
+
+    ctx->env_vars = get_environment(env); // Initialisation des variables d'environnement
+    if (!ctx->env_vars)
+        return (perror("Failed to initialize environment variables"), 1);
+
+    while (1)
+    {
+        line = readline(PROMPT); // Affiche le prompt et lit la commande
+        if (line == NULL) // Gestion de Ctrl+D
+        {
+            write(1, "exit\n", 5);
+            free_env_vars(ctx->env_vars); // Libérer les variables d'environnement
+            exit(ctx->exit_status);
+        }
+
+        if (*line) // Si la ligne n'est pas vide
+        {
+            add_history(line); // Ajouter à l'historique
+            tokens = parse_command_line(line, ctx); // Parsing de la commande
+            if (tokens)
+            {
+                int pid = fork();
+                if (pid == -1)
+                {
+                    perror("fork failed");
+                    free_tokens(tokens);
+                    free(line);
+                    continue;
+                }
+
+                if (pid == 0) // Processus enfant
+                {
+                    if (validate_pipes(tokens) == -1) // Vérification des pipes
+                    {
+                        free_tokens(tokens);
+                        exit(1); // Quitte le processus enfant si erreur
+                    }
+
+                    if (contains_pipe(tokens)) // Si des pipes sont présents
+                    {
+                        process_pline(tokens, env, ctx); // Exécuter les commandes avec pipes
+                    }
+                    else // Pas de pipes, commande simple
+                    {
+                        exec_simple_cmd(tokens, env, ctx);
+                    }
+                    free_tokens(tokens);
+                    exit(ctx->exit_status); // Quitter l'enfant proprement
+                }
+
+                waitpid(pid, &status, 0); // Parent attend la fin de l'enfant
+                if (WIFEXITED(status))
+                    ctx->exit_status = WEXITSTATUS(status); // Met à jour le code de sortie
+                free_tokens(tokens);
+            }
+        }
+        free(line); // Libérer la mémoire de la ligne
+    }
+
+    return ctx->exit_status; // Retourner le code de sortie global
+}
+
+
 int	loop(char **env, t_ctx *ctx)
 {
-	while (1)
-		read_and_exec(env, ctx);
-	return (0);
+	// while (1)
+	// 	read_and_exec(env, ctx);
+	// return (0);
+    return(loop_with_pipes(env, ctx));
 }
 
 int	valide_pipes(t_token *tokens)
@@ -2368,40 +2579,157 @@ t_token	*extract_command_after(t_token *tokens)
 	return (head); // liste de tokens avant le pipe
 }
 
-int	process_pline(t_token *tokens, char **env, t_ctx *ctx)
+int process_pline(t_token *tokens, char **env, t_ctx *ctx)
 {
-	int		pipe_fd[2];
-	int		status;
-	t_token	*first_cmd_t;
-	t_token	*second_cmd_t;
+    (void)ctx;
+    int pipe_fd[2];
+    int prev_fd = -1;
+    pid_t pid;
+    int status;
+    t_token *cmd_start = tokens;
+    int redirect = 0;
+    int redirect_output = 0;
+    int redirect_input = 0;
 
-	pid_t pid1, pid2;
-	if (pipe(pipe_fd) == -1)
-		exit_error();
-	pid1 = fork();
-	if (pid1 == -1)
-		exit_error();
-	if (pid1 == 0) // Processus enfant 1 (avant le pipe)
-	{
-		first_cmd_t = extract_command(tokens);
-		child(first_cmd_t, pipe_fd, env, ctx);
-	}
-	pid2 = fork();
-	if (pid2 == -1)
-		exit_error();
-	if (pid2 == 0) // Processus enfant 2 (après le pipe)
-	{
-		second_cmd_t = extract_command_after(tokens);
-		parent(second_cmd_t, pipe_fd, env, ctx);
-	}
-	// Fermer les deux extrémités du pipe dans le processus parent
-	close(pipe_fd[0]);
-	close(pipe_fd[1]);
-	// Attendre la fin des deux processus enfants
-	waitpid(pid1, &status, 0);
-	waitpid(pid2, &status, 0);
-	return (0);
+    while (cmd_start != NULL)
+    {
+        t_token *cmd_end = cmd_start;
+        while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
+            cmd_end = cmd_end->next;
+
+        if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE)
+        {
+            if (pipe(pipe_fd) == -1)
+                exit_error();
+        }
+        pid = fork();
+        if (pid == -1)
+            exit_error();
+        if (pid == 0)
+        {
+            t_token *exec_tokens = NULL;
+            t_token **exec_tokens_tail = &exec_tokens;
+            t_token *redir_token = cmd_start;
+
+            while (redir_token != cmd_end)
+            {
+                if (redir_token->type == TOKEN_REDIRECT_INPUT)
+                {
+                    int input_fd = open(redir_token->next->value, O_RDONLY);
+                    if (input_fd == -1)
+                        exit_error();
+                    dup2(input_fd, STDIN_FILENO);
+                    close(input_fd);
+                    redir_token = redir_token->next;
+                    redirect = 1;
+                    redirect_input = 1;
+                }
+                else if (redir_token->type == TOKEN_REDIRECT_OUTPUT)
+                {
+                    fprintf(stderr, "Output redirection \n");
+                    int output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (output_fd == -1)
+                        exit_error();
+                    dup2(output_fd, STDOUT_FILENO);
+                    close(output_fd);
+                    redir_token = redir_token->next;
+                    redirect_output = 1;
+                    redirect = 1;
+                }
+                else
+                {
+                    *exec_tokens_tail = redir_token;
+                    exec_tokens_tail = &(*exec_tokens_tail)->next;
+                    redirect = 0;
+                }
+                fprintf(stderr, "Did I leave ? \n");
+                redir_token = redir_token->next;
+            }
+            *exec_tokens_tail = NULL;
+            if (prev_fd != -1 && redirect_input != 1)
+            {
+                fprintf(stderr, "First if \n");
+                dup2(prev_fd, STDIN_FILENO);
+                close(prev_fd);
+                redirect_input = 0;
+            }
+            if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1)
+            {
+                fprintf(stderr, "Second if \n");
+                close(pipe_fd[0]);
+                dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]);
+            }
+            if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect != 1)
+            {
+                fprintf(stderr, "Second / half if \n");
+                close(pipe_fd[0]);
+                dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]);
+            }
+            else if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output == 1)
+            {
+                fprintf(stderr, "Third if \n");
+            	close(pipe_fd[0]);
+                dup2(prev_fd, STDIN_FILENO);
+                close(prev_fd);
+                /* dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]); */
+            }
+            fprintf(stderr, "Check on tokens value : %s \n\n", exec_tokens->value);
+            exec(exec_tokens, env, ctx);
+            exit_error();
+        }
+        wait(0);
+        if (prev_fd != -1)
+            close(prev_fd);
+        if (cmd_end != NULL)
+        {
+            close(pipe_fd[1]);
+            prev_fd = pipe_fd[0];
+            cmd_start = cmd_end->next;
+        }
+        else
+            cmd_start = NULL;
+    }
+    while (wait(&status) > 0);
+    return 0;
 }
+
+// int	process_pline(t_token *tokens, char **env, t_ctx *ctx)
+// {
+// 	int		pipe_fd[2];
+// 	int		status;
+// 	t_token	*first_cmd_t;
+// 	t_token	*second_cmd_t;
+
+// 	pid_t pid1, pid2;
+// 	if (pipe(pipe_fd) == -1)
+// 		exit_error();
+// 	pid1 = fork();
+// 	if (pid1 == -1)
+// 		exit_error();
+// 	if (pid1 == 0) // Processus enfant 1 (avant le pipe)
+// 	{
+// 		first_cmd_t = extract_command(tokens);
+// 		child(first_cmd_t, pipe_fd, env, ctx);
+// 	}
+// 	pid2 = fork();
+// 	if (pid2 == -1)
+// 		exit_error();
+// 	if (pid2 == 0) // Processus enfant 2 (après le pipe)
+// 	{
+// 		second_cmd_t = extract_command_after(tokens);
+// 		parent(second_cmd_t, pipe_fd, env, ctx);
+// 	}
+// 	// Fermer les deux extrémités du pipe dans le processus parent
+// 	close(pipe_fd[0]);
+// 	close(pipe_fd[1]);
+// 	// Attendre la fin des deux processus enfants
+// 	waitpid(pid1, &status, 0);
+// 	waitpid(pid2, &status, 0);
+// 	return (0);
+// }
 
 
 void	exit_error(void)
@@ -2443,53 +2771,241 @@ char	*find_in_env(char *name, char **env)
 
 char	*join_path_cmd(char *path, char *cmd)
 {
+	char	*full_path;
+	char	*path_with_slash;
 
-    char *full_path;
-    char *path_with_slash = malloc(strlen(path) + 2);
-
-    if (!path_with_slash)
-        return (NULL);
-    sprintf(path_with_slash, "%s/", path);
-    full_path = malloc(ft_strlen(path_with_slash) + ft_strlen(cmd) + 1);
-    if (!full_path)
-    {
-        free(path_with_slash);
-        return (NULL);
-    }
-    sprintf(full_path, "%s%s", path_with_slash, cmd);
-    free(path_with_slash);
-    return (full_path);
+	path_with_slash = ft_strjoin(path, "/");
+	full_path = ft_strjoin(path_with_slash, cmd);
+	free(path_with_slash);
+	return (full_path);
 }
+
+// char	*join_path_cmd(char *path, char *cmd)
+// {
+
+//     char *full_path;
+//     char *path_with_slash = malloc(strlen(path) + 2);
+
+//     if (!path_with_slash)
+//         return (NULL);
+//     sprintf(path_with_slash, "%s/", path);
+//     full_path = malloc(ft_strlen(path_with_slash) + ft_strlen(cmd) + 1);
+//     if (!full_path)
+//     {
+//         free(path_with_slash);
+//         return (NULL);
+//     }
+//     sprintf(full_path, "%s%s", path_with_slash, cmd);
+//     free(path_with_slash);
+//     return (full_path);
+// }
 
 char *get_path(char *cmd, char **env)
 {
     char **paths;
+    char **s_cmd;
     char *full_path;
     int i;
-    // printf("%s\n", cmd);
-    // Extraire uniquement la commande sans les arguments
-    char **split_cmd = ft_split(cmd, ' ');  // Séparer les mots de la commande
-    char *command_only = split_cmd[0];      // Prendre seulement la commande
 
-    paths = ft_split(find_in_env("PATH", env), ':');
     i = 0;
+    s_cmd = ft_split(cmd, ' ');
+    paths = ft_split(find_in_env("PATH", env), ':');
     while (paths[i])
     {
-        full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
-        // printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
+        full_path = join_path_cmd(paths[i], s_cmd[0]);
         if (access(full_path, F_OK | X_OK) == 0)
-        {
-            free_tab(paths);
-            free_tab(split_cmd);
-            return full_path;  // Retourner le chemin complet si la commande est trouvée
-        }
+            return (free_tab(paths), free_tab(s_cmd), full_path);
         free(full_path);
         i++;
     }
     free_tab(paths);
-    free_tab(split_cmd);
-    return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
+    free_tab(s_cmd);
+    return (cmd);
 }
+
+void    read_heredoc(int fd, char *limiter)
+{
+	char	*buf;
+
+	while(1)
+	{
+		buf = NULL;
+		buf = readline("> ");
+		if (!buf)
+		{
+			exit_error();
+			break ;
+		}
+		if (!ft_strncmp(limiter, buf, INT_MAX))
+			break ;
+		write(fd, buf, ft_strlen(buf));
+		write(fd, "\n", 1);
+		free(buf);
+	}
+	free(buf);
+	close(fd);
+}
+
+int here_doc(char *limiter)
+{
+    int fd;
+
+    fd = open(".heredoc.tmp", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0)
+        exit_error();
+    read_heredoc(fd, limiter);
+    fd = open(".heredoc.tmp", O_RDONLY);
+    if (fd >= 0)
+        unlink(".heredoc.tmp");
+    return fd;
+}
+
+
+void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input)
+{
+    int input_fd;
+
+    if (redir_token->type == TOKEN_HEREDOC) {
+        input_fd = here_doc(redir_token->next->value);
+    } else {
+        input_fd = open(redir_token->next->value, O_RDONLY);
+    }
+    //input_fd = open(redir_token->next->value, O_RDONLY);
+    if (input_fd == -1)
+        exit_error();
+    dup2(input_fd, STDIN_FILENO);
+    close(input_fd);
+    *redirect = 1;
+    *redirect_input = 1;
+}
+
+void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output)
+{
+    int output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (output_fd == -1)
+        exit_error();
+    dup2(output_fd, STDOUT_FILENO);
+    close(output_fd);
+    *redirect = 1;
+    *redirect_output = 1;
+}
+
+
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
+{
+    t_token **exec_tokens_tail = exec_tokens;
+    t_token *redir_token = cmd_start;
+
+    while (redir_token != cmd_end)
+	{
+        if (redir_token->type == TOKEN_REDIRECT_INPUT || redir_token->type == TOKEN_HEREDOC)
+		{
+            handle_input_redirection(redir_token, redirect, redirect_input);
+            redir_token = redir_token->next;
+        }
+		else if (redir_token->type == TOKEN_REDIRECT_OUTPUT)
+		{
+            handle_output_redirection(redir_token, redirect, redirect_output);
+            redir_token = redir_token->next;
+        }
+        else
+		{
+            *exec_tokens_tail = redir_token;
+            exec_tokens_tail = &(*exec_tokens_tail)->next;
+        }
+        redir_token = redir_token->next;
+    }
+    *exec_tokens_tail = NULL;
+}
+
+void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
+{
+    if (prev_fd != -1 && redirect_input != 1)
+	{
+        dup2(prev_fd, STDIN_FILENO);
+        close(prev_fd);
+    }
+    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1)
+	{
+        close(pipe_fd[0]);
+        dup2(pipe_fd[1], STDOUT_FILENO);
+        close(pipe_fd[1]);
+    }
+}
+
+void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end)
+{
+    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE) {
+        if (pipe(pipe_fd) == -1)
+            exit_error();
+    }
+}
+
+void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, char **env, t_ctx *ctx)
+{
+    pid_t pid = fork();
+    if (pid == -1)
+        exit_error();
+
+    if (pid == 0) {
+        t_token *exec_tokens = NULL;
+        int redirect = 0, redirect_output = 0, redirect_input = 0;
+
+        collect_exec_tokens(cmd_start, cmd_end, &exec_tokens, &redirect, &redirect_input, &redirect_output);
+        setup_pipe_for_child(prev_fd, pipe_fd, redirect_input, redirect_output, cmd_end);
+        exec(exec_tokens, env, ctx);
+        exit_error();
+    }
+}
+
+void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t_token *cmd_end)
+{
+    if (*prev_fd != -1)
+        close(*prev_fd);
+    if (cmd_end != NULL)
+	{
+        close(pipe_fd[1]);
+        *prev_fd = pipe_fd[0];
+        *cmd_start = cmd_end->next;
+    } else
+        *cmd_start = NULL;
+}
+
+void wait_for_all_children()
+{
+    int status;
+    while (wait(&status) > 0);
+}
+
+// char *get_path(char *cmd, char **env)
+// {
+//     char **paths;
+//     char *full_path;
+//     int i;
+//     // printf("%s\n", cmd);
+//     // Extraire uniquement la commande sans les arguments
+//     char **split_cmd = ft_split(cmd, ' ');  // Séparer les mots de la commande
+//     char *command_only = split_cmd[0];      // Prendre seulement la commande
+
+//     paths = ft_split(find_in_env("PATH", env), ':');
+//     i = 0;
+//     while (paths[i])
+//     {
+//         full_path = join_path_cmd(paths[i], command_only);  // Chercher uniquement la commande
+//         // printf("Checking path: %s\n", full_path);  // Debug pour vérifier les chemins testés
+//         if (access(full_path, F_OK | X_OK) == 0)
+//         {
+//             free_tab(paths);
+//             free_tab(split_cmd);
+//             return full_path;  // Retourner le chemin complet si la commande est trouvée
+//         }
+//         free(full_path);
+//         i++;
+//     }
+//     free_tab(paths);
+//     free_tab(split_cmd);
+//     return command_only;  // Si aucun chemin n'est trouvé, retourner la commande brute
+// }
 
 
 char **prepare_args(t_token *tokens, t_ctx *ctx)
@@ -2590,7 +3106,6 @@ int	validate_pipes(t_token *tokens)
 		fprintf(stderr, "Error: syntax error near unexpected token `|`\n");
 		return (-1);
 	}
-
 	while (current)
 	{
 		// Vérifie les pipes consécutifs et les commandes manquantes
@@ -2673,7 +3188,7 @@ int main(int argc, char **argv, char **envp)
     if (!ctx.env_vars)
     {
         perror("Failed to initialize environment variables");
-        free_env_copy(env_copy); 
+        free_env_copy(env_copy);
         return (1);
     }
 
@@ -2702,13 +3217,13 @@ int main(int argc, char **argv, char **envp)
 //     if (!ctx.env_vars)
 //     {
 //         perror("Failed to initialize environment variables");
-//         free_env_copy(env_copy); 
+//         free_env_copy(env_copy);
 //         return (1);
 //     }
 //     ctx.exit_status = 0;
 //     read_and_exec(env_copy);
 //     free_env_copy(env_copy);
-//     free_env_vars(ctx.env_vars); 
+//     free_env_vars(ctx.env_vars);
 //     return ctx.exit_status;
 // }
 
