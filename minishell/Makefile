@@ -6,7 +6,7 @@
 #    By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/03 11:43:58 by fzayani           #+#    #+#              #
-#    Updated: 2024/11/03 13:48:19 by llarrey          ###   ########.fr        #
+#    Updated: 2024/12/02 13:51:25 by llarrey          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,10 @@ SRCS_FILES	=	main.c \
 				utils/error.c utils/free.c
 
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
+
+VMINI    = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes \
+         --suppressions=/home/llarrey/Documents/miniBG/minishell/minishell.sup \
+         --track-fds=yes ./minishell
 
 # Fichiers objets générés dans le dossier .objs/
 OBJS_PATH	=	.objs/
@@ -87,4 +91,7 @@ re: fclean all
 	@echo "$(GREEN)[DONE] Minishell recompiled!$(RESET)"
 
 .PHONY: all clean fclean re
+
+rlleaks:		$(NAME)
+				$(VMINI) ./minishell
 

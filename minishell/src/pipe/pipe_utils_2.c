@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 19:43:35 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/11/29 19:43:00 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,11 +195,13 @@ void handle_output_redirection(t_token *redir_token, int *redirect, int *redirec
     *redirect_output = 1;
 }
 
-void    skip_export(t_token *redir_token)
+t_token    *skip_export(t_token *redir_token)
 {
-    while(redir_token->value != NULL || redir_token->type == TOKEN_ARGUMENT 
-    || redir_token->type == TOKEN_COMMAND)
-            redir_token = redir_token->next;
+    if (redir_token->next != NULL)
+        redir_token = redir_token->next->next;
+    else
+        redir_token = redir_token->next;
+    return (redir_token);
 }
 
 void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
@@ -210,7 +212,7 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
     while (redir_token != cmd_end) 
 	{
         if (ft_strcmp(redir_token->value, "export") == 0 || ft_strcmp(redir_token->value, "unset") == 0)
-            skip_export(redir_token);
+            redir_token = skip_export(redir_token);
         if (redir_token->type == TOKEN_REDIRECT_INPUT || redir_token->type == TOKEN_HEREDOC) 
 		{
             handle_input_redirection(redir_token, redirect, redirect_input);
