@@ -108,8 +108,7 @@ int						ft_strncmp_export(const char *s1, const char *s2,
 							unsigned int n);
 int						is_valid_id(const char *var);
 // void	write_echo_content(t_token *token_list, int n_option);
-void					write_echo_content(t_token *token_list, int n_option,
-							t_ctx *ctx);
+void					write_echo_content(t_token *token_list, int n_option);
 // void	handle_echo(t_token *token_list);
 void					handle_echo(t_token *token_list, t_ctx *ctx);
 int						handle_quotes(char **line, int *in_quotes,
@@ -302,5 +301,28 @@ t_token *handle_special_cases(const char *line, t_ctx *ctx);
 char *clean_dollar_quotes(const char *str);
 char **convert_env_to_array(t_ctx *ctx);
 int check_invalid_quotes(char *line);
+
+int	handle_exit_builtin(char **args, t_ctx *ctx);
+int	handle_echo_builtin(char **args, t_ctx *ctx);
+int	handle_export_builtin(char **args, t_ctx *ctx);
+int	handle_export_loop(char **args, t_ctx *ctx);
+
+
+void	add_env_var_to_list(t_env_var **head, t_env_var *new_var);
+
+int handle_export_loop(char **args, t_ctx *ctx);
+int	handle_export_builtin(char **args, t_ctx *ctx);
+int	handle_echo_builtin(char **args, t_ctx *ctx);
+int	handle_exit_builtin(char **args, t_ctx *ctx);
+int process_var_assignment(char *arg, t_ctx *ctx);
+int handle_special_case(char *arg, t_ctx *ctx);
+int	handle_cd_builtin(char **args, t_ctx *ctx);
+int	handle_invalid_identifier(char *arg, char *var, char *value);
+int	create_and_add_var(t_ctx *ctx, char *var, char *value);
+
+int	execute_builtin(t_ctx *ctx, char **args);
+int	validate_args(char **args, t_ctx *ctx);
+int	exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
+void	print_command_not_found(const char *cmd, t_ctx *ctx);
 
 #endif

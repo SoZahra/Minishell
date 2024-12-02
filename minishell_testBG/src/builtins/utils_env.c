@@ -6,31 +6,36 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:06:46 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 15:06:53 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/02 17:17:40 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-void print_env(t_ctx *ctx)
+void	print_env(t_ctx *ctx)
 {
-    t_env_var *current = ctx->env_vars;
-    while (current) {
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
-        current = current->next;
-    }
+	t_env_var	*current;
+
+	current = ctx->env_vars;
+	while (current)
+	{
+		if (current->value)
+			printf("%s=%s\n", current->name, current->value);
+		current = current->next;
+	}
 }
 
-void print_export(t_ctx *ctx)
+void	print_export(t_ctx *ctx)
 {
-    t_env_var *current = ctx->env_vars;
-    while (current)
-    {
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
-        else
-            printf("%s\n", current->name);
-        current = current->next;
-    }
+	t_env_var	*current;
+
+	current = ctx->env_vars;
+	while (current)
+	{
+		if (current->value)
+			printf("%s=%s\n", current->name, current->value);
+		else
+			printf("%s\n", current->name);
+		current = current->next;
+	}
 }
