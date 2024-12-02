@@ -6,11 +6,11 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/29 19:43:00 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/02 16:53:17 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
+#include "../../include/minishell.h"
 
 /* int process_pline(t_token *tokens, char **env)
 {
