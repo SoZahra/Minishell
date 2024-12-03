@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 19:25:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/03 13:44:53 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,16 @@
 
 void	free_env_copy(char **env_copy)
 {
+	int	i;
+
 	if (!env_copy)
 		return ;
-	for (int i = 0; env_copy[i]; i++)
+	i = 0;
+	while (env_copy[i])
+	{
 		free(env_copy[i]);
+		i++;
+	}
 	free(env_copy);
 }
 
@@ -34,6 +40,7 @@ void	free_env(t_env_var *env_var)
 		free(to_free);
 	}
 }
+
 void	free_ctx(t_ctx *ctx)
 {
 	t_ctx	*to_free;
@@ -80,9 +87,15 @@ void	free_tokens(t_token *tokens)
 
 void	free_args(char **args)
 {
+	int	i;
+
 	if (!args)
 		return ;
-	for (int i = 0; args[i]; i++)
+	i = 0;
+	while (args[i])
+	{
 		free(args[i]);
+		i++;
+	}
 	free(args);
 }

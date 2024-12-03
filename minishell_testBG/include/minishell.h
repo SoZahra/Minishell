@@ -259,7 +259,7 @@ void					collect_exec_tokens(t_token *cmd_start,
 							int *redirect_output);
 // int loop_with_pipes(char **env, t_ctx *ctx);
 // int						loop_with_pipes(t_env_var *env, t_ctx *ctx);
-int loop_with_pipes(char **env, t_ctx *ctx);
+int loop_with_pipes(t_ctx *ctx);
 
 t_pipe_cmd				*create_pipe_cmd(t_token *cmd_tokens);
 int						execute_pipe_sequence(t_pipe_cmd *cmds, char **env,
@@ -324,5 +324,45 @@ int	execute_builtin(t_ctx *ctx, char **args);
 int	validate_args(char **args, t_ctx *ctx);
 int	exec_simple_cmd(t_token *tokens, char **env, t_ctx *ctx);
 void	print_command_not_found(const char *cmd, t_ctx *ctx);
+
+
+char *handle_dollar(const char *str, t_ctx *ctx, const char **str_ptr, char *expanded);
+char *expand_exit_code(t_ctx *ctx, char *expanded);
+char *expand_env_variable(const char **str_ptr, t_ctx *ctx, char *expanded);
+char *append_literal_dollar(char *expanded);
+char *handle_non_dollar(const char *str, const char **str_ptr, char *expanded);
+
+
+void	handle_line_for_loop(char *line, t_ctx *ctx);
+
+// void	handle_unclosed_quote(char *temp, t_token *token_list);
+// t_token_type	update_quote_type(char current_quote, int *i, char *line);
+// void	add_combined_token(char *temp, char *buffer, t_token **token_list, t_token_type type);
+// void	handle_quotes_4parse(char *line, int *i, char *buffer, t_token **token_list, t_token_type *type);
+// void	handle_whitespace_4parse(char *buffer, int *j, t_token **token_list);
+
+t_token_type get_quote_type(char quote);
+void handle_empty_quotes(char **line, int *i, t_token **token_list, char *current_quote_type);
+
+// t_token_type get_quote_type(char quote);
+// void handle_empty_quotes(char **line, int *i, t_token **token_list, char *current_quote_type);
+// int handle_quotes_content_(char **line, int *i, int *j, char *buffer, char quote_type);
+// void handle_token_expansion(t_token *token_list, t_ctx *ctx);
+// void handle_quoted_content(char *buffer, int *j, char *temp, t_token **list, t_token_type type);
+// int handle_echo_dollar(char *line, int i, t_token **list);
+// t_token *parse_tokens(char *line, t_ctx *ctx);
+// int parse_line(int *i, int *j, char *line, t_token **list, char **temp, char *quote_type);
+// int handle_quotes_(char *line, int *i, int *j, t_token **list,
+//                  char **temp, char *quote_type);
+// void add_remaining_buffer(t_token **list, int j, char *buffer);
+// void handle_quote_end(int *i, char *quote_type, char **temp);
+// int handle_temp_buffer(int *j, char *temp, char *buffer);
+
+int count_tokens(t_token *tokens);
+
+t_token *create_new_token(t_token_type type, const char *value);
+t_token *add_token(t_token **token_list, t_token_type type, const char *value);
+
+t_token	*create_token_node(char *arg);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 16:49:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/03 09:54:11 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		free_ctx(get_ctx());
 		return (perror("Failed to build env list"), 1);
 	}
-	loop_with_pipes(envp, get_ctx());
+	loop_with_pipes(get_ctx());
 	free_ctx(get_ctx());
 	return (0);
 }

@@ -92,7 +92,7 @@ SRCS_FILES	=	main.c \
 				builtins/echo_utils.c builtins/echo.c builtins/env.c builtins/exit.c builtins/gestion_builtins.c builtins/utils_env.c\
 				env/build_env_list.c \
 				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c exec/handle_export.c exec/handle_cd.c\
-				expand/expand_variables.c\
+				expand/expand_variables.c expand/utils_expand.c\
 				loop/loop.c loop/parse_command.c loop/utils_parse_2.c loop/utils_parse_command.c \
 				signaux/handle_signal.c \
 				tokens/add_tokens.c tokens/args.c \
