@@ -1,39 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   init.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 09:54:11 by fzayani          ###   ########.fr       */
+/*   Created: 2024/12/02 15:21:14 by fzayani           #+#    #+#             */
+/*   Updated: 2024/12/03 13:47:22 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-t_ctx	*get_ctx(void)
+int	initialize_ctx(t_ctx *ctx)
 {
-	static t_ctx	ctx;
-
-	return (&ctx);
-}
-
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
-		char **envp)
-{
-	if (initialize_ctx(get_ctx()))
-		return (1);
-	if (!get_ctx())
-		return (perror("Failed to initialize context"), 1);
-	init_sig();
-	get_ctx()->env_vars = build_env_list(envp);
-	if (!get_ctx()->env_vars)
+	if (!ctx)
 	{
-		free_ctx(get_ctx());
-		return (perror("Failed to build env list"), 1);
+		perror("Failed to allocate memory for t_ctx");
+		return (1);
 	}
-	loop_with_pipes(get_ctx());
-	free_ctx(get_ctx());
+	ctx->env_vars = NULL;
+	ctx->exit_status = 0;
+	ctx->num_pipes = 0;
+	ctx->oldpwd = NULL;
+	ctx->pwd = getcwd(NULL, 0);
+	if (!ctx->pwd)
+	{
+		perror("Failed to get current working directory");
+		free(ctx);
+		return (1);
+	}
 	return (0);
 }
