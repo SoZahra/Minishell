@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/04 10:49:40 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/04 14:47:42 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,10 @@ int	exec(t_token *cmd_tokens, t_ctx *ctx)
     char    **env;
 
 	option_cmd = prepare_args(cmd_tokens, ctx);
+    for (int i = 0; option_cmd[i]; i++)
+    {
+        fprintf(stderr, " Value cmd : %s\n", option_cmd[i]);
+    }
 	if (!option_cmd[0])
 	{
 		fprintf(stderr, "Error: Command is empty\n");
@@ -96,7 +100,7 @@ void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect
 {
     int input_fd;
     
-    if (redir_token->type == TOKEN_HEREDOC) 
+    if (ft_strcmp(redir_token->value, "<<") == 0) 
         input_fd = here_doc(redir_token->next->value);
     else
         input_fd = open(redir_token->next->value, O_RDONLY);
@@ -138,12 +142,12 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
 	{
         if (ft_strcmp(redir_token->value, "export") == 0 || ft_strcmp(redir_token->value, "unset") == 0)
             redir_token = skip_export(redir_token);
-        if (redir_token->type == TOKEN_REDIRECT_INPUT || redir_token->type == TOKEN_HEREDOC) 
+        if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0) 
 		{
             handle_input_redirection(redir_token, redirect, redirect_input);
             redir_token = redir_token->next;
         } 
-		else if (redir_token->type == TOKEN_REDIRECT_OUTPUT) 
+		else if (ft_strcmp(redir_token->value, ">") == 0) 
 		{
             handle_output_redirection(redir_token, redirect, redirect_output);
             redir_token = redir_token->next;
@@ -165,7 +169,7 @@ void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int red
         dup2(prev_fd, STDIN_FILENO);
         close(prev_fd);
     }
-    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE && redirect_output != 1) 
+    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0 && redirect_output != 1) 
 	{
         close(pipe_fd[0]);
         dup2(pipe_fd[1], STDOUT_FILENO);
@@ -175,7 +179,7 @@ void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int red
 
 void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end)
 {
-    if (cmd_end != NULL && cmd_end->type == TOKEN_PIPE) {
+    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0) {
         if (pipe(pipe_fd) == -1)
             exit_error();
     }
@@ -233,16 +237,10 @@ int process_pline(t_token *tokens, t_ctx *ctx)
     
     prev_fd = -1;
     cmd_start = tokens;
-    char    **args;
+    //char    **args;
     
-   //ps_expand_env(tokens, ctx, myEnv); 
+    /*ps_expand_env(tokens, ctx, myEnv); 
     args = prepare_args(tokens, ctx);
-    for(int i = 0; args[i]; i++)
-    {
-        fprintf(stderr, "Value args : %s\n", args[i]);
-    }
-    
-    /*
     if (!args)
         return (perror("Erreur d'allocation de mémoire"), 0);
     if (exec_builtin_cmd(args, myEnv, ctx)) 
@@ -250,14 +248,11 @@ int process_pline(t_token *tokens, t_ctx *ctx)
         ps_expand_env(tokens, ctx, myEnv);
         free_tab_2(args);
     } */
-    while (cmd_start != NULL) 
+    while (cmd_start) 
 	{
         t_token *cmd_end = cmd_start;
-        while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
-        {
-            printf("Token type: %c\n", cmd_end->type);
+        while (cmd_end && ft_strcmp(cmd_end->value, "|") != 0)
             cmd_end = cmd_end->next;
-        }
         initialize_pipe_if_needed(pipe_fd, cmd_end);
         execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, ctx);
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
