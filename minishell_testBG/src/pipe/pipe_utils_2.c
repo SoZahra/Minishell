@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 17:52:29 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/04 10:49:40 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,10 +233,16 @@ int process_pline(t_token *tokens, t_ctx *ctx)
     
     prev_fd = -1;
     cmd_start = tokens;
-    //char    **args;
+    char    **args;
     
-   /*  ps_expand_env(tokens, ctx, myEnv); 
-    args = prepare_args(tokens, &ctx->exit_status);
+   //ps_expand_env(tokens, ctx, myEnv); 
+    args = prepare_args(tokens, ctx);
+    for(int i = 0; args[i]; i++)
+    {
+        fprintf(stderr, "Value args : %s\n", args[i]);
+    }
+    
+    /*
     if (!args)
         return (perror("Erreur d'allocation de mémoire"), 0);
     if (exec_builtin_cmd(args, myEnv, ctx)) 
@@ -248,7 +254,10 @@ int process_pline(t_token *tokens, t_ctx *ctx)
 	{
         t_token *cmd_end = cmd_start;
         while (cmd_end != NULL && cmd_end->type != TOKEN_PIPE)
+        {
+            printf("Token type: %c\n", cmd_end->type);
             cmd_end = cmd_end->next;
+        }
         initialize_pipe_if_needed(pipe_fd, cmd_end);
         execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, ctx);
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);

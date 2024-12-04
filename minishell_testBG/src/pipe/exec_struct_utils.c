@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 16:54:41 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/03 17:23:44 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/04 10:24:51 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,12 +25,26 @@ int count_env_vars(t_env_var *env_vars)
 	return count;
 }
 
+char *join_name_value(const char *name, const char *value)
+{
+	char *temp;
+	char *result;
+
+	if (!name || !value)
+		return (NULL);
+	temp = ft_strjoin(name, "=");
+	if (!temp)
+		return (NULL);
+	result = ft_strjoin(temp, value);
+	free(temp);
+	return (result);
+}
+
 char **create_env_array(t_env_var *env_vars, int count)
 {
-	char **env_array;
-	t_env_var *current;
-	int i;
-	size_t len;
+	char		**env_array;
+	t_env_var	*current;
+	int			i;
 	
 	env_array = malloc((count + 1) * sizeof(char *));
 	current = env_vars;
@@ -39,8 +53,7 @@ char **create_env_array(t_env_var *env_vars, int count)
 		return NULL;
 	while (current)
 	{
-		len = strlen(current->name) + strlen(current->value) + 2;
-		env_array[i] = malloc(len);
+		env_array[i] = join_name_value(current->name, current->value);
 		if (!env_array[i])
 		{
 			while (--i >= 0)
@@ -48,7 +61,6 @@ char **create_env_array(t_env_var *env_vars, int count)
 			free(env_array);
 			return NULL;
 		}
-		sprintf(env_array[i], "%s=%s", current->name, current->value);
 		i++;
 		current = current->next;
 	}
