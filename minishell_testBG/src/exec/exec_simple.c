@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:04:03 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 16:53:34 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/06 15:29:27 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ int	exec_simple_cmd(t_token *tokens, t_ctx *ctx)
 		return (0);
 	if (is_builtin(args[0]))
 	{
+		printf("test simple cmd : %s\n", args[0]);
 		result = execute_builtin(ctx, args);
 		free_tab(args);
 		return (result);
@@ -55,6 +56,7 @@ int	execute_builtin(t_ctx *ctx, char **args)
 		ctx->exit_status = 1;
 		return (0);
 	}
+	printf("test builtin : %s\n", args[0]);
 	ret = exec_builtin_cmd(args, env_array, ctx);
 	free_tab(env_array);
 	return (ret);

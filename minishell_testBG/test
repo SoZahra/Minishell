@@ -1,1 +1,17 @@
-163
+exec token value : grep
+# # Nettoyage des objets
+# # Nettoyage complet
+VMINI    = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes \
+         --suppressions=/home/llarrey/Documents/miniBG/minishell/minishell.sup \
+         --track-fds=yes ./minishell
+# Nettoyage des objets
+# Nettoyage complet
+exec token value : ls
+include
+libft
+Makefile
+minishell
+minishell.sup
+minishell_tester
+src
+test

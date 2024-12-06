@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 18:58:13 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/06 15:32:07 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ int	create_and_add_var(t_ctx *ctx, char *var, char *value)
 	new_var->name = var;
 	new_var->value = value;
 	new_var->next = NULL;
+	printf("test add var : %s\n", var);
 	add_env_var_to_list(&ctx->env_vars, new_var);
 	return (0);
 }
@@ -63,6 +64,7 @@ int	handle_pwd_builtin(char **args, t_ctx *ctx)
 int	handle_env_builtin(t_ctx *ctx)
 {
 	(void)ctx;
+	printf("inside env\n");
 	print_env(get_ctx());
 	return (1);
 }

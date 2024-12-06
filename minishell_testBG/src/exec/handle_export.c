@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_export.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 19:00:22 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/06 15:29:55 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ int	handle_echo_builtin(char **args, t_ctx *ctx)
 
 int	handle_export_builtin(char **args, t_ctx *ctx)
 {
+	printf("test export : %s\n", args[0]);
 	if (args[1] && (ft_strcmp(args[1], "\"\"") == 0 || ft_strlen(args[1]) == 0))
 	{
 		fprintf(stderr, "bash: export: `': not a valid identifier\n");
@@ -67,6 +68,7 @@ int	handle_export_loop(char **args, t_ctx *ctx)
 			i++;
 			continue ;
 		}
+		printf("test export loop : %s\n", args[0]);
 		has_error |= process_var_assignment(args[i], ctx);
 		i++;
 	}

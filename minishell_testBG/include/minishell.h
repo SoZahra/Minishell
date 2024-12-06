@@ -189,6 +189,7 @@ int						exc_pipe(t_token *tokens);
 t_token					*extract_command(t_token *tokens);
 t_token					*extract_command_after(t_token *tokens);
 
+void execute_builtin_with_redirection(t_token *cmd_start, t_token *cmd_end, int *prev_fd, int *pipe_fd, t_ctx *ctx);
 int process_pline(t_token *tokens, t_ctx *ctx);
 void					*free_tab(char **tab);
 // char					*find_in_env(char *name, char **env);

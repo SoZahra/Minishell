@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/04 14:47:42 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/06 17:30:14 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,6 @@ int	exec(t_token *cmd_tokens, t_ctx *ctx)
     char    **env;
 
 	option_cmd = prepare_args(cmd_tokens, ctx);
-    for (int i = 0; option_cmd[i]; i++)
-    {
-        fprintf(stderr, " Value cmd : %s\n", option_cmd[i]);
-    }
 	if (!option_cmd[0])
 	{
 		fprintf(stderr, "Error: Command is empty\n");
@@ -46,15 +42,18 @@ int	exec(t_token *cmd_tokens, t_ctx *ctx)
 		return (0);
 	}
     env = ctx_to_env_array(ctx);
-    fprintf(stderr, "it went in\n");
     //print_envir(env);
 	path = get_path(option_cmd[0], env);
 	if (execve(path, option_cmd, env) == -1)
 	{
+        ctx->exit_status = 127;
 		perror("exec command");
 		free_tab(option_cmd);
+        free_tab(env);
+        ctx->exit_status = 127;
 		exit(EXIT_FAILURE);
 	}
+    ctx->exit_status = 127;
 	free_tab(option_cmd);
 	return (0);
 }
@@ -115,22 +114,21 @@ void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect
 
 void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output) 
 {
-    int output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (output_fd == -1)
-        exit_error();
+    int output_fd;
+
+    if (ft_strcmp(redir_token->value, ">>") == 0)
+        output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    else 
+        output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (output_fd == -1) {
+        perror("Redirection error");
+        exit(EXIT_FAILURE);
+    }
+
     dup2(output_fd, STDOUT_FILENO);
     close(output_fd);
     *redirect = 1;
     *redirect_output = 1;
-}
-
-t_token    *skip_export(t_token *redir_token)
-{
-    if (redir_token->next != NULL)
-        redir_token = redir_token->next->next;
-    else
-        redir_token = redir_token->next;
-    return (redir_token);
 }
 
 void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
@@ -140,14 +138,13 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
 
     while (redir_token != cmd_end) 
 	{
-        if (ft_strcmp(redir_token->value, "export") == 0 || ft_strcmp(redir_token->value, "unset") == 0)
-            redir_token = skip_export(redir_token);
         if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0) 
 		{
             handle_input_redirection(redir_token, redirect, redirect_input);
             redir_token = redir_token->next;
         } 
-		else if (ft_strcmp(redir_token->value, ">") == 0) 
+		else if (ft_strcmp(redir_token->value, ">") == 0
+        || ft_strcmp(redir_token->value, ">>") == 0) 
 		{
             handle_output_redirection(redir_token, redirect, redirect_output);
             redir_token = redir_token->next;
@@ -203,6 +200,24 @@ void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd,
         redirect_input = 0;
 
         collect_exec_tokens(cmd_start, cmd_end, &exec_tokens, &redirect, &redirect_input, &redirect_output);
+        printf("exec token value : %s\n", exec_tokens->value);
+        if (exec_tokens && is_builtin(exec_tokens->value)) 
+        {
+            if (prev_fd != -1) {
+                dup2(prev_fd, STDIN_FILENO);
+                close(prev_fd);
+            }
+            if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0) 
+            {
+                close(pipe_fd[0]);
+                dup2(pipe_fd[1], STDOUT_FILENO);
+                close(pipe_fd[1]);
+            }
+            //char **args = prepare_args(exec_tokens, ctx);
+            printf("test exec : %s\n", exec_tokens->value);
+            exec_simple_cmd(exec_tokens, ctx);
+            exit(EXIT_SUCCESS);
+        }
         setup_pipe_for_child(prev_fd, pipe_fd, redirect_input, redirect_output, cmd_end);
         exec(exec_tokens, ctx);
         exit_error();
@@ -237,17 +252,7 @@ int process_pline(t_token *tokens, t_ctx *ctx)
     
     prev_fd = -1;
     cmd_start = tokens;
-    //char    **args;
     
-    /*ps_expand_env(tokens, ctx, myEnv); 
-    args = prepare_args(tokens, ctx);
-    if (!args)
-        return (perror("Erreur d'allocation de mémoire"), 0);
-    if (exec_builtin_cmd(args, myEnv, ctx)) 
-	{
-        ps_expand_env(tokens, ctx, myEnv);
-        free_tab_2(args);
-    } */
     while (cmd_start) 
 	{
         t_token *cmd_end = cmd_start;

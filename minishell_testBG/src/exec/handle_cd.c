@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_cd.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/02 18:59:38 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/06 15:30:17 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,6 @@ int	process_var_assignment(char *arg, t_ctx *ctx)
 		return (1);
 	if (!var || !is_valid_id(var))
 		return (handle_invalid_identifier(arg, var, value));
+	printf("test process var : %s\n", arg);
 	return (create_and_add_var(ctx, var, value));
 }

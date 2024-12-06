@@ -104,6 +104,10 @@ SRCS_FILES	=	main.c \
 
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
 
+VMINI    = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes \
+         --suppressions=/home/llarrey/Documents/miniBG/minishell/minishell.sup \
+         --track-fds=yes ./minishell
+
 # Fichiers objets générés dans le dossier .objs/
 OBJS_PATH	=	.objs/
 OBJS		=	$(SRCS:$(SRC_PATH)%.c=$(OBJS_PATH)%.o)
@@ -161,3 +165,6 @@ re: fclean all
 	@echo "$(GREEN)[DONE] Minishell recompiled!$(RESET)"
 
 .PHONY: all clean fclean re
+
+rlleaks:		$(NAME)
+				$(VMINI) ./minishell
