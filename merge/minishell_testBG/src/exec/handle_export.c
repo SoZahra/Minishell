@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_export.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 19:33:04 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 14:13:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,68 @@
 
 int handle_exit_builtin(char **args, t_ctx *ctx)
 {
-    process_exit_arg(args, ctx); 
+    process_exit_arg(args, ctx);
     write(1, "exit\n", 5);
     exit(ctx->exit_status);
     return (1); // Ne sera jamais atteint
 }
 
+// int handle_echo_builtin(char **args, t_ctx *ctx)
+// {
+//     t_token *token_list;
+
+//     token_list = create_token_list(args + 1);
+//     if (!token_list)
+//     {
+//         ctx->exit_status = 1;
+//         return (1);
+//     }
+//     handle_echo(token_list, ctx);
+//     return (1);
+// }
+
 int handle_echo_builtin(char **args, t_ctx *ctx)
 {
-    t_token *token_list;
+    t_token *token_list = NULL;
+    t_token *current = NULL;
+    int i = 1;
 
-    token_list = create_token_list(args + 1);
-    if (!token_list)
+    while (args[i])
     {
-        ctx->exit_status = 1;
-        return (1);
+        t_token *new_token = malloc(sizeof(t_token));
+        if (!new_token)
+            return 1;
+
+        new_token->value = ft_strdup(args[i]);
+        new_token->next = NULL;
+
+        // Détecter si le mot original était entre quotes
+        if (strchr(args[i], '\''))
+        {
+            new_token->type = SINGLE_QUOTE;
+            new_token->quoted = 1;
+        }
+        else if (strchr(args[i], '"'))
+        {
+            new_token->type = DOUBLEQUOTE;
+            new_token->quoted = 1;
+        }
+        else
+        {
+            new_token->type = STRING;
+            new_token->quoted = 0;
+        }
+
+        // Ajouter à la liste
+        if (!token_list)
+            token_list = new_token;
+        else
+            current->next = new_token;
+        current = new_token;
+
+        i++;
     }
+
     handle_echo(token_list, ctx);
     return (1);
 }
@@ -38,7 +84,7 @@ int handle_echo_builtin(char **args, t_ctx *ctx)
 // int	handle_export_builtin(char **args, t_ctx *ctx)
 // {
 // 	// printf("test export : %s\n", args[0]);
-	
+
 // 	if (args[1] && (ft_strcmp(args[1], "\"\"") == 0 || ft_strlen(args[1]) == 0))
 // 	{
 // 		fprintf(stderr, "MiniBG: export: `': not a valid identifier\n");

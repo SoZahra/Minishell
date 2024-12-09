@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   args.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:01:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 17:16:35 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/09 15:34:41 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,47 @@ int	count_tokens(t_token *tokens)
 	return (count);
 }
 
-static char	*process_token_value(t_token *token, t_ctx *ctx)
+// static char	*process_token_value(t_token *token, t_ctx *ctx)
+// {
+// 	if (token->type == '\'')
+// 		return (ft_strdup(token->value));
+// 	return (expand_variables(token->value, ctx, token->type));
+// }
+
+static char *process_token_value(t_token *token, t_ctx *ctx)
 {
-	if (token->type == '\'')
-		return (ft_strdup(token->value));
-	return (expand_variables(token->value, ctx, token->type));
+    char *current_value;
+    char *next_value;
+    char *final_value;
+
+    // Récupérer la valeur du token actuel
+    if (token->type == '\'')
+        current_value = ft_strdup(token->value);
+    else
+        current_value = expand_variables(token->value, ctx, token->type);
+
+    // Si pas de token suivant, retourner la valeur actuelle
+    if (!token->next)
+        return current_value;
+
+    // Si un espace sépare les tokens, retourner le token actuel
+    if (token->had_space)
+        return current_value;
+
+    // Si les tokens doivent être concaténés (pas d'espace entre eux)
+    next_value = (token->next->type == '\'') ?
+                 ft_strdup(token->next->value) :
+                 expand_variables(token->next->value, ctx, token->next->type);
+
+    // Joindre les valeurs sans espace
+    final_value = ft_strjoin(current_value, next_value);
+    free(current_value);
+    free(next_value);
+
+    // Skip le token suivant car il a été utilisé
+    token->next = token->next->next;
+
+    return final_value;
 }
 
 static void	free_args_on_failure(char **args, int i)

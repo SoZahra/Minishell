@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exit.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 18:29:50 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 11:34:14 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,10 +46,10 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     cleaned_arg = strip_quotes(args[1]);
     if (!is_numeric_argument(cleaned_arg))
     {
-        fprintf(stderr, "minishell: exit: %s: numeric argument required\n", 
+        fprintf(stderr, "minishell: exit: %s: numeric argument required\n",
             cleaned_arg);
         free(cleaned_arg);
-        ctx->exit_status = 255;  // Changé de 2 à 255 pour les arguments non numériques
+        ctx->exit_status = 2;  // Changé de 2 à 255 pour les arguments non numériques
         return (1);
     }
     exit_code = ft_atoi(cleaned_arg);
@@ -60,7 +60,6 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
         ctx->exit_status = 1;
         return (1);
     }
-    // Si négatif, convertir en positif entre 0-255
     if (exit_code < 0)
         ctx->exit_status = 256 + (exit_code % 256);
     else

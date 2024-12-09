@@ -123,9 +123,8 @@ int						handle_special_chars(char **line, char *buffer, int *i,
 int						is_whitespace(char c);
 int						handle_space(char **ptr);
 t_token					*create_token_from_pipe(t_token **head, t_token **tail);
-// t_token	*parse_command_line(char *line);
-// t_token	*parse_command_line(char *line, t_ctx *exit_status);
-t_token					*parse_command_line(char *line, t_ctx *ctx);
+// t_token					*parse_command_line(char *line, t_ctx *ctx);
+t_token *parse_command_line(char *line, t_ctx *ctx);
 t_token					*add_pipe_token(t_token **head, t_token **tail);
 // int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 // 		int first_token);
@@ -174,8 +173,7 @@ int						split_env_v(char *arg, char **var, char **value);
 // int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 // int						exec_builtin_cmd(char **args, t_env_var *env, t_ctx *ctx);
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
-t_token					*create_token_list(char **args);
-
+t_token	*create_token_list(char **args, t_token_type type);
 // int read_and_exec(char **env);
 int						read_and_exec(char **env, t_ctx *ctx);
 char					*strip_quotes(char *arg);
@@ -361,7 +359,7 @@ int count_tokens(t_token *tokens);
 t_token *create_new_token(t_token_type type, const char *value);
 t_token *add_token(t_token **token_list, t_token_type type, const char *value);
 
-t_token	*create_token_node(char *arg);
+t_token *create_token_node(char *arg, t_token_type type);
 int is_valid_n(t_token *current);
 
 int set_term_attr();

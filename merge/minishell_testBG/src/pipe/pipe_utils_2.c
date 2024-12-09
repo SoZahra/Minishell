@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_utils_2.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 18:34:33 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 11:38:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,10 +133,10 @@ void    read_heredoc(int fd, char *limiter)
 	close(fd);
 }
 
-int here_doc(char *limiter) 
+int here_doc(char *limiter)
 {
     int fd;
-    
+
     fd = open(".heredoc.tmp", O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd < 0)
         exit_error();
@@ -147,11 +147,11 @@ int here_doc(char *limiter)
     return fd;
 }
 
-void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input) 
+void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input)
 {
     int input_fd;
-    
-    if (ft_strcmp(redir_token->value, "<<") == 0) 
+
+    if (ft_strcmp(redir_token->value, "<<") == 0)
         input_fd = here_doc(redir_token->next->value);
     else
         input_fd = open(redir_token->next->value, O_RDONLY);
@@ -164,13 +164,13 @@ void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect
     *redirect_input = 1;
 }
 
-void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output) 
+void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output)
 {
     int output_fd;
 
     if (ft_strcmp(redir_token->value, ">>") == 0)
         output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    else 
+    else
         output_fd = open(redir_token->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (output_fd == -1) {
         perror("Redirection error");
@@ -187,20 +187,20 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
     t_token **exec_tokens_tail = exec_tokens;
     t_token *redir_token = cmd_start;
 
-    while (redir_token != cmd_end) 
+    while (redir_token != cmd_end)
 	{
-        if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0) 
+        if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0)
 		{
             handle_input_redirection(redir_token, redirect, redirect_input);
             redir_token = redir_token->next;
-        } 
+        }
 		else if (ft_strcmp(redir_token->value, ">") == 0
-        || ft_strcmp(redir_token->value, ">>") == 0) 
+        || ft_strcmp(redir_token->value, ">>") == 0)
 		{
             handle_output_redirection(redir_token, redirect, redirect_output);
             redir_token = redir_token->next;
         }
-        else 
+        else
 		{
             *exec_tokens_tail = redir_token;
             exec_tokens_tail = &(*exec_tokens_tail)->next;
@@ -212,12 +212,12 @@ void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_to
 
 void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
 {
-    if (prev_fd != -1 && redirect_input != 1) 
+    if (prev_fd != -1 && redirect_input != 1)
 	{
         dup2(prev_fd, STDIN_FILENO);
         close(prev_fd);
     }
-    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0 && redirect_output != 1) 
+    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0 && redirect_output != 1)
 	{
         close(pipe_fd[0]);
         dup2(pipe_fd[1], STDOUT_FILENO);
@@ -239,26 +239,26 @@ void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd,
     int     redirect_output;
     int     redirect_input;
     pid_t   pid;
-    
+
     pid = fork();
     if (pid == -1)
         exit_error();
-    if (pid == 0) 
+    if (pid == 0)
     {
         t_token *exec_tokens = NULL;
         redirect = 0;
-        redirect_output = 0; 
+        redirect_output = 0;
         redirect_input = 0;
 
         collect_exec_tokens(cmd_start, cmd_end, &exec_tokens, &redirect, &redirect_input, &redirect_output);
         // printf("exec token value : %s\n", exec_tokens->value);
-        if (exec_tokens && is_builtin(exec_tokens->value)) 
+        if (exec_tokens && is_builtin(exec_tokens->value))
         {
             if (prev_fd != -1) {
                 dup2(prev_fd, STDIN_FILENO);
                 close(prev_fd);
             }
-            if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0) 
+            if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0)
             {
                 close(pipe_fd[0]);
                 dup2(pipe_fd[1], STDOUT_FILENO);
@@ -267,7 +267,7 @@ void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd,
             // ctx->exit_status = exec_simple_cmd(exec_tokens, ctx);
             // exit(ctx->exit_status);
             int status = exec_simple_cmd(exec_tokens, ctx);
-            exit(status); 
+            exit(status);
         }
         setup_pipe_for_child(prev_fd, pipe_fd, redirect_input, redirect_output, cmd_end);
         exec(exec_tokens, ctx);
@@ -279,13 +279,13 @@ void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t
 {
     if (*prev_fd != -1)
         close(*prev_fd);
-    if (cmd_end != NULL) 
+    if (cmd_end != NULL)
 	{
         close(pipe_fd[1]);
         *prev_fd = pipe_fd[0];
         *cmd_start = cmd_end->next;
-    } 
-    else 
+    }
+    else
         *cmd_start = NULL;
 }
 
@@ -298,22 +298,20 @@ void cleanup_parent_resources(int *prev_fd, int *pipe_fd, t_token **cmd_start, t
 
 int wait_for_all_children(int status, t_token *tokens, t_ctx *ctx)
 {
-    // status >> 8 donne le code de sortie (équivalent à WEXITSTATUS)
-    int exit_status = (status >> 8) & 0xFF;
+    int exit_status;
 
-    // Pour vérifier si le processus s'est terminé normalement,
-    // on regarde si le signal est 0 (équivalent à WIFEXITED)
+    exit_status = (status >> 8) & 0xFF;
     if ((status & 0x7F) != 0)
         return ctx->exit_status;
     if (tokens && ft_strcmp(tokens->value, "cd") == 0)
     {
         t_token *next = tokens->next;
         t_token *next_next = NULL;
-        
+
         if (next)
             next_next = next->next;
         if (next && next_next)
-            ctx->exit_status = 0;
+            ctx->exit_status = 1;
         else
             ctx->exit_status = exit_status;
     }
@@ -322,16 +320,16 @@ int wait_for_all_children(int status, t_token *tokens, t_ctx *ctx)
     return ctx->exit_status;
 }
 
-int process_pline(t_token *tokens, t_ctx *ctx) 
+int process_pline(t_token *tokens, t_ctx *ctx)
 {
-    int     pipe_fd[2]; 
+    int     pipe_fd[2];
     int     prev_fd;
     t_token *cmd_start;
     int status;
-    
+
     prev_fd = -1;
     cmd_start = tokens;
-    
+
     if (!tokens && ctx->exit_status == 1)
         return 1;
     if (tokens && ft_strcmp(tokens->value, "exit") == 0)
@@ -342,7 +340,7 @@ int process_pline(t_token *tokens, t_ctx *ctx)
         // write(1, "exit\n", 5);
         exit(ctx->exit_status);  // Quitte le processus parent
     }
-    while (cmd_start) 
+    while (cmd_start)
 	{
         t_token *cmd_end = cmd_start;
         while (cmd_end && ft_strcmp(cmd_end->value, "|") != 0)
@@ -350,7 +348,7 @@ int process_pline(t_token *tokens, t_ctx *ctx)
         initialize_pipe_if_needed(pipe_fd, cmd_end);
         execute_command_in_child(cmd_start, cmd_end, prev_fd, pipe_fd, ctx);
         cleanup_parent_resources(&prev_fd, pipe_fd, &cmd_start, cmd_end);
-    } 
+    }
     // wait_for_all_children();
     while (wait(&status) > 0)
         wait_for_all_children(status, tokens, ctx);
