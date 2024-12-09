@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_export.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 14:13:56 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/09 23:57:49 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,52 +34,28 @@ int handle_exit_builtin(char **args, t_ctx *ctx)
 //     return (1);
 // }
 
-int handle_echo_builtin(char **args, t_ctx *ctx)
+int handle_echo_builtin(t_token *tokens, t_ctx *ctx)
 {
-    t_token *token_list = NULL;
-    t_token *current = NULL;
-    int i = 1;
+    int n_option = 0;
 
-    while (args[i])
+    if (!tokens)
+        return 1; // Aucun argument après `echo`
+
+    // Ignorer le premier token (mot-clé `echo`)
+    tokens = tokens->next;
+
+    // Vérification des options `-n`
+    while (tokens && is_valid_n(tokens))
     {
-        t_token *new_token = malloc(sizeof(t_token));
-        if (!new_token)
-            return 1;
-
-        new_token->value = ft_strdup(args[i]);
-        new_token->next = NULL;
-
-        // Détecter si le mot original était entre quotes
-        if (strchr(args[i], '\''))
-        {
-            new_token->type = SINGLE_QUOTE;
-            new_token->quoted = 1;
-        }
-        else if (strchr(args[i], '"'))
-        {
-            new_token->type = DOUBLEQUOTE;
-            new_token->quoted = 1;
-        }
-        else
-        {
-            new_token->type = STRING;
-            new_token->quoted = 0;
-        }
-
-        // Ajouter à la liste
-        if (!token_list)
-            token_list = new_token;
-        else
-            current->next = new_token;
-        current = new_token;
-
-        i++;
+        n_option = 1;
+        tokens = tokens->next; // Ignore les tokens `-n`
     }
 
-    handle_echo(token_list, ctx);
-    return (1);
+    // Écriture du contenu sans inclure `echo`
+    write_echo_content(tokens, n_option);
+    ctx->exit_status = 0; // Commande réussie
+    return 1;
 }
-
 
 // int	handle_export_builtin(char **args, t_ctx *ctx)
 // {

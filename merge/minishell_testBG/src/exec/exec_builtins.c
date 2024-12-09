@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 16:55:05 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 23:49:23 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,20 +69,41 @@ int	handle_env_builtin(t_ctx *ctx)
 	return (1);
 }
 
-int	exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
+int execute_builtin(t_ctx *ctx, t_token *tokens)
 {
-	(void)env;
-	if (ft_strcmp(args[0], "exit") == 0)
-		return (handle_exit_builtin(args, ctx));
-	if (ft_strcmp(args[0], "echo") == 0)
-		return (handle_echo_builtin(args, ctx));
-	if (ft_strcmp(args[0], "export") == 0)
-		return (handle_export_builtin(args, ctx));
-	if (ft_strcmp(args[0], "pwd") == 0)
-		return (handle_pwd_builtin(args, ctx));
-	if (ft_strcmp(args[0], "cd") == 0)
-		return (handle_cd_builtin(args, ctx));
-	if (ft_strcmp(args[0], "env") == 0)
-		return (handle_env_builtin(ctx));
-	return (0);
+    if (!tokens || !tokens->value)
+        return 0;
+
+    // if (ft_strcmp(tokens->value, "exit") == 0)
+    //     return handle_exit_builtin(tokens, ctx);
+    if (ft_strcmp(tokens->value, "echo") == 0)
+        return handle_echo_builtin(tokens->next, ctx); // Ignore le mot-clé "echo"
+    // if (ft_strcmp(tokens->value, "export") == 0)
+    //     return handle_export_builtin(tokens->next, ctx);
+    // if (ft_strcmp(tokens->value, "pwd") == 0)
+    //     return handle_pwd_builtin(ctx);
+    // if (ft_strcmp(tokens->value, "cd") == 0)
+    //     return handle_cd_builtin(tokens->next, ctx);
+    // if (ft_strcmp(tokens->value, "env") == 0)
+    //     return handle_env_builtin(ctx);
+
+    return 0;
 }
+
+// int	exec_builtin_cmd(char **args, char **env, t_ctx *ctx)
+// {
+// 	(void)env;
+// 	if (ft_strcmp(args[0], "exit") == 0)
+// 		return (handle_exit_builtin(args, ctx));
+// 	if (ft_strcmp(args[0], "echo") == 0)
+// 		return (handle_echo_builtin(args, ctx));
+// 	if (ft_strcmp(args[0], "export") == 0)
+// 		return (handle_export_builtin(args, ctx));
+// 	if (ft_strcmp(args[0], "pwd") == 0)
+// 		return (handle_pwd_builtin(args, ctx));
+// 	if (ft_strcmp(args[0], "cd") == 0)
+// 		return (handle_cd_builtin(args, ctx));
+// 	if (ft_strcmp(args[0], "env") == 0)
+// 		return (handle_env_builtin(ctx));
+// 	return (0);
+// }

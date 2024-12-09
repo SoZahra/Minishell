@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:48:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 15:29:45 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/09 23:58:03 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,39 +99,25 @@ char *ft_strstr(const char *str, const char *to_find)
     return (NULL);
 }
 
-void write_echo_content(t_token *token_list, int n_option)
+void write_echo_content(t_token *tokens, int n_option)
 {
-    t_token *current;
-    t_token *next;
-    char *cleaned;
+    t_token *current = tokens;
 
-    current = token_list;
+    // Boucle sur les tokens en ignorant le premier
     while (current)
     {
-        next = current->next;
         if (current->value)
         {
-            // Si le token suivant existe et si l'un des tokens contient une quote
-            if (next && (strchr(current->value, '\'') || strchr(current->value, '"') ||
-                        strchr(next->value, '\'') || strchr(next->value, '"')))
-            {
-                // Joindre les tokens sans espace
-                cleaned = clean_dollar_quotes(current->value);
-                write(STDOUT_FILENO, cleaned, ft_strlen(cleaned));
-                free(cleaned);
-            }
-            else
-            {
-                // Sinon, écrire normalement avec un espace
-                cleaned = clean_dollar_quotes(current->value);
-                write(STDOUT_FILENO, cleaned, ft_strlen(cleaned));
-                free(cleaned);
-                if (next)
-                    write(STDOUT_FILENO, " ", 1);
-            }
+            // Écrire la valeur du token
+            write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+
+            // Ajouter un espace après chaque token, sauf le dernier
+            if (current->next)
+                write(STDOUT_FILENO, " ", 1);
         }
         current = current->next;
     }
+    // Ajouter une nouvelle ligne si l'option `-n` n'est pas présente
     if (!n_option)
         write(STDOUT_FILENO, "\n", 1);
 }

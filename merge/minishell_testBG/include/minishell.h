@@ -93,6 +93,10 @@ typedef struct s_pipe_cmd
 // -------------------------------------------------------------
 
 int tokenizer(t_token **tokens, char *input);
+char *process_tokens(t_token *tokens, t_ctx *ctx);
+char *expand_variable_(const char *str, char quote_type, t_ctx *ctx);
+int execute_builtin(t_ctx *ctx, t_token *tokens);
+int handle_echo_builtin(t_token *tokens, t_ctx *ctx);
 
 // -------------------------------------------------------------
 
@@ -136,8 +140,8 @@ t_token *parse_command_line(char *line, t_ctx *ctx);
 t_token					*add_pipe_token(t_token **head, t_token **tail);
 // int	process_token(t_token **head, t_token **tail, char *start, char *ptr,
 // 		int first_token);
-void					process_tokens(t_token *cmd_tokens, int num_pipes,
-							t_ctx *ctx);
+// void					process_tokens(t_token *cmd_tokens, int num_pipes,
+// 							t_ctx *ctx);
 void					handle_token(t_token **head, t_token **tail, char **ptr,
 							int *first_token);
 // int	handle_env_var(char **line, t_token **token_list);
@@ -308,7 +312,7 @@ char **convert_env_to_array(t_ctx *ctx);
 int check_invalid_quotes(char *line);
 
 int	handle_exit_builtin(char **args, t_ctx *ctx);
-int	handle_echo_builtin(char **args, t_ctx *ctx);
+// int	handle_echo_builtin(char **args, t_ctx *ctx);
 int	handle_export_builtin(char **args, t_ctx *ctx);
 int	handle_export_loop(char **args, t_ctx *ctx);
 
@@ -317,7 +321,7 @@ void	add_env_var_to_list(t_env_var **head, t_env_var *new_var);
 
 int handle_export_loop(char **args, t_ctx *ctx);
 int	handle_export_builtin(char **args, t_ctx *ctx);
-int	handle_echo_builtin(char **args, t_ctx *ctx);
+// int	handle_echo_builtin(char **args, t_ctx *ctx);
 int	handle_exit_builtin(char **args, t_ctx *ctx);
 int process_var_assignment(char *arg, t_ctx *ctx);
 int handle_special_case(char *arg, t_ctx *ctx);
@@ -325,7 +329,7 @@ int	handle_cd_builtin(char **args, t_ctx *ctx);
 int	handle_invalid_identifier(char *arg, char *var, char *value);
 int	create_and_add_var(t_ctx *ctx, char *var, char *value);
 
-int	execute_builtin(t_ctx *ctx, char **args);
+// int	execute_builtin(t_ctx *ctx, char **args);
 int	validate_args(char **args, t_ctx *ctx);
 void	print_command_not_found(const char *cmd, t_ctx *ctx);
 
