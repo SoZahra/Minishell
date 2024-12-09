@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 16:43:49 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 16:12:17 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,7 @@ int set_term_attr()
     return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
 }
 
-
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
-		char **envp)
+int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
 {
 	if (initialize_ctx(get_ctx()))
 		return (1);

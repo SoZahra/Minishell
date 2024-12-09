@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   add_tokens.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:00:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 16:42:58 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/09 18:49:42 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ t_token	*create_new_token(t_token_type type, const char *value)
     t_token	*new_token;
 
     new_token = malloc(sizeof(t_token));
+	*new_token = (t_token){0};
     if (!new_token)
     {
         perror("malloc failed");

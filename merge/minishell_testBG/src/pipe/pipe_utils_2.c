@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 11:38:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/09 16:29:26 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,6 +329,10 @@ int process_pline(t_token *tokens, t_ctx *ctx)
 
     prev_fd = -1;
     cmd_start = tokens;
+
+    printf("===============\n");
+    print_tokens(tokens);
+    printf("===============\n");
 
     if (!tokens && ctx->exit_status == 1)
         return 1;

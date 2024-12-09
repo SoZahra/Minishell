@@ -17,6 +17,7 @@
 # include <sys/wait.h>
 # include <unistd.h>
 # include <termios.h>
+# include <stdbool.h>
 
 extern char				**environ;
 
@@ -89,6 +90,13 @@ typedef struct s_pipe_cmd
 	struct s_pipe_cmd	*next;
 }						t_pipe_cmd;
 
+// -------------------------------------------------------------
+
+int tokenizer(t_token **tokens, char *input);
+
+// -------------------------------------------------------------
+
+void print_tokens(t_token *tokens);
 char					**get_environment(char **envp);
 // t_env_var *get_environment(char **envp);
 // int						export_v(char ***env_copy, const char *var,

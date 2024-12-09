@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:01:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 15:34:41 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/09 16:20:13 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ static char *process_token_value(t_token *token, t_ctx *ctx)
     char *next_value;
     char *final_value;
 
+	final_value = NULL;
+
     // Récupérer la valeur du token actuel
     if (token->type == '\'')
         current_value = ft_strdup(token->value);
@@ -58,7 +60,7 @@ static char *process_token_value(t_token *token, t_ctx *ctx)
                  expand_variables(token->next->value, ctx, token->next->type);
 
     // Joindre les valeurs sans espace
-    final_value = ft_strjoin(current_value, next_value);
+    // final_value = ft_strjoin(current_value, next_value);
     free(current_value);
     free(next_value);
 
