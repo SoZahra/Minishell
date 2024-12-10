@@ -22,15 +22,14 @@
 extern char				**environ;
 
 # define PROMPT "\033[1;34mMiniBG>\033[0m "
+#define TOKENS "<>|\"'"
+#define OPERATORS "AH<>|"
+#define UNJOIN "<>|"
 
 # ifndef PATH_MAX
 #  define PATH_MAX 4096
 # endif
 
-// typedef struct s_var
-// {
-//     char **env;
-// } t_var;
 typedef struct s_env_var
 {
 	char				*name;
@@ -52,11 +51,6 @@ typedef struct s_ctx
 	// char				*value;
 
 }						t_ctx;
-
-// typedef struct s_var
-// {
-// 	char				**env;
-// }						t_var;
 
 typedef enum token_type
 {
@@ -81,15 +75,29 @@ typedef struct s_token
 	int					had_space;
 }						t_token;
 
-typedef struct s_pipe_cmd
-{
-	t_token				*cmd;
-	int					input_fd;
-	int					output_fd;
-	int					pipe_read;
-	int					pipe_write;
-	struct s_pipe_cmd	*next;
-}						t_pipe_cmd;
+// typedef struct s_pipe_cmd
+// {
+// 	t_token				*cmd;
+// 	int					input_fd;
+// 	int					output_fd;
+// 	int					pipe_read;
+// 	int					pipe_write;
+// 	struct s_pipe_cmd	*next;
+// }						t_pipe_cmd;
+
+typedef struct s_redirection {
+    char type;              // '>' pour >, 'A' pour >>, '<' pour <, 'H' pour 
+    char *file;            // Nom du fichier ou délimiteur
+    int fd;                // File descriptor
+    struct s_redirection *next;
+} t_redirection;
+
+typedef struct s_command {
+    char **args;           // Les arguments de la commande
+    t_redirection *redirs; // Liste des redirections
+    int pipe_in;           // FD pour le pipe d'entrée (si existe)
+    int pipe_out;          // FD pour le pipe de sortie (si existe)
+} t_command;
 
 // -------------------------------------------------------------
 
@@ -141,10 +149,24 @@ int process_exit_arg(char **args, t_ctx *ctx);
 char **create_env_array(t_env_var *env_vars);
 char *find_command_path(const char *cmd, t_ctx *ctx);
 char *get_env_path(t_env_var *env_vars);
-void execute_external_command(const char *cmd_str, t_ctx *ctx);
 char **create_command_array(const char *cmd_str);
-void execute_external_command(const char *cmd_str, t_ctx *ctx);
 
+//redir sortantes 
+// t_redir *get_redirections(char **cmd_array);
+// int apply_redirections(t_redir *redirs);
+// void free_redirections(t_redir *redirs);
+// void print_redirections(t_redir *redirs);
+
+t_command *create_command(t_token *tokens, t_ctx *ctx);
+void execute_command(t_command *cmd, t_ctx *ctx);
+int apply_redirections(t_redirection *redirs);
+void restore_fds(int stdin_fd, int stdout_fd);
+void execute_builtin_command(t_command *cmd, t_ctx *ctx);
+void execute_external_command(t_command *cmd, t_ctx *ctx);
+int add_redirection(t_redirection **redirs, char type, char *file);
+void free_command(t_command *cmd);
+
+t_token *prepare_tokens(t_token *tokens, t_ctx *ctx);
 // -------------------------------------------------------------
 
 void print_tokens(t_token *tokens);
@@ -321,9 +343,9 @@ char **ctx_to_env_array(t_ctx *ctx);
 // int						loop_with_pipes(t_env_var *env, t_ctx *ctx);
 int loop_with_pipes(t_ctx *ctx);
 
-t_pipe_cmd				*create_pipe_cmd(t_token *cmd_tokens);
-int						execute_pipe_sequence(t_pipe_cmd *cmds, char **env,
-							t_ctx *ctx);
+// t_pipe_cmd				*create_pipe_cmd(t_token *cmd_tokens);
+// int						execute_pipe_sequence(t_pipe_cmd *cmds, char **env,
+							// t_ctx *ctx);
 t_token					*get_next_command(t_token *start);
 char					*ft_strjoin_free(char *s1, char *s2, int free_str);
 char					*ft_strjoin_char(char *str, char c);

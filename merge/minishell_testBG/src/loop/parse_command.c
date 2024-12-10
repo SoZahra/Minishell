@@ -3,120 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 14:14:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/10 22:13:51 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-// int validate_export_token(char *value)
-// {
-//     // Ne pas valider si c'est juste "export" sans arguments
-//     if (ft_strcmp(value, "export") == 0)
-//         return 1;
-
-//     // Vérifier les cas d'erreur
-//     if (ft_strcmp(value, "=") == 0)
-//         return 0;
-
-//     // Vérifier si commence par un chiffre
-//     if (ft_isdigit(value[0]))
-//         return 0;
-
-//     // Vérifier le tiret dans le nom (avant le =)
-//     char *equal_pos = ft_strchr(value, '=');
-//     char *dash_pos = ft_strchr(value, '-');
-//     if (dash_pos && (!equal_pos || dash_pos < equal_pos))
-//         return 0;
-
-//     return 1;
-// }
-
-#define TOKENS "<>|\"'"
-#define OPERATORS "AH<>|"
-#define UNJOIN "<>|"
-
-// char *expand_variable_(const char *str, char quote_type, t_ctx *ctx)
-// {
-//     (void)ctx;
-//     if (!str || str[0] != '$')
-//         return ft_strdup(str); // Pas une variable, retourne tel quel
-
-//     if (quote_type == '\'') // Pas d'expansion dans des single quotes
-//         return ft_strdup(str);
-
-//     // Chercher le nom de la variable jusqu'à un caractère non valide
-//     int i = 1;
-//     while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-//         i++;
-
-//     char *var_name = ft_substr(str, 1, i - 1); // Extraire le nom de la variable
-//     if (!var_name)
-//         return NULL;
-
-//     char *expanded_value = getenv(var_name); // Résoudre avec l'environnement
-//     free(var_name);
-
-//     if (!expanded_value) // Si la variable n'existe pas
-//         return ft_strdup(str);
-
-//     // Combiner l'expansion avec le reste de la chaîne (si nécessaire)
-//     if (str[i])
-//         return ft_strjoin(expanded_value, str + i);
-
-//     return ft_strdup(expanded_value);
-// }
-
-// char *expand_variable_(const char *str, char quote_type, t_ctx *ctx)
-// {
-//     if (!str)
-//         return NULL;
-//     // Pas d'expansion dans des single quotes
-//     if (quote_type == '\'')
-//         return ft_strdup(str);
-//     // Si ce n'est pas une variable
-//     if (str[0] != '$')
-//         return ft_strdup(str);
-//     // Cas du $ seul
-//     if (str[1] == '\0')
-//         return ft_strdup("$");
-//     // Cas spécial pour $?
-//     if (str[1] == '?')
-//     {
-//         char *exit_status = ft_itoa(ctx->exit_status);
-//         if (!exit_status)
-//             return NULL;
-//         // S'il y a du texte après $?
-//         if (str[2])
-//         {
-//             char *result = ft_strjoin(exit_status, str + 2);
-//             free(exit_status);
-//             return result;
-//         }
-//         return exit_status;
-//     }
-//     // Chercher le nom de la variable jusqu'à un caractère non valide
-//     int i = 1;
-//     while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-//         i++;
-//     char *var_name = ft_substr(str, 1, i - 1);
-//     if (!var_name)
-//         return NULL;
-//     char *expanded_value = getenv(var_name);
-//     free(var_name);
-//     if (!expanded_value)
-//         return ft_strdup(""); // Retourne une chaîne vide si la variable n'existe pas
-//     // S'il y a du texte après la variable
-//     if (str[i])
-//     {
-//         char *result = ft_strjoin(expanded_value, str + i);
-//         return result;
-//     }
-//     return ft_strdup(expanded_value);
-// }
 
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
 {
@@ -255,24 +149,6 @@ int expand_str(t_token *token, t_ctx *ctx)
     return 0;
 }
 
-// // expand_str
-// int expand_proc(t_token **tokens, t_ctx *ctx)
-// {
-//     t_token *token;
-
-//     token = *tokens;
-//     while (token)
-//     {
-//         if ((token->type == 'S' || token->type == '"') && ft_strchr(token->value, '$'))
-//         {
-//             if (expand_str(token, ctx))
-//                 return -1;
-//         }
-//         token = token->next;
-//     }
-//     return 0;
-// }
-
 int expand_proc(t_token **tokens, t_ctx *ctx)
 {
     t_token *token;
@@ -293,27 +169,6 @@ int expand_proc(t_token **tokens, t_ctx *ctx)
     }
     return 0;
 }
-
-// int join_limiter(t_token **tokens)
-// {
-//     t_token *token;
-
-//     token = *tokens;
-//     while (token)
-//     {
-//         if (token->had_space && token->prev && token->prev->prev->type == 'H')
-//         {
-//             tmp = token->prev->value;
-//             token->prev->value = ft_strjoin(tmp, token->value);
-//             free(tmp);
-//             if (token->type == '"' || token->type '\'');
-//                 token->prev->type = token->type;
-//             token_del(token);
-//         }
-//         token = token->next;
-//     }
-//     return 0;
-// }
 
 int join_str(t_token *token, bool limiter)
 {
@@ -356,24 +211,6 @@ void token_del(t_token *token)
     free(token);
 }
 
-// int join_str(t_token **tokens)
-// {
-//     t_token *token;
-
-//     token = *tokens;
-//     while (token)
-//     {
-//         tmp = token->prev->value;
-//         token->prev->value = ft_strjoin(tmp, token->value);
-//         free(tmp);
-//         if (token->type == '"' || token->type '\'');
-//             token->prev->type = token->type;
-//         token_del(token);
-//         token = token->next;
-//     }
-//     return 0;
-// }
-
 int join_tokens(t_token *prev, t_token *current)
 {
     char *tmp;
@@ -401,23 +238,6 @@ int join_tokens(t_token *prev, t_token *current)
     return 0;
 }
 
-
-// int join_proc(t_token **tokens, bool limiter)
-// {
-//     t_token *token;
-
-//     token = *tokens;
-//     while (token)
-//     {
-//         if (token->had_space)
-//         {
-//             if (join_str(token, limiter))
-//                 return - 1;
-//         }
-//         token = token->next;
-//     }
-//     return 0;
-// }
 
 int join_proc(t_token **tokens, bool limiter)
 {
@@ -489,46 +309,6 @@ char *tokens_to_string(t_token *tokens)
     return result;
 }
 
-// join_str
-
-// char *process_tokens(t_token *tokens, t_ctx *ctx)
-// {
-//     char *result = ft_strdup("");  // commence avec une chaîne vide
-//     char *temp = NULL;
-
-//     while (tokens)
-//     {
-//         char *expanded;
-//         if ((tokens->type == 'S' || tokens->type == '"') && ft_strchr(tokens->value, '$'))
-//             expanded = expand_variable_(tokens->value, tokens->type, ctx);
-//         else
-//             expanded = expand_variable_(tokens->value, 0, ctx);
-
-//         if (result[0] == '\0')  // Si c'est le premier token
-//         {
-//             free(result);
-//             result = expanded;
-//         }
-//         else if (tokens->had_space == 1)
-//         {
-//             temp = ft_strjoin(result, expanded);
-//             free(result);
-//             result = temp;
-//             free(expanded);
-//         }
-//         else
-//         {
-//             temp = ft_strjoin(result, " ");
-//             free(result);
-//             result = ft_strjoin(temp, expanded);
-//             free(temp);
-//             free(expanded);
-//         }
-//         tokens = tokens->next;
-//     }
-//     return result;
-// }
-
 bool is_token(char c, char *str)
 {
     int i;
@@ -577,22 +357,51 @@ int quotes_proc(t_token **tokens, char *input, int *i)
     return 0;
 }
 // > < |
+// int operators_proc(t_token **tokens, char *input, int *i, int n)
+// {
+//     char type;
+//     int x;
+
+//     if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
+//         return printf("error: syntax\n"), -1;
+//     x = 1;
+//     type = input[(*i)++];
+//     while (input[*i] && input[*i] == type && x++ < n)
+//         (*i)++;
+//     if (type == '<' && x > 1)
+//         type = 'H';
+//     else if (type == '>' && x > 1)
+//         type = 'A';
+//     add_token(tokens, type, ft_strdup(""));
+//     return 0;
+// }
+
 int operators_proc(t_token **tokens, char *input, int *i, int n)
 {
     char type;
     int x;
+    int start;
 
     if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
         return printf("error: syntax\n"), -1;
+    
+    start = *i;  // Sauvegarder la position de début
     x = 1;
     type = input[(*i)++];
     while (input[*i] && input[*i] == type && x++ < n)
         (*i)++;
+
+    // Créer la valeur avec les caractères réels
+    char *value = ft_substr(input, start, *i - start);
+    if (!value)
+        return -1;
+
     if (type == '<' && x > 1)
         type = 'H';
     else if (type == '>' && x > 1)
         type = 'A';
-    add_token(tokens, type, ft_strdup(""));
+
+    add_token(tokens, type, value);
     return 0;
 }
 
@@ -664,32 +473,32 @@ int tokenizer(t_token **tokens, char *input)
     return 0;
 }
 
-void remove_last_token(t_token **token_list)
-{
-    t_token *current;
-    t_token *prev;
+// void remove_last_token(t_token **token_list)
+// {
+//     t_token *current;
+//     t_token *prev;
 
-    if (!token_list || !*token_list)
-        return;
+//     if (!token_list || !*token_list)
+//         return;
 
-    if (!(*token_list)->next)
-    {
-        free_tokens(*token_list);
-        *token_list = NULL;
-        return;
-    }
+//     if (!(*token_list)->next)
+//     {
+//         free_tokens(*token_list);
+//         *token_list = NULL;
+//         return;
+//     }
 
-    current = *token_list;
-    prev = NULL;
-    while (current->next)
-    {
-        prev = current;
-        current = current->next;
-    }
-    prev->next = NULL;
-    free(current->value);
-    free(current);
-}
+//     current = *token_list;
+//     prev = NULL;
+//     while (current->next)
+//     {
+//         prev = current;
+//         current = current->next;
+//     }
+//     prev->next = NULL;
+//     free(current->value);
+//     free(current);
+// }
 
 // t_token *parse_command_line(char *line, t_ctx *ctx)
 // {
