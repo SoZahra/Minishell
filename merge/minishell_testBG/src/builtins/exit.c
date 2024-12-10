@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 11:34:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/10 11:58:48 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,28 +43,28 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     char *cleaned_arg;
     long exit_code;
 
-    cleaned_arg = strip_quotes(args[1]);
+    cleaned_arg = ft_strdup(args[0]);  // Plus besoin de strip_quotes car déjà fait par le parser
     if (!is_numeric_argument(cleaned_arg))
     {
-        fprintf(stderr, "minishell: exit: %s: numeric argument required\n",
-            cleaned_arg);
+        fprintf(stderr, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
         free(cleaned_arg);
-        ctx->exit_status = 2;  // Changé de 2 à 255 pour les arguments non numériques
-        return (1);
+        ctx->exit_status = 2;
+        return 1;
     }
     exit_code = ft_atoi(cleaned_arg);
     free(cleaned_arg);
-    if (args[2])
+    if (args[1])
     {
         fprintf(stderr, "minishell: exit: too many arguments\n");
         ctx->exit_status = 1;
-        return (1);
+        return 1;
     }
+    // Gestion des codes de sortie négatifs et positifs
     if (exit_code < 0)
         ctx->exit_status = 256 + (exit_code % 256);
     else
         ctx->exit_status = exit_code % 256;
-    return (1);
+    return 1;
 }
 
 int	handle_exit_without_argument(t_ctx *ctx)
@@ -73,10 +73,17 @@ int	handle_exit_without_argument(t_ctx *ctx)
 	return (1);
 }
 
-int	process_exit_arg(char **args, t_ctx *ctx)
+int process_exit_arg(char **args, t_ctx *ctx)
 {
-	if (args[1])
-		return (handle_exit_with_argument(args, ctx));
-	else
-		return (handle_exit_without_argument(ctx));
+    if (!args[0] || !*args[0])
+        return handle_exit_without_argument(ctx);
+    return handle_exit_with_argument(args, ctx);
 }
+
+// int	process_exit_arg(char **args, t_ctx *ctx)
+// {
+// 	if (args[1])
+// 		return (handle_exit_with_argument(args, ctx));
+// 	else
+// 		return (handle_exit_without_argument(ctx));
+// }

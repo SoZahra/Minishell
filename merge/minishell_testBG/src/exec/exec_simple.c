@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_simple.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:04:03 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 23:52:22 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/10 10:35:14 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,17 +32,17 @@
 // 	return (0);
 // }
 
-int exec_simple_cmd(t_token *tokens, t_ctx *ctx)
-{
-    if (!tokens)
-        return 0;
+// int exec_simple_cmd(t_token *tokens, t_ctx *ctx)
+// {
+//     if (!tokens)
+//         return 0;
 
-    if (is_builtin(tokens->value))
-        return execute_builtin(ctx, tokens);
-    // Si ce n'est pas un builtin, afficher une erreur
-    print_command_not_found(tokens->value, ctx);
-    return 0;
-}
+//     if (is_builtin(tokens->value))
+//         return execute_builtin(ctx, tokens);
+//     // Si ce n'est pas un builtin, afficher une erreur
+//     print_command_not_found(tokens->value, ctx);
+//     return 0;
+// }
 
 // int	validate_args(char **args, t_ctx *ctx)
 // {

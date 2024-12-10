@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 00:00:47 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/10 15:48:25 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,38 +34,42 @@ t_token *tokenize_input(char *line)
     if (tokenizer(&tokens, line) < 0)
     {
         free_tokens(tokens);
-        return (NULL); // Retourne NULL en cas d'erreur de tokenisation
+        return (NULL);
     }
     return (tokens);
 }
 
-void	handle_line_for_loop(char *line, t_ctx *ctx)
+void handle_line_for_loop(char *line, t_ctx *ctx)
 {
-	t_token	*tokens;
-	char *output;
+    t_token *tokens;
+    char *output;
 
-	// tokens = NULL;
-	if (*line)
-	{
-		add_history(line);
-
-		// tokens = parse_command_line(line, ctx);
-		tokens = tokenize_input(line);
-		// return ;
-		if (tokens)
-		{
-			output = process_tokens(tokens, ctx); // Process les tokens
-            // printf("%s\n", output); // Affiche la sortie finale
-            free(output);
-            free_tokens(tokens);
-		}
-		else
+    if (*line)
+    {
+        add_history(line);
+        tokens = tokenize_input(line);
+        if (tokens)
         {
-            fprintf(stderr, "Error: tokenization failed\n");
+            output = prepare_command(tokens, ctx);
+            if (output)
+            {
+				char **cmd_array = create_command_array(output);
+                if (cmd_array)
+                {
+                    int builtin_result = is_builtin(output);
+                    if (builtin_result)
+                        execute_builtin(output, ctx); // ou passer cmd_array à la place de output
+                    else
+                        execute_external_command(output, ctx);
+                    free_array(cmd_array);
+                }
+                free(output);
+            }
+            free_tokens(tokens);
         }
-			// process_pline(tokens, ctx);
-		// free_tokens(tokens);
-	}
+        else
+            fprintf(stderr, "Error: tokenization failed\n");
+    }
 }
 
 int	loop_with_pipes(t_ctx *ctx)

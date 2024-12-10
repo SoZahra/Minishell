@@ -75,6 +75,7 @@ typedef struct s_token
 	char				*value;
 	t_token_type		type;
 	struct s_token		*next;
+	struct s_token		*prev;
 	char				*content;
 	int					quoted;
 	int					had_space;
@@ -93,10 +94,56 @@ typedef struct s_pipe_cmd
 // -------------------------------------------------------------
 
 int tokenizer(t_token **tokens, char *input);
-char *process_tokens(t_token *tokens, t_ctx *ctx);
-char *expand_variable_(const char *str, char quote_type, t_ctx *ctx);
-int execute_builtin(t_ctx *ctx, t_token *tokens);
-int handle_echo_builtin(t_token *tokens, t_ctx *ctx);
+int execute_builtin(const char *input, t_ctx *ctx);
+int is_builtin(const char *cmd);
+char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
+
+char *tokens_to_string(t_token *tokens);
+char *prepare_command(t_token *tokens, t_ctx *ctx);
+int join_proc(t_token **tokens, bool limiter);
+int join_tokens(t_token *prev, t_token *current);
+void token_del(t_token *token);
+int join_str(t_token *token, bool limiter);
+int expand_proc(t_token **tokens, t_ctx *ctx);
+int expand_str(t_token *token, t_ctx *ctx);
+
+//----------------------------------------------------------------
+
+// export
+int handle_export_builtin(const char *input, t_ctx *ctx);
+// int process_export_args(char **args, t_ctx *ctx);
+int handle_with_equal_sign(char *arg, char *equal_sign, t_ctx *ctx);
+int handle_no_equal_sign(char *arg, t_ctx *ctx);
+int handle_error(const char *arg, t_ctx *ctx);
+int handle_no_args(t_ctx *ctx);
+int handle_multiple_args(const char *args, t_ctx *ctx);
+
+//echo
+int handle_echo_builtin(const char *input, t_ctx *ctx);
+
+//env
+int handle_env_builtin(const char *input, t_ctx *ctx);
+
+//cd
+int handle_cd_builtin(const char *input, t_ctx *ctx);
+void free_array(char **array);
+
+//pwd
+int handle_pwd_builtin(const char *input, t_ctx *ctx);
+
+//exit
+int handle_exit_builtin(const char *input, t_ctx *ctx);
+int process_exit_arg(char **args, t_ctx *ctx);
+
+
+//exec
+
+char **create_env_array(t_env_var *env_vars);
+char *find_command_path(const char *cmd, t_ctx *ctx);
+char *get_env_path(t_env_var *env_vars);
+void execute_external_command(const char *cmd_str, t_ctx *ctx);
+char **create_command_array(const char *cmd_str);
+void execute_external_command(const char *cmd_str, t_ctx *ctx);
 
 // -------------------------------------------------------------
 
@@ -120,7 +167,8 @@ int						ps_handle_env(t_token *token, t_ctx *ctx);
 // void ps_expand_env(t_token *tokens, t_ctx *ctx);
 int						ft_strncmp_export(const char *s1, const char *s2,
 							unsigned int n);
-int						is_valid_id(const char *var);
+int is_valid_var_name(const char *name);
+// int						is_valid_id(const char *var);
 // void	write_echo_content(t_token *token_list, int n_option);
 void					write_echo_content(t_token *token_list, int n_option);
 // void	handle_echo(t_token *token_list);
@@ -190,7 +238,7 @@ t_token	*create_token_list(char **args, t_token_type type);
 int						read_and_exec(char **env, t_ctx *ctx);
 char					*strip_quotes(char *arg);
 int						is_numeric_argument(const char *arg);
-int						process_exit_arg(char **args, t_ctx *ctx);
+// int						process_exit_arg(char **args, t_ctx *ctx);
 void					handle_exit_command(char *line, t_ctx *ctx);
 // int	loop(char **env);
 int						loop(char **env, t_ctx *ctx);
@@ -266,7 +314,7 @@ void					collect_exec_tokens(t_token *cmd_start,
 							int *redirect_output);
 
 int 					count_env_vars(t_env_var *env_vars);
-char **create_env_array(t_env_var *env_vars, int count);
+// char **create_env_array(t_env_var *env_vars, int count);
 char **ctx_to_env_array(t_ctx *ctx);
 
 // int loop_with_pipes(char **env, t_ctx *ctx);
@@ -292,7 +340,7 @@ void					append_env_value(char **result, char *env_value);
 void					*free_tab_2(char **tab);
 int initialize_ctx(t_ctx *ctx);
 
-int						is_builtin(char *cmd);
+// int						is_builtin(char *cmd);
 
 void free_ctx(t_ctx *ctx);
 void free_env(t_env_var *env_var);
@@ -311,21 +359,21 @@ char *clean_dollar_quotes(const char *str);
 char **convert_env_to_array(t_ctx *ctx);
 int check_invalid_quotes(char *line);
 
-int	handle_exit_builtin(char **args, t_ctx *ctx);
+// int	handle_exit_builtin(char **args, t_ctx *ctx);
 // int	handle_echo_builtin(char **args, t_ctx *ctx);
-int	handle_export_builtin(char **args, t_ctx *ctx);
+// int	handle_export_builtin(char **args, t_ctx *ctx);
 int	handle_export_loop(char **args, t_ctx *ctx);
 
 
 void	add_env_var_to_list(t_env_var **head, t_env_var *new_var);
 
 int handle_export_loop(char **args, t_ctx *ctx);
-int	handle_export_builtin(char **args, t_ctx *ctx);
+// int	handle_export_builtin(char **args, t_ctx *ctx);
 // int	handle_echo_builtin(char **args, t_ctx *ctx);
-int	handle_exit_builtin(char **args, t_ctx *ctx);
+//
 int process_var_assignment(char *arg, t_ctx *ctx);
 int handle_special_case(char *arg, t_ctx *ctx);
-int	handle_cd_builtin(char **args, t_ctx *ctx);
+// int	handle_cd_builtin(char **args, t_ctx *ctx);
 int	handle_invalid_identifier(char *arg, char *var, char *value);
 int	create_and_add_var(t_ctx *ctx, char *var, char *value);
 
