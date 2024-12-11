@@ -6,20 +6,29 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 14:34:48 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/11 11:16:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	count_args(char **args)
-{
-	int	count;
+// int	count_args(char **args)
+// {
+// 	int	count;
 
-	count = 0;
-	while (args[count])
-		count++;
-	return (count);
+// 	count = 0;
+// 	while (args[count])
+// 		count++;
+// 	return (count);
+// }
+
+int count_args(char **args)
+{
+   int count = 0;
+   if (args)
+       while (args[count])
+           count++;
+   return count;
 }
 
 t_env_var	*get_last_env_node(t_env_var **env)

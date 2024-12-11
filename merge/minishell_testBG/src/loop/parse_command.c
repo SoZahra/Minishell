@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 22:13:51 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/11 14:45:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,19 +261,19 @@ int join_proc(t_token **tokens, bool limiter)
     return 0;
 }
 
-char *prepare_command(t_token *tokens, t_ctx *ctx)
-{
-    // Faire l'expansion des variables
-    if (expand_proc(&tokens, ctx) == -1)
-        return NULL;
+// char *prepare_command(t_token *tokens, t_ctx *ctx)
+// {
+//     // Faire l'expansion des variables
+//     if (expand_proc(&tokens, ctx) == -1)
+//         return NULL;
 
-    // Joindre les tokens avec espace
-    if (join_proc(&tokens, false) == -1)
-        return NULL;
+//     // Joindre les tokens avec espace
+//     if (join_proc(&tokens, false) == -1)
+//         return NULL;
 
-    // Convertir les tokens en une seule chaîne
-    return tokens_to_string(tokens);
-}
+//     // Convertir les tokens en une seule chaîne
+//     return tokens_to_string(tokens);
+// }
 
 char *tokens_to_string(t_token *tokens)
 {
@@ -384,7 +384,7 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
 
     if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
         return printf("error: syntax\n"), -1;
-    
+
     start = *i;  // Sauvegarder la position de début
     x = 1;
     type = input[(*i)++];

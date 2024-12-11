@@ -86,18 +86,32 @@ typedef struct s_token
 // }						t_pipe_cmd;
 
 typedef struct s_redirection {
-    char type;              // '>' pour >, 'A' pour >>, '<' pour <, 'H' pour 
+    char type;              // '>' pour >, 'A' pour >>, '<' pour <, 'H' pour
     char *file;            // Nom du fichier ou délimiteur
     int fd;                // File descriptor
     struct s_redirection *next;
 } t_redirection;
 
 typedef struct s_command {
+	pid_t pid;
     char **args;           // Les arguments de la commande
+	char *path;
     t_redirection *redirs; // Liste des redirections
-    int pipe_in;           // FD pour le pipe d'entrée (si existe)
-    int pipe_out;          // FD pour le pipe de sortie (si existe)
+	int pfd[2];
+    // int pipe_in;           // FD pour le pipe d'entrée (si existe)
+    // int pipe_out;          // FD pour le pipe de sortie (si existe)
+	struct s_command *next;     // Commande suivante dans le pipe
+    struct s_command *prev;
 } t_command;
+
+// pipe(pfd);
+
+t_token *find_pipe_token(t_token *start);
+void execute_pipeline(t_command *cmd, t_ctx *ctx);
+int prepare_command(t_command *cmd, t_ctx *ctx);
+int execute_piped_command(t_command *cmd, t_ctx *ctx);
+void wait_for_children(t_command *cmd, t_ctx *ctx);
+t_command *create_command_from_tokens_range(t_token *start, t_token *end);
 
 // -------------------------------------------------------------
 
@@ -107,7 +121,7 @@ int is_builtin(const char *cmd);
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
 
 char *tokens_to_string(t_token *tokens);
-char *prepare_command(t_token *tokens, t_ctx *ctx);
+// char *prepare_command(t_token *tokens, t_ctx *ctx);
 int join_proc(t_token **tokens, bool limiter);
 int join_tokens(t_token *prev, t_token *current);
 void token_del(t_token *token);
@@ -151,7 +165,7 @@ char *find_command_path(const char *cmd, t_ctx *ctx);
 char *get_env_path(t_env_var *env_vars);
 char **create_command_array(const char *cmd_str);
 
-//redir sortantes 
+//redir sortantes
 // t_redir *get_redirections(char **cmd_array);
 // int apply_redirections(t_redir *redirs);
 // void free_redirections(t_redir *redirs);
@@ -167,6 +181,12 @@ int add_redirection(t_redirection **redirs, char type, char *file);
 void free_command(t_command *cmd);
 
 t_token *prepare_tokens(t_token *tokens, t_ctx *ctx);
+t_command *create_command_from_tokens(t_token *tokens);
+int add_arg_to_command(t_command *cmd, char *arg);
+int handle_line_for_loop(char *line, t_ctx *ctx);
+int append_arg_value(char **current_arg, const char *value, int had_space);
+
+
 // -------------------------------------------------------------
 
 void print_tokens(t_token *tokens);
@@ -411,7 +431,7 @@ char *append_literal_dollar(char *expanded);
 char *handle_non_dollar(const char *str, const char **str_ptr, char *expanded);
 
 
-void	handle_line_for_loop(char *line, t_ctx *ctx);
+// void	handle_line_for_loop(char *line, t_ctx *ctx);
 
 // void	handle_unclosed_quote(char *temp, t_token *token_list);
 // t_token_type	update_quote_type(char current_quote, int *i, char *line);

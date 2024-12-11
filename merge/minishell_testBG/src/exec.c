@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 23:10:05 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/11 17:37:03 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,18 +63,18 @@ char **create_command_array(const char *cmd_str)
 //     exit(1);
 // }
 
-// static void wait_for_child(pid_t pid, t_ctx *ctx)
-// {
-//     int status;
-//     waitpid(pid, &status, 0);
-//     if (WIFEXITED(status))
-//         ctx->exit_status = WEXITSTATUS(status);
-// }
+void wait_for_child(pid_t pid, t_ctx *ctx)
+{
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        ctx->exit_status = WEXITSTATUS(status);
+}
 
 // void execute_external_command(const char *cmd_str, t_ctx *ctx)
 // {
 //     printf("Debug: Executing command: '%s'\n", cmd_str);
-    
+
 //     char **cmd_array = create_command_array(cmd_str);
 //     if (!cmd_array)
 //         return;
@@ -223,7 +223,7 @@ char **create_env_array(t_env_var *env_vars)
 // void remove_elements(char **array, int start, int count)
 // {
 //     int i = start;
-    
+
 //     // Libérer les éléments à supprimer
 //     for (int j = 0; j < count && array[i + j]; j++)
 //         free(array[i + j]);
@@ -284,7 +284,7 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 //     printf("Debug: Redirections:\n");
 //     while (current)
 //     {
-//         printf("  type: %c, file: %s\n", 
+//         printf("  type: %c, file: %s\n",
 //             current->type, current->file);
 //         current = current->next;
 //     }
@@ -300,12 +300,12 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 //     {
 //         // Debug pour chaque élément
 //         printf("Debug: Checking arg[%d]: '%s'\n", i, cmd_array[i]);
-        
+
 //         // Vérifier si c'est une redirection
 //         if (cmd_array[i][0] == '>' || ft_strcmp(cmd_array[i], ">>") == 0)
 //         {
 //             printf("Debug: Found redirection: '%s'\n", cmd_array[i]);
-            
+
 //             // Vérifier qu'il y a un fichier après
 //             if (!cmd_array[i + 1])
 //             {
@@ -329,7 +329,7 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 
 //             // Supprimer la redirection et le fichier du tableau
 //             remove_elements(cmd_array, i, 2);
-            
+
 //             // Ne pas incrémenter i car on a supprimé des éléments
 //         }
 //         else
@@ -342,7 +342,7 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 // int apply_redirections(t_redir *redirs)
 // {
 //     t_redir *current = redirs;
-    
+
 //     while (current)
 //     {
 //         int flags = O_WRONLY | O_CREAT;
@@ -391,36 +391,87 @@ void execute_command(t_command *cmd, t_ctx *ctx)
    restore_fds(stdin_backup, stdout_backup);
 }
 
+// int apply_redirections(t_redirection *redirs)
+// {
+//    t_redirection *current = redirs;
+
+//    while (current)
+//    {
+//        if (current->type == '>' || current->type == 'A')
+//        {
+//            // Redirection sortante
+//            int flags = O_WRONLY | O_CREAT;
+//            flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
+
+//            current->fd = open(current->file, flags, 0644);
+//            if (current->fd == -1)
+//            {
+//                perror("open");
+//                return -1;
+//            }
+
+//            if (dup2(current->fd, STDOUT_FILENO) == -1)
+//            {
+//                perror("dup2");
+//                close(current->fd);
+//                return -1;
+//            }
+//            close(current->fd);
+//        }
+//        current = current->next;
+//    }
+//    return 0;
+// }
+
 int apply_redirections(t_redirection *redirs)
 {
-   t_redirection *current = redirs;
-   
-   while (current)
-   {
-       if (current->type == '>' || current->type == 'A')
-       {
-           // Redirection sortante
-           int flags = O_WRONLY | O_CREAT;
-           flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
+    t_redirection *current = redirs;
+    int last_fd = -1;
 
-           current->fd = open(current->file, flags, 0644);
-           if (current->fd == -1)
-           {
-               perror("open");
-               return -1;
-           }
+    // D'abord inverser l'ordre de la liste pour traiter la dernière redirection en premier
+    t_redirection *reversed = NULL;
+    while (current)
+    {
+        t_redirection *next = current->next;
+        current->next = reversed;
+        reversed = current;
+        current = next;
+    }
 
-           if (dup2(current->fd, STDOUT_FILENO) == -1)
-           {
-               perror("dup2");
-               close(current->fd);
-               return -1;
-           }
-           close(current->fd);
-       }
-       current = current->next;
-   }
-   return 0;
+    // Maintenant traiter les redirections dans l'ordre inverse
+    current = reversed;
+    while (current)
+    {
+        if (current->type == '>' || current->type == 'A')
+        {
+            // Si on avait déjà ouvert un fichier, le fermer
+            if (last_fd != -1)
+                close(last_fd);
+
+            // Redirection sortante
+            int flags = O_WRONLY | O_CREAT;
+            flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
+
+            current->fd = open(current->file, flags, 0644);
+            if (current->fd == -1)
+            {
+                perror("open");
+                return -1;
+            }
+
+            if (dup2(current->fd, STDOUT_FILENO) == -1)
+            {
+                perror("dup2");
+                return -1;
+            }
+            close(current->fd);
+
+            last_fd = current->fd;
+        }
+        current = current->next;
+    }
+
+    return 0;
 }
 
 void restore_fds(int stdin_fd, int stdout_fd)
@@ -473,7 +524,7 @@ void execute_builtin_command(t_command *cmd, t_ctx *ctx)
    char *cmd_str = args_to_string(cmd->args);
    if (cmd_str)
    {
-       execute_builtin(cmd_str, ctx);
+       ctx->exit_status = execute_builtin(cmd_str, ctx);
        free(cmd_str);
    }
 }
