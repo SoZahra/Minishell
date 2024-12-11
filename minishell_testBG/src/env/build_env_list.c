@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/06 15:30:43 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/11 12:02:22 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ t_env_var	*create_new_env_var(char *env_str)
 void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
 	t_env_var	*current;
-	printf("inside end \n");
 	if (!*head)
 		*head = new_var;
 	else

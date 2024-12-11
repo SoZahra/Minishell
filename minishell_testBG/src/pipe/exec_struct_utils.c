@@ -6,15 +6,15 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 16:54:41 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/04 10:24:51 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/11 17:24:57 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-int count_env_vars(t_env_var *env_vars)
+int	count_env_vars(t_env_var *env_vars)
 {
-	int count;
+	int	count;
 
 	count = 0;
 	while (env_vars)
@@ -22,13 +22,13 @@ int count_env_vars(t_env_var *env_vars)
 		count++;
 		env_vars = env_vars->next;
 	}
-	return count;
+	return (count);
 }
 
-char *join_name_value(const char *name, const char *value)
+char	*join_name_value(const char *name, const char *value)
 {
-	char *temp;
-	char *result;
+	char	*temp;
+	char	*result;
 
 	if (!name || !value)
 		return (NULL);
@@ -40,17 +40,17 @@ char *join_name_value(const char *name, const char *value)
 	return (result);
 }
 
-char **create_env_array(t_env_var *env_vars, int count)
+char	**create_env_array(t_env_var *env_vars, int count)
 {
 	char		**env_array;
 	t_env_var	*current;
 	int			i;
-	
+
 	env_array = malloc((count + 1) * sizeof(char *));
 	current = env_vars;
 	i = 0;
 	if (!env_array)
-		return NULL;
+		return (NULL);
 	while (current)
 	{
 		env_array[i] = join_name_value(current->name, current->value);
@@ -59,21 +59,21 @@ char **create_env_array(t_env_var *env_vars, int count)
 			while (--i >= 0)
 				free(env_array[i]);
 			free(env_array);
-			return NULL;
+			return (NULL);
 		}
 		i++;
 		current = current->next;
 	}
 	env_array[i] = NULL;
-	return env_array;
+	return (env_array);
 }
 
-char **ctx_to_env_array(t_ctx *ctx)
+char	**ctx_to_env_array(t_ctx *ctx)
 {
 	int	count;
-	
+
 	if (!ctx || !ctx->env_vars)
-		return NULL;
+		return (NULL);
 	count = count_env_vars(ctx->env_vars);
-	return create_env_array(ctx->env_vars, count);
+	return (create_env_array(ctx->env_vars, count));
 }

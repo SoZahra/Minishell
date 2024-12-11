@@ -94,6 +94,11 @@ typedef struct s_pipeline {
     t_token *cmd_end;
 } t_pipeline;
 
+typedef struct s_redir {
+    int input;
+    int output;
+} t_redir;
+
 char					**get_environment(char **envp);
 // t_env_var *get_environment(char **envp);
 // int						export_v(char ***env_copy, const char *var,
@@ -239,28 +244,24 @@ void					free_args(char **args);
 
 void					read_heredoc(int fd, char *limiter);
 int						here_doc(char *limiter);
-/* void					handle_input_redirection(t_token *redir_token,
-							int *redirect, int *redirect_input);
-void					handle_output_redirection(t_token *redir_token,
-							int *redirect, int *redirect_output); */
-void handle_input_redirection(t_token *redir_token);
-void handle_output_redirection(t_token *redir_token);
+void 					handle_input_redirection(t_token *redir_token, t_redir *redir);
+void 					handle_output_redirection(t_token *redir_token, t_redir *redir);
+void					setup_redirects(int prev_fd, int *pipe_fd, t_token *cmd_end, t_redir *redir);
+void					process_single_builtin(t_pipeline *pl, t_ctx *ctx);
+void					execute_in_child(t_pipeline *pl, t_ctx *ctx);
+void					process_pipeline_segment(t_pipeline *pl, t_ctx *ctx);
+void					process_pipeline_stage(t_pipeline *pl, t_ctx *ctx);
+void					close_pipe(t_pipeline *pl);
+void					wait_for_children(void);
+void					prepare_child_execution(t_pipeline *pl, t_ctx *ctx);
+void					setup_pipe(t_pipeline *pl);
 void					initialize_pipe_if_needed(int *pipe_fd,
-							t_token *cmd_end);
-void					execute_command_in_child(t_token *cmd_start,
-							t_token *cmd_end, int prev_fd, int *pipe_fd,
-							t_ctx *ctx);
-void					cleanup_parent_resources(int *prev_fd, int *pipe_fd,
-							t_token **cmd_start, t_token *cmd_end);
-void					wait_for_all_children(void);
-void					setup_pipe_for_child(int prev_fd, int *pipe_fd,
-							int redirect_input, int redirect_output,
 							t_token *cmd_end);
 /* void					collect_exec_tokens(t_token *cmd_start,
 							t_token *cmd_end, t_token **exec_tokens,
 							int *redirect, int *redirect_input,
 							int *redirect_output); */
-void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens);
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, t_redir **redir);
 
 int 					count_env_vars(t_env_var *env_vars);
 char **create_env_array(t_env_var *env_vars, int count);
