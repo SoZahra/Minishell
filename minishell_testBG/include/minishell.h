@@ -87,6 +87,13 @@ typedef struct s_pipe_cmd
 	struct s_pipe_cmd	*next;
 }						t_pipe_cmd;
 
+typedef struct s_pipeline {
+    int prev_fd;
+    int pipe_fd[2];
+    t_token *cmd_start;
+    t_token *cmd_end;
+} t_pipeline;
+
 char					**get_environment(char **envp);
 // t_env_var *get_environment(char **envp);
 // int						export_v(char ***env_copy, const char *var,
@@ -232,10 +239,12 @@ void					free_args(char **args);
 
 void					read_heredoc(int fd, char *limiter);
 int						here_doc(char *limiter);
-void					handle_input_redirection(t_token *redir_token,
+/* void					handle_input_redirection(t_token *redir_token,
 							int *redirect, int *redirect_input);
 void					handle_output_redirection(t_token *redir_token,
-							int *redirect, int *redirect_output);
+							int *redirect, int *redirect_output); */
+void handle_input_redirection(t_token *redir_token);
+void handle_output_redirection(t_token *redir_token);
 void					initialize_pipe_if_needed(int *pipe_fd,
 							t_token *cmd_end);
 void					execute_command_in_child(t_token *cmd_start,
@@ -247,10 +256,11 @@ void					wait_for_all_children(void);
 void					setup_pipe_for_child(int prev_fd, int *pipe_fd,
 							int redirect_input, int redirect_output,
 							t_token *cmd_end);
-void					collect_exec_tokens(t_token *cmd_start,
+/* void					collect_exec_tokens(t_token *cmd_start,
 							t_token *cmd_end, t_token **exec_tokens,
 							int *redirect, int *redirect_input,
-							int *redirect_output);
+							int *redirect_output); */
+void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens);
 
 int 					count_env_vars(t_env_var *env_vars);
 char **create_env_array(t_env_var *env_vars, int count);
@@ -266,8 +276,8 @@ int						execute_pipe_sequence(t_pipe_cmd *cmds, char **env,
 t_token					*get_next_command(t_token *start);
 char					*ft_strjoin_free(char *s1, char *s2, int free_str);
 char					*ft_strjoin_char(char *str, char c);
-void					handle_output_redirection(t_token *redir_token,
-							int *redirect, int *redirect_output);
+/* void					handle_output_redirection(t_token *redir_token,
+							int *redirect, int *redirect_output); */
 // void					ps_expand_env(t_token *tokens, t_ctx *ctx,
 // 							t_env_var *myEnv);
 void	ps_expand_env(t_token *tokens, t_ctx *ctx);
