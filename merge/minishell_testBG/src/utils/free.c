@@ -3,15 +3,117 @@
 /*                                                        :::      ::::::::   */
 /*   free.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 13:44:53 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 00:17:32 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
+
+// Fonction pour free une liste de redirections
+void free_redirections(t_redirection *redirs)
+{
+   t_redirection *curr;
+   t_redirection *next;
+
+   curr = redirs;
+   while (curr)
+   {
+       next = curr->next;
+       free(curr->file);
+       free(curr);
+       curr = next;
+   }
+}
+
+// Fonction pour free une liste chaînée de commandes
+void free_commands(t_command *cmd)
+{
+   t_command *curr;
+   t_command *next;
+
+   curr = cmd;
+   while (curr)
+   {
+       next = curr->next;
+       // Free les arguments
+       if (curr->args)
+       {
+           for (int i = 0; i < curr->arg_count; i++)
+               free(curr->args[i]);
+           free(curr->args);
+       }
+       // Free le chemin
+       free(curr->path);
+       // Free les redirections
+       free_redirections(curr->redirs);
+       // Free le tableau had_spaces
+       free(curr->had_spaces);
+       // Free la commande elle-même
+       free(curr);
+       curr = next;
+   }
+}
+
+// Fonction pour free une liste chaînée de variables d'environnement
+void free_env_vars(t_env_var *env)
+{
+   t_env_var *curr;
+   t_env_var *next;
+
+   curr = env;
+   while (curr)
+   {
+       next = curr->next;
+       free(curr->name);
+       free(curr->value);
+       free(curr);
+       curr = next;
+   }
+}
+
+// Fonction pour free tous les tokens
+void free_tokens(t_token *tokens)
+{
+   t_token *curr;
+   t_token *next;
+
+   curr = tokens;
+   while (curr)
+   {
+       next = curr->next;
+       free(curr->value);
+       free(curr->content);
+       free(curr);
+       curr = next;
+   }
+}
+
+// Fonction principale pour tout free
+void free_all(t_ctx *ctx)
+{
+   if (!ctx)
+       return;
+
+   // Free les variables d'environnement
+   free_env_vars(ctx->env_vars);
+
+   // Free les chemins
+   free(ctx->oldpwd);
+   free(ctx->pwd);
+
+   // Free le contexte suivant s'il existe
+   if (ctx->next)
+       free_all(ctx->next);
+
+   // Free le contexte lui-même
+   free(ctx);
+}
+
+//---------------
 void	free_env_copy(char **env_copy)
 {
 	int	i;
@@ -71,19 +173,19 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-void	free_tokens(t_token *tokens)
-{
-	t_token	*tmp;
+// void	free_tokens(t_token *tokens)
+// {
+// 	t_token	*tmp;
 
-	while (tokens)
-	{
-		tmp = tokens;
-		tokens = tokens->next;
-		free(tmp->value);
-		free(tmp->content);
-		free(tmp);
-	}
-}
+// 	while (tokens)
+// 	{
+// 		tmp = tokens;
+// 		tokens = tokens->next;
+// 		free(tmp->value);
+// 		free(tmp->content);
+// 		free(tmp);
+// 	}
+// }
 
 void	free_args(char **args)
 {

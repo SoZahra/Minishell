@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 17:43:23 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 00:18:30 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -640,7 +640,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         if (!final_cmd)
         {
             // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
-            free_command(cmd);
+            free_commands(cmd);
             free_tokens(tokens);
             return 1;
         }
@@ -659,8 +659,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         }
         free(final_cmd);
     }
-
-    free_command(cmd);
+    free_commands(cmd);
     free_tokens(tokens);
     return 0;
 }
@@ -689,6 +688,7 @@ int	loop_with_pipes(t_ctx *ctx)
 		if (line == NULL)
 		{
 			write(1, "exit\n", 5);
+            free_all(ctx);
 			exit(ctx->exit_status);
 		}
 		handle_line_for_loop(line, ctx);

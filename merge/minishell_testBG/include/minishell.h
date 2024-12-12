@@ -190,6 +190,13 @@ int add_arg_to_command(t_command *cmd, char *arg);
 int handle_line_for_loop(char *line, t_ctx *ctx);
 int append_arg_value(char **current_arg, const char *value, int had_space);
 
+//free
+
+void free_all(t_ctx *ctx);
+void free_tokens(t_token *tokens);
+void free_env_vars(t_env_var *env);
+void free_commands(t_command *cmd);
+void free_redirections(t_redirection *redirs);
 
 // -------------------------------------------------------------
 

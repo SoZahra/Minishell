@@ -119,9 +119,9 @@ LIBFT_LIB	=	$(LIBFT_PATH)libft.a
 
 # Compilation
 CC			=	cc
-CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
+CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3 -fsanitize=address
 CFLAGS 		+= -I/opt/homebrew/opt/readline/include
-LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline
+LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline -fsanitize=address
 LFLAGS		+= -L/opt/homebrew/opt/readline/lib -lreadline
 RM			=	rm -rf
 
