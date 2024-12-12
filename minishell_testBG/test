@@ -12,3 +12,15 @@ LEXER_DIR	=	$(SRC_PATH)lexer
 				pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
 CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
+include
+libft
+Makefile
+minishell
+minishell.sup
+minishell_tester
+src
+test
+test|
+test~
+tet
+tst
