@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 14:45:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 15:48:29 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ int expand_str(t_token *token, t_ctx *ctx)
     expanded = expand_full_string(token->value, token->type, ctx);
     if (!expanded)
         return -1;
-
+    printf("Debug: Expanded token '%s' -> '%s'\n", token->value, expanded);  // Débogage ici
     free(token->value);
     token->value = expanded;
     return 0;
@@ -283,6 +283,8 @@ char *tokens_to_string(t_token *tokens)
 
     while (current)
     {
+        fprintf(stderr, "Debug: result avant concat: '%s'\n", result);  // Afficher avant chaque concaténation
+
         // Si ce n'est pas le premier token et qu'il n'y a pas de had_space
         if (*result && !current->had_space)
         {
@@ -295,6 +297,9 @@ char *tokens_to_string(t_token *tokens)
             free(result);
             result = temp;
         }
+
+        fprintf(stderr, "Debug: result après ajout d'espace: '%s'\n", result);  // Afficher après ajout de l'espace
+
         // Ajouter la valeur du token
         temp = ft_strjoin(result, current->value);
         if (!temp)
@@ -304,10 +309,49 @@ char *tokens_to_string(t_token *tokens)
         }
         free(result);
         result = temp;
+
+        fprintf(stderr, "Debug: result après ajout du token '%s': '%s'\n", current->value, result);  // Afficher après ajout du token
+
         current = current->next;
     }
+
     return result;
 }
+
+
+// char *tokens_to_string(t_token *tokens)
+// {
+//     t_token *current = tokens;
+//     char *result = ft_strdup("");
+//     char *temp;
+
+//     while (current)
+//     {
+//         // Si ce n'est pas le premier token et qu'il n'y a pas de had_space
+//         if (*result && !current->had_space)
+//         {
+//             temp = ft_strjoin(result, " ");
+//             if (!temp)
+//             {
+//                 free(result);
+//                 return NULL;
+//             }
+//             free(result);
+//             result = temp;
+//         }
+//         // Ajouter la valeur du token
+//         temp = ft_strjoin(result, current->value);
+//         if (!temp)
+//         {
+//             free(result);
+//             return NULL;
+//         }
+//         free(result);
+//         result = temp;
+//         current = current->next;
+//     }
+//     return result;
+// }
 
 bool is_token(char c, char *str)
 {

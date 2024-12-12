@@ -102,6 +102,8 @@ typedef struct s_command {
     // int pipe_out;          // FD pour le pipe de sortie (si existe)
 	struct s_command *next;     // Commande suivante dans le pipe
     struct s_command *prev;
+	int			*had_spaces;
+	int			arg_count;
 } t_command;
 
 // pipe(pfd);
@@ -116,7 +118,6 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end);
 // -------------------------------------------------------------
 
 int tokenizer(t_token **tokens, char *input);
-int execute_builtin(const char *input, t_ctx *ctx);
 int is_builtin(const char *cmd);
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
 
@@ -128,11 +129,14 @@ void token_del(t_token *token);
 int join_str(t_token *token, bool limiter);
 int expand_proc(t_token **tokens, t_ctx *ctx);
 int expand_str(t_token *token, t_ctx *ctx);
+char *args_to_string(t_command *cmd);
+// int execute_builtin(char **args, t_ctx *ctx);
+int execute_builtin(const char *cmd_line, t_ctx *ctx);
 
 //----------------------------------------------------------------
 
 // export
-int handle_export_builtin(const char *input, t_ctx *ctx);
+int handle_export_builtin(char **args, t_ctx *ctx);
 // int process_export_args(char **args, t_ctx *ctx);
 int handle_with_equal_sign(char *arg, char *equal_sign, t_ctx *ctx);
 int handle_no_equal_sign(char *arg, t_ctx *ctx);
@@ -144,17 +148,17 @@ int handle_multiple_args(const char *args, t_ctx *ctx);
 int handle_echo_builtin(const char *input, t_ctx *ctx);
 
 //env
-int handle_env_builtin(const char *input, t_ctx *ctx);
+int handle_env_builtin(char **args, t_ctx *ctx);
 
 //cd
 int handle_cd_builtin(const char *input, t_ctx *ctx);
 void free_array(char **array);
 
 //pwd
-int handle_pwd_builtin(const char *input, t_ctx *ctx);
+int handle_pwd_builtin(char **args, t_ctx *ctx);
 
 //exit
-int handle_exit_builtin(const char *input, t_ctx *ctx);
+int handle_exit_builtin(char **args, t_ctx *ctx);
 int process_exit_arg(char **args, t_ctx *ctx);
 
 

@@ -6,82 +6,135 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 15:13:50 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 16:53:19 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// int handle_exit_builtin(char **args, t_ctx *ctx)
+// int handle_exit_builtin(const char *input, t_ctx *ctx)
 // {
-//     process_exit_arg(args, ctx);
+//     // Skip "exit" and any leading spaces
+//     const char *args = input + 4;
+//     while (*args == ' ')
+//         args++;
+
+//     // Split the arguments
+//     char **arg_array = ft_split(args, ' ');
+//     if (!arg_array)
+//     {
+//         ctx->exit_status = 1;
+//         write(1, "exit\n", 5);
+//         exit(1);
+//     }
+//     process_exit_arg(arg_array, ctx);
+//     // Cleanup avant de sortir
+//     int i = 0;
+//     while (arg_array[i])
+//         free(arg_array[i++]);
+//     free(arg_array);
+
 //     write(1, "exit\n", 5);
 //     exit(ctx->exit_status);
-//     return (1); // Ne sera jamais atteint
+//     return 1; // Ne sera jamais atteint
+// }
+
+int handle_exit_builtin(char **args, t_ctx *ctx)
+{
+    // Skip "exit"
+    if (!args[1])  // Pas d'arguments supplémentaires
+    {
+        write(1, "exit\n", 5);
+        exit(ctx->exit_status);
+    }
+
+    // Processus pour le premier argument
+    process_exit_arg(args + 1, ctx);
+
+    write(1, "exit\n", 5);
+    exit(ctx->exit_status);
+    return 0;  // Ne sera jamais atteint
+}
+
+// int handle_echo_builtin(const char *input, t_ctx *ctx)
+// {
+//     (void)ctx;
+//     printf("Debug: echo args len: %zu\n", strlen(input));
+//     printf("Debug: echo args chars: ");
+//     for (int i = 0; input[i]; i++)
+//         printf("'%c' ", input[i]);
+//     printf("\n");
+
+//     // Écrire exactement ce qu'on reçoit
+//     write(STDOUT_FILENO, input, ft_strlen(input));
+//     write(STDOUT_FILENO, "\n", 1);
+
+//     return 0;
+// }
+
+int handle_echo_builtin(const char *args, t_ctx *ctx)
+{
+    (void)ctx;
+    printf("Debug: echo: traitement des single quotes correct, pas d'expansion\n");
+    write(STDOUT_FILENO, args, ft_strlen(args));
+    write(STDOUT_FILENO, "\n", 1);
+    return 0;
+}
+
+// int handle_echo_builtin(const char *input, t_ctx *ctx)
+// {
+//     printf("Debug: handle_echo with args: '%s'\n", input);  // À ce stade args est "hello$PWD"
+//     const char *str = input;
+//     int n_option = 0;
+
+//     str += 5;  // Skip "echo "
+//     while (*str == ' ')
+//         str++;
+//     if (str[0] == '-' && str[1] == 'n')
+//     {
+//         n_option = 1;
+//         str += 2;
+//         while (*str == ' ')
+//             str++;
+//     }
+//     write(STDOUT_FILENO, str, ft_strlen(str));
+//     if (!n_option)
+//         write(STDOUT_FILENO, "\n", 1);
+//     ctx->exit_status = 0;
+//     return 0;
 // }
 
 // int handle_echo_builtin(char **args, t_ctx *ctx)
 // {
-//     t_token *token_list;
+//     printf("Debug: Inside handle_echo_builtin\n");
+//     for (int j = 0; args[j]; j++)
+//         printf("Debug: args[%d]: '%s'\n", j, args[j]);
 
-//     token_list = create_token_list(args + 1);
-//     if (!token_list)
+//     int i = 1;  // Skip "echo"
+//     int n_option = 0;
+
+//     // Vérifier l'option -n
+//     if (args[i] && strcmp(args[i], "-n") == 0)
 //     {
-//         ctx->exit_status = 1;
-//         return (1);
+//         n_option = 1;
+//         i++;
 //     }
-//     handle_echo(token_list, ctx);
-//     return (1);
+//     // Écrire les arguments
+//     while (args[i])
+//     {
+//         write(STDOUT_FILENO, args[i], ft_strlen(args[i]));
+//         if (args[i + 1])  // Vérifie s'il reste d'autres arguments
+//             write(STDOUT_FILENO, " ", 1);
+//         i++;
+//     }
+//     if (!n_option)
+//         write(STDOUT_FILENO, "\n", 1);
+
+//     ctx->exit_status = 0;
+//     return 0;
 // }
 
-int handle_exit_builtin(const char *input, t_ctx *ctx)
-{
-    // Skip "exit" and any leading spaces
-    const char *args = input + 4;
-    while (*args == ' ')
-        args++;
 
-    // Split the arguments
-    char **arg_array = ft_split(args, ' ');
-    if (!arg_array)
-    {
-        ctx->exit_status = 1;
-        write(1, "exit\n", 5);
-        exit(1);
-    }
-    process_exit_arg(arg_array, ctx);
-    // Cleanup avant de sortir
-    int i = 0;
-    while (arg_array[i])
-        free(arg_array[i++]);
-    free(arg_array);
-
-    write(1, "exit\n", 5);
-    exit(ctx->exit_status);
-    return 1; // Ne sera jamais atteint
-}
-
-int handle_echo_builtin(const char *input, t_ctx *ctx)
-{
-    const char *str = input;
-    int n_option = 0;
-
-    str += 5;  // Skip "echo "
-    while (*str == ' ')
-        str++;
-    if (str[0] == '-' && str[1] == 'n')
-    {
-        n_option = 1;
-        str += 2;
-        while (*str == ' ')
-            str++;
-    }
-    write(STDOUT_FILENO, str, ft_strlen(str));
-    if (!n_option)
-        write(STDOUT_FILENO, "\n", 1);
-    ctx->exit_status = 0;
-    return 0;
-}
 
 int create_var_with_value(const char *name, const char *value, t_ctx *ctx)
 {
@@ -202,20 +255,43 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
     return result;
 }
 
-int handle_export_builtin(const char *input, t_ctx *ctx)
+// int handle_export_builtin(const char *input, t_ctx *ctx)
+// {
+//     const char *args;
+
+//     args = input + 6;
+//     while (*args == ' ')
+//         args++;
+//     if (!*args)
+//         return handle_no_args(ctx);
+//     // Si on a un '=', traiter comme un seul argument
+//     // pour préserver les espaces dans la valeur
+//     if (ft_strchr(args, '='))
+//         return handle_single_arg(args, ctx);
+//     // Sinon, traiter comme des arguments multiples
+//     return handle_multiple_args(args, ctx);
+// }
+
+int handle_export_builtin(char **args, t_ctx *ctx)
 {
-    const char *args;
-
-    args = input + 6;
-    while (*args == ' ')
-        args++;
-    if (!*args)
+    if (!args[1])  // Aucun argument
         return handle_no_args(ctx);
-    // Si on a un '=', traiter comme un seul argument
-    // pour préserver les espaces dans la valeur
-    if (ft_strchr(args, '='))
-        return handle_single_arg(args, ctx);
-    // Sinon, traiter comme des arguments multiples
-    return handle_multiple_args(args, ctx);
-}
 
+    int i = 1;
+    while (args[i])
+    {
+        // Vérifie si un argument contient un '='
+        if (strchr(args[i], '='))
+        {
+            handle_single_arg(args[i], ctx);  // Ajoute ou met à jour une variable
+        }
+        else
+        {
+            fprintf(stderr, "export: `%s': not a valid identifier\n", args[i]);
+            ctx->exit_status = 1;
+        }
+        i++;
+    }
+
+    return 0;
+}

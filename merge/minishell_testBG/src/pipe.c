@@ -6,20 +6,20 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 17:44:54 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 17:38:54 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-void clear_all(t_ctx *ctx)
-{
+// void clear_all(t_ctx *ctx)
+// {
 
 
-    // clear env
-    // tokens
-    // cmds
-}
+//     // clear env
+//     // tokens
+//     // cmds
+// }
 
 int execute_piped_command(t_command *cmd, t_ctx *ctx)
 {
@@ -28,7 +28,10 @@ int execute_piped_command(t_command *cmd, t_ctx *ctx)
     {
         close(cmd->prev->pfd[1]);
         if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1)
-            return -1;
+        {
+            perror("dup2");
+            exit(1);
+        }
         close(cmd->prev->pfd[0]);
     }
 
@@ -37,19 +40,25 @@ int execute_piped_command(t_command *cmd, t_ctx *ctx)
     {
         close(cmd->pfd[0]);
         if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1)
-            return -1;
+        {
+            perror("dup2");
+            exit(1);
+        }
         close(cmd->pfd[1]);
     }
 
     // Appliquer les redirections locales si elles existent
-    if (cmd->redirs)
-        apply_redirections(cmd->redirs);
+    if (cmd->redirs && apply_redirections(cmd->redirs) == -1)
+    {
+        perror("redirection");
+        exit(1);
+    }
 
     // Exécuter la commande
     if (is_builtin(cmd->args[0]))
     {
-        execute_builtin_command(cmd, ctx);
-        exit(ctx->exit_status);
+        execute_builtin(cmd->args[0], ctx);
+        exit(ctx->exit_status);  // Important!
     }
     else if (cmd->path)
     {
@@ -57,11 +66,48 @@ int execute_piped_command(t_command *cmd, t_ctx *ctx)
         execve(cmd->path, cmd->args, env);
         free_array(env);
     }
-    // clear all
-    clear_all(ctx);
     perror("command execution failed");
     exit(127);
 }
+
+// int execute_piped_command(t_command *cmd, t_ctx *ctx)
+// {
+//     // Configurer l'entrée (pipe précédent)
+//     if (cmd->prev)
+//     {
+//         close(cmd->prev->pfd[1]);
+//         if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1)
+//             return -1;
+//         close(cmd->prev->pfd[0]);
+//     }
+
+//     // Configurer la sortie (pipe suivant)
+//     if (cmd->next)
+//     {
+//         close(cmd->pfd[0]);
+//         if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1)
+//             return -1;
+//         close(cmd->pfd[1]);
+//     }
+
+//     // Appliquer les redirections locales si elles existent
+//     if (cmd->redirs)
+//         apply_redirections(cmd->redirs);
+
+//     // Exécuter la commande
+//     if (is_builtin(cmd->args[0]))
+//         execute_builtin(cmd->args, ctx);
+//     else if (cmd->path)
+//     {
+//         char **env = create_env_array(ctx->env_vars);
+//         execve(cmd->path, cmd->args, env);
+//         free_array(env);
+//     }
+//     // clear all
+//     // clear_all(ctx);
+//     perror("command execution failed");
+//     exit(127);
+// }
 
 void wait_for_children(t_command *cmd, t_ctx *ctx)
 {

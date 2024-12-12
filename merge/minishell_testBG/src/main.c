@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 16:12:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 14:26:53 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,5 +45,9 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 	}
 	loop_with_pipes(get_ctx());
 	free_ctx(get_ctx());
+	// (void)envp;
+	// char *args[] = {"echo", "hello", NULL};
+    // t_ctx ctx = {0};
+    // handle_echo_builtin(args, &ctx);
 	return (0);
 }

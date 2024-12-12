@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 15:49:49 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 16:10:12 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,6 +121,7 @@ t_command *create_command(t_token *tokens, t_ctx *ctx)
     t_command *cmd = malloc(sizeof(t_command));
     if (!cmd)
         return NULL;
+    // cmd =  {0};
 
     // Initialisation
     cmd->redirs = NULL;
@@ -425,14 +426,21 @@ t_command *create_command_from_tokens(t_token *tokens)
 //     return 0;
 // }
 
+void print_command_debug(t_command *cmd, const char *step)
+{
+    printf("Debug: Command after %s:\n", step);
+    printf("Args and had_spaces:\n");
+    for (int i = 0; i < cmd->arg_count; i++)
+        printf("arg[%d]: '%s', had_space: %d\n", i, cmd->args[i], cmd->had_spaces[i]);
+}
+
 t_command *create_command_from_tokens_range(t_token *start, t_token *end)
 {
     t_command *cmd = malloc(sizeof(t_command));
     if (!cmd)
         return NULL;
 
-    // Initialisation
-    cmd->args = NULL;
+     cmd->args = NULL;
     cmd->redirs = NULL;
     cmd->path = NULL;
     cmd->pid = -1;
@@ -440,33 +448,95 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     cmd->prev = NULL;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
-
-    // Parcourir les tokens jusqu'au pipe
+    cmd->arg_count = 0;
+    // Compter les arguments
+    int arg_count = 0;
     t_token *current = start;
-    while (current && current != end)
+    while (current && current != end && current->type != '|')
     {
-        if (current->type == '>' || current->type == 'A')
-        {
-            // Gérer les redirections
-            if (!current->next || !add_redirection(&cmd->redirs, current->type, current->next->value))
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            current = current->next->next;
-        }
-        else
-        {
-            // Ajouter aux arguments
-            if (!add_arg_to_command(cmd, current->value))
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            current = current->next;
-        }
+        if (current->type != '>' && current->type != 'A')
+            arg_count++;
+        current = current->next;
     }
+
+    cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+    cmd->had_spaces = malloc(sizeof(int) * arg_count);
+    cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
+
+    // Remplir les tableaux
+    int i = 0;
+    current = start;
+    while (current && current != end && current->type != '|')
+    {
+        if (current->type != '>' && current->type != 'A')
+        {
+            cmd->args[i] = ft_strdup(current->value);
+            cmd->had_spaces[i] = current->had_space;
+            printf("Debug: Copying arg[%d]: '%s', had_space: %d\n",
+                   i, current->value, current->had_space);
+            i++;
+        }
+        current = current->next;
+    }
+    cmd->args[i] = NULL;
+
+    print_command_debug(cmd, "creation");
     return cmd;
+}
+
+// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+// {
+//     t_command *cmd = malloc(sizeof(t_command));
+//     if (!cmd)
+//         return NULL;
+
+//     // Initialisation
+//     cmd->args = NULL;
+//     cmd->redirs = NULL;
+//     cmd->path = NULL;
+//     cmd->pid = -1;
+//     cmd->next = NULL;
+//     cmd->prev = NULL;
+//     cmd->pfd[0] = -1;
+//     cmd->pfd[1] = -1;
+
+//     // Parcourir les tokens jusqu'au pipe
+//     t_token *current = start;
+//     while (current && current != end)
+//     {
+//         if (current->type == '>' || current->type == 'A')
+//         {
+//             // Gérer les redirections
+//             if (!current->next || !add_redirection(&cmd->redirs, current->type, current->next->value))
+//             {
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             current = current->next->next;
+//         }
+//         else
+//         {
+//             // Ajouter aux arguments
+//             if (!add_arg_to_command(cmd, current->value))
+//             {
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             current = current->next;
+//         }
+//     }
+//     return cmd;
+// }
+void print_token_debug(t_token *tokens, const char *step)
+{
+    printf("\nDebug: Tokens after %s:\n", step);
+    t_token *current = tokens;
+    while (current)
+    {
+        printf("value: '%s', type: %c, had_space: %d\n",
+               current->value, current->type, current->had_space);
+        current = current->next;
+    }
 }
 
 t_command *parse_pipe_sequence(t_token *tokens)
@@ -492,9 +562,11 @@ t_command *parse_pipe_sequence(t_token *tokens)
                 free_command(first_cmd);
             return NULL;
         }
+        print_token_debug(tokens, "avant create command from tokens");
         // Trouver la fin de la commande actuelle (prochain pipe)
         t_token *cmd_end = find_pipe_token(cmd_start);
         t_command *new_cmd = create_command_from_tokens_range(cmd_start, cmd_end);// Créer la commande jusqu'au pipe
+        print_token_debug(tokens, "apres create command from tokens");
         if (!new_cmd)
         {
             if (first_cmd)
@@ -522,38 +594,72 @@ t_token *find_pipe_token(t_token *start)
     return current;
 }
 
+
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!*line)
         return 0;
 
     add_history(line);
-    // 1. Tokenization
     t_token *tokens = tokenize_input(line);
+
     if (!tokens)
     {
         fprintf(stderr, "Error: tokenization failed\n");
         return 1;
     }
-    // 2. Expansion et préparation
+    print_token_debug(tokens, "tokenization");
+    fprintf(stderr, "Debug: Tokens après tokenization:\n");
+    for (t_token *cur = tokens; cur; cur = cur->next)
+    {
+        fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
+    }
     if (expand_proc(&tokens, ctx) == -1)
     {
+        fprintf(stderr, "Debug: expand_proc failed\n");
         free_tokens(tokens);
         return 1;
     }
-    // 3. Création de la commande avec gestion des pipes
+
+    // Créer la commande
     t_command *cmd = parse_pipe_sequence(tokens);
     if (!cmd)
     {
         free_tokens(tokens);
         return 1;
     }
-    // 4. Exécution
+
+    // Exécuter différemment selon le cas
     if (cmd->next)  // Si on a des pipes
+    {
         execute_pipeline(cmd, ctx);
-    else  // Si c'est une commande simple
-        execute_command(cmd, ctx);
-    // Nettoyage
+    }
+    else  // Commande simple
+    {
+        char *final_cmd = tokens_to_string(tokens);
+        if (!final_cmd)
+        {
+            fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
+            free_command(cmd);
+            free_tokens(tokens);
+            return 1;
+        }
+        printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
+        printf("Debug: final_cmd: '%s'\n", final_cmd);
+        printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+        if (is_builtin(cmd->args[0]))
+        {
+            printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
+            execute_builtin(final_cmd, ctx);
+        }
+        else
+        {
+            // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
+            execute_command(cmd, ctx);
+        }
+        free(final_cmd);
+    }
+
     free_command(cmd);
     free_tokens(tokens);
     return 0;

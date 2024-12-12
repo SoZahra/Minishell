@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 17:37:03 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 14:32:57 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,26 +370,32 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
-   // Sauvegarder les FD originaux
-   int stdin_backup = dup(STDIN_FILENO);
-   int stdout_backup = dup(STDOUT_FILENO);
+    printf("Debug: Entering execute_command\n");
 
-   // Appliquer toutes les redirections
-   if (apply_redirections(cmd->redirs) == -1)
-   {
-       restore_fds(stdin_backup, stdout_backup);
-       return;
-   }
+    int stdin_backup = dup(STDIN_FILENO);
+    int stdout_backup = dup(STDOUT_FILENO);
 
-   // Exécuter la commande
-   if (is_builtin(cmd->args[0]))
-       execute_builtin_command(cmd, ctx);
-   else
-       execute_external_command(cmd, ctx);
-
-   // Restaurer les FD originaux
-   restore_fds(stdin_backup, stdout_backup);
+    if (apply_redirections(cmd->redirs) == -1)
+    {
+        perror("apply_redirections");
+        restore_fds(stdin_backup, stdout_backup);
+        return;
+    }
+    printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+    if (is_builtin(cmd->args[0]))
+    {
+        printf("Debug: Command '%s' is a builtin\n", cmd->args[0]);
+        execute_builtin(cmd->args, ctx);
+    }
+    else
+    {
+        printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);;
+        execute_external_command(cmd, ctx);
+    }
+    restore_fds(stdin_backup, stdout_backup);
+    printf("Debug: Exiting execute_command\n");
 }
+
 
 // int apply_redirections(t_redirection *redirs)
 // {
@@ -487,47 +493,113 @@ void restore_fds(int stdin_fd, int stdout_fd)
        close(stdout_fd);
    }
 }
-char *args_to_string(char **args)
+// char *args_to_string(char **args)
+// {
+//     if (!args || !args[0])
+//         return NULL;
+
+//     // Calculer la longueur totale nécessaire
+//     size_t total_len = 0;
+//     total_len += ft_strlen(args[0]);
+//     for (int i = 1; args[i]; i++)
+//     {
+//         total_len += ft_strlen(args[i]);
+//     }
+//     // Allouer la mémoire pour la chaîne finale
+//     char *result = malloc(total_len + 1);
+//     if (!result)
+//         return NULL;
+//     strcpy(result, args[0]);
+//     // Construire la chaîne
+//     // result[0] = '\0';
+//     for (int i = 1; args[i]; i++)
+//     {
+//         strcat(result, args[i]);
+//     }
+//     return result;
+// }
+
+char *args_to_string(t_command *cmd)
 {
-    if (!args || !args[0])
+    printf("Debug: args_to_string: Starting\n");
+    if (!cmd || !cmd->args || !cmd->args[0])
         return NULL;
 
-    // Calculer la longueur totale nécessaire
-    size_t total_len = 0;
-    for (int i = 0; args[i]; i++)
+    printf("Debug: First arg: '%s'\n", cmd->args[0]);
+    char *result = ft_strdup(cmd->args[0]);
+
+    for (int i = 1; i < cmd->arg_count; i++)
     {
-        total_len += strlen(args[i]);
-        if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
-            total_len++;
+        printf("Debug: Processing arg[%d]: '%s', had_space: %d\n",
+               i, cmd->args[i], cmd->had_spaces[i-1]);
+
+        char *temp;
+        if (!cmd->had_spaces[i-1])
+        {
+            temp = ft_strjoin(result, cmd->args[i]);
+            printf("Debug: Joined without space: '%s'\n", temp);
+        }
+        else
+        {
+            char *with_space = ft_strjoin(" ", cmd->args[i]);
+            temp = ft_strjoin(result, with_space);
+            printf("Debug: Joined with space: '%s'\n", temp);
+            free(with_space);
+        }
+
+        free(result);
+        result = temp;
     }
 
-    // Allouer la mémoire pour la chaîne finale
-    char *result = malloc(total_len + 1);
-    if (!result)
-        return NULL;
-
-    // Construire la chaîne
-    result[0] = '\0';
-    for (int i = 0; args[i]; i++)
-    {
-        strcat(result, args[i]);
-        if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
-            strcat(result, " ");
-    }
-
+    printf("Debug: Final result: '%s'\n", result);
     return result;
 }
 
-void execute_builtin_command(t_command *cmd, t_ctx *ctx)
-{
-   // Convertir les arguments en une seule chaîne pour les builtins existants
-   char *cmd_str = args_to_string(cmd->args);
-   if (cmd_str)
-   {
-       ctx->exit_status = execute_builtin(cmd_str, ctx);
-       free(cmd_str);
-   }
-}
+// char *args_to_string(char **args)
+// {
+//     if (!args || !args[0])
+//         return NULL;
+
+//     // Premier argument (la commande) toujours avec un espace après
+//     size_t total_len = strlen(args[0]) + 1;  // +1 pour l'espace après la commande
+
+//     // Calculer la longueur totale pour les autres arguments
+//     for (int i = 1; args[i]; i++)
+//     {
+//         total_len += strlen(args[i]);
+//         if (args[i + 1])  // Ajouter un espace entre les arguments sauf le dernier
+//             total_len++;
+//     }
+
+//     char *result = malloc(total_len + 1);  // +1 pour le NULL terminator
+//     if (!result)
+//         return NULL;
+
+//     // Copier le premier argument (commande) avec un espace
+//     strcpy(result, args[0]);
+//     strcat(result, " ");
+
+//     // Ajouter les autres arguments
+//     for (int i = 1; args[i]; i++)
+//     {
+//         strcat(result, args[i]);
+//         if (args[i + 1])  // Ajouter un espace si ce n'est pas le dernier argument
+//             strcat(result, " ");
+//     }
+
+//     return result;
+// }
+
+// void execute_builtin_command(t_command *cmd, t_ctx *ctx)
+// {
+//    // Convertir les arguments en une seule chaîne pour les builtins existants
+//    char *cmd_str = args_to_string(cmd);
+//    if (cmd_str)
+//    {
+//        ctx->exit_status = execute_builtin(cmd_str, ctx);
+//        free(cmd_str);
+//    }
+// }
 
 void execute_external_command(t_command *cmd, t_ctx *ctx)
 {

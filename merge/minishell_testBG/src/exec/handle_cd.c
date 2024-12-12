@@ -6,21 +6,12 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:33:51 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 16:41:47 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// int handle_cd_builtin(char **args, t_ctx *ctx)
-// {
-//     int result = ft_cd(args, ctx);
-//     if (result == 0)
-//         ctx->exit_status = 0;
-//     else
-//         ctx->exit_status = 1;
-//     return (ctx->exit_status);
-// }
 
 int handle_cd_builtin(const char *input, t_ctx *ctx)
 {
@@ -67,6 +58,31 @@ int handle_cd_builtin(const char *input, t_ctx *ctx)
     free_array(arg_array);
     return ft_update_pwd(ctx);
 }
+
+// int handle_cd_builtin(char **args, t_ctx *ctx)
+// {
+//     // Si pas d'arguments ou ~
+//     if (!args[1] || strcmp(args[1], "~") == 0)
+//         return ft_cd_home(ctx);
+//     // Si cd -
+//     else if (strcmp(args[1], "-") == 0)
+//         return ft_cd_oldpwd(ctx);
+//     // Vérifier si trop d'arguments
+//     if (args[2])
+//     {
+//         fprintf(stderr, "cd: too many arguments\n");
+//         ctx->exit_status = 1;
+//         return 1;
+//     }
+//     // Changer de répertoire
+//     if (chdir(args[1]) != 0)
+//     {
+//         fprintf(stderr, "cd: %s: No such file or directory\n", args[1]);
+//         ctx->exit_status = 1;
+//         return 1;
+//     }
+//     return ft_update_pwd(ctx);
+// }
 
 int	handle_special_case(char *arg, t_ctx *ctx)
 {
