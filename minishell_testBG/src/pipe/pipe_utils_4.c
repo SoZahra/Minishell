@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:08:54 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/11 17:24:16 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/12 15:25:52 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,11 +49,18 @@ t_redir *redir)
 		dup2(prev_fd, STDIN_FILENO);
 		close(prev_fd);
 	}
+	else if (prev_fd != -1)
+		close(prev_fd);
 	cmd_end = cmd_start;
 	if (cmd_end && (ft_strcmp(cmd_end->value, "|") == 0) && redir->output != 1)
 	{
 		close(pipe_fd[0]);
 		dup2(pipe_fd[1], STDOUT_FILENO);
+		close(pipe_fd[1]);
+	}
+	else if (cmd_end)
+	{
+		close(pipe_fd[0]);
 		close(pipe_fd[1]);
 	}
 }
