@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 14:32:57 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 18:23:29 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 char **create_command_array(const char *cmd_str)
 {
-    printf("Debug: Creating array for command: '%s'\n", cmd_str);
+    // printf("Debug: Creating array for command: '%s'\n", cmd_str);
 
     // Ignorer les espaces au début
     while (*cmd_str == ' ')
@@ -25,12 +25,12 @@ char **create_command_array(const char *cmd_str)
         return NULL;
 
     // Compter le nombre d'arguments pour debug
-    int i = 0;
-    while (cmd_array[i])
-    {
-        printf("Debug: arg[%d]: '%s'\n", i, cmd_array[i]);
-        i++;
-    }
+    // int i = 0;
+    // while (cmd_array[i])
+    // {
+    //     printf("Debug: arg[%d]: '%s'\n", i, cmd_array[i]);
+    //     i++;
+    // }
 
     return cmd_array;
 }
@@ -370,7 +370,7 @@ int add_redirection(t_redirection **redirs, char type, char *file)
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
-    printf("Debug: Entering execute_command\n");
+    // printf("Debug: Entering execute_command\n");
 
     int stdin_backup = dup(STDIN_FILENO);
     int stdout_backup = dup(STDOUT_FILENO);
@@ -381,19 +381,19 @@ void execute_command(t_command *cmd, t_ctx *ctx)
         restore_fds(stdin_backup, stdout_backup);
         return;
     }
-    printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+    // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
     if (is_builtin(cmd->args[0]))
     {
-        printf("Debug: Command '%s' is a builtin\n", cmd->args[0]);
-        execute_builtin(cmd->args, ctx);
+        // printf("Debug: Command '%s' is a builtin\n", cmd->args[0]);
+        execute_builtin(cmd->args[0], ctx);
     }
     else
     {
-        printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);;
+        // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);;
         execute_external_command(cmd, ctx);
     }
     restore_fds(stdin_backup, stdout_backup);
-    printf("Debug: Exiting execute_command\n");
+    // printf("Debug: Exiting execute_command\n");
 }
 
 
@@ -521,29 +521,29 @@ void restore_fds(int stdin_fd, int stdout_fd)
 
 char *args_to_string(t_command *cmd)
 {
-    printf("Debug: args_to_string: Starting\n");
+    // printf("Debug: args_to_string: Starting\n");
     if (!cmd || !cmd->args || !cmd->args[0])
         return NULL;
 
-    printf("Debug: First arg: '%s'\n", cmd->args[0]);
+    // printf("Debug: First arg: '%s'\n", cmd->args[0]);
     char *result = ft_strdup(cmd->args[0]);
 
     for (int i = 1; i < cmd->arg_count; i++)
     {
-        printf("Debug: Processing arg[%d]: '%s', had_space: %d\n",
-               i, cmd->args[i], cmd->had_spaces[i-1]);
+        // printf("Debug: Processing arg[%d]: '%s', had_space: %d\n",
+            //    i, cmd->args[i], cmd->had_spaces[i-1]);
 
         char *temp;
         if (!cmd->had_spaces[i-1])
         {
             temp = ft_strjoin(result, cmd->args[i]);
-            printf("Debug: Joined without space: '%s'\n", temp);
+            // printf("Debug: Joined without space: '%s'\n", temp);
         }
         else
         {
             char *with_space = ft_strjoin(" ", cmd->args[i]);
             temp = ft_strjoin(result, with_space);
-            printf("Debug: Joined with space: '%s'\n", temp);
+            // printf("Debug: Joined with space: '%s'\n", temp);
             free(with_space);
         }
 
@@ -551,7 +551,7 @@ char *args_to_string(t_command *cmd)
         result = temp;
     }
 
-    printf("Debug: Final result: '%s'\n", result);
+    // printf("Debug: Final result: '%s'\n", result);
     return result;
 }
 

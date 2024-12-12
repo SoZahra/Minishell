@@ -136,7 +136,7 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx);
 //----------------------------------------------------------------
 
 // export
-int handle_export_builtin(char **args, t_ctx *ctx);
+int handle_export_builtin(const char *input, t_ctx *ctx);
 // int process_export_args(char **args, t_ctx *ctx);
 int handle_with_equal_sign(char *arg, char *equal_sign, t_ctx *ctx);
 int handle_no_equal_sign(char *arg, t_ctx *ctx);
@@ -148,17 +148,17 @@ int handle_multiple_args(const char *args, t_ctx *ctx);
 int handle_echo_builtin(const char *input, t_ctx *ctx);
 
 //env
-int handle_env_builtin(char **args, t_ctx *ctx);
+int handle_env_builtin(const char *input, t_ctx *ctx);
 
 //cd
 int handle_cd_builtin(const char *input, t_ctx *ctx);
 void free_array(char **array);
 
 //pwd
-int handle_pwd_builtin(char **args, t_ctx *ctx);
+int handle_pwd_builtin(const char *input, t_ctx *ctx);
 
 //exit
-int handle_exit_builtin(char **args, t_ctx *ctx);
+int handle_exit_builtin(const char *input, t_ctx *ctx);
 int process_exit_arg(char **args, t_ctx *ctx);
 
 

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 16:10:12 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 17:43:23 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -472,15 +472,15 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         {
             cmd->args[i] = ft_strdup(current->value);
             cmd->had_spaces[i] = current->had_space;
-            printf("Debug: Copying arg[%d]: '%s', had_space: %d\n",
-                   i, current->value, current->had_space);
+            // printf("Debug: Copying arg[%d]: '%s', had_space: %d\n",
+                //    i, current->value, current->had_space);
             i++;
         }
         current = current->next;
     }
     cmd->args[i] = NULL;
 
-    print_command_debug(cmd, "creation");
+    // print_command_debug(cmd, "creation");
     return cmd;
 }
 
@@ -562,11 +562,11 @@ t_command *parse_pipe_sequence(t_token *tokens)
                 free_command(first_cmd);
             return NULL;
         }
-        print_token_debug(tokens, "avant create command from tokens");
+        // print_token_debug(tokens, "avant create command from tokens");
         // Trouver la fin de la commande actuelle (prochain pipe)
         t_token *cmd_end = find_pipe_token(cmd_start);
         t_command *new_cmd = create_command_from_tokens_range(cmd_start, cmd_end);// Créer la commande jusqu'au pipe
-        print_token_debug(tokens, "apres create command from tokens");
+        // print_token_debug(tokens, "apres create command from tokens");
         if (!new_cmd)
         {
             if (first_cmd)
@@ -608,15 +608,15 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         fprintf(stderr, "Error: tokenization failed\n");
         return 1;
     }
-    print_token_debug(tokens, "tokenization");
-    fprintf(stderr, "Debug: Tokens après tokenization:\n");
-    for (t_token *cur = tokens; cur; cur = cur->next)
-    {
-        fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
-    }
+    // print_token_debug(tokens, "tokenization");
+    // fprintf(stderr, "Debug: Tokens après tokenization:\n");
+    // for (t_token *cur = tokens; cur; cur = cur->next)
+    // {
+    //     fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
+    // }
     if (expand_proc(&tokens, ctx) == -1)
     {
-        fprintf(stderr, "Debug: expand_proc failed\n");
+        // fprintf(stderr, "Debug: expand_proc failed\n");
         free_tokens(tokens);
         return 1;
     }
@@ -639,17 +639,17 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         char *final_cmd = tokens_to_string(tokens);
         if (!final_cmd)
         {
-            fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
+            // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
             free_command(cmd);
             free_tokens(tokens);
             return 1;
         }
-        printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
-        printf("Debug: final_cmd: '%s'\n", final_cmd);
-        printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+        // printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
+        // printf("Debug: final_cmd: '%s'\n", final_cmd);
+        // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
         if (is_builtin(cmd->args[0]))
         {
-            printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
+            // printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
             execute_builtin(final_cmd, ctx);
         }
         else

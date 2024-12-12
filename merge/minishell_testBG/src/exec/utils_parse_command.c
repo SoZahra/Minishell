@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 11:16:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 18:24:23 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,43 +162,43 @@ int is_valid_var_name(const char *name)
 
 int split_env_v(char *arg, char **var, char **value)
 {
-    printf("Debug: Splitting arg: '%s'\n", arg);
+    // printf("Debug: Splitting arg: '%s'\n", arg);
     char *equal_sign = ft_strchr(arg, '=');
 
     if (!equal_sign)
     {
-        printf("Debug: No equal sign found\n");
+        // printf("Debug: No equal sign found\n");
         if (!is_valid_var_name(arg))
         {
-            printf("Debug: Invalid var name (no equal)\n");
+            // printf("Debug: Invalid var name (no equal)\n");
             fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
             return 0;
         }
         *var = ft_strdup(arg);
         *value = NULL;
-        printf("Debug: Created var without value: '%s'\n", *var);
+        // printf("Debug: Created var without value: '%s'\n", *var);
         return (*var != NULL);
     }
 
     *var = ft_strndup(arg, equal_sign - arg);
-    printf("Debug: Extracted var name: '%s'\n", *var);
+    // printf("Debug: Extracted var name: '%s'\n", *var);
 
     if (!is_valid_var_name(*var))
     {
-        printf("Debug: Invalid var name\n");
+        // printf("Debug: Invalid var name\n");
         free(*var);
         fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
         return 0;
     }
 
     *value = ft_strdup(equal_sign + 1);
-    printf("Debug: Extracted value: '%s'\n", *value);
+    // printf("Debug: Extracted value: '%s'\n", *value);
 
     if (!*var || !*value)
     {
         free(*var);
         free(*value);
-        printf("Debug: Memory allocation failed\n");
+        // printf("Debug: Memory allocation failed\n");
         return 0;
     }
 
