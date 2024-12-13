@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 18:24:00 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 19:22:05 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,17 +247,15 @@ int handle_single_arg(const char *args, t_ctx *ctx)
 
 int handle_multiple_args(const char *args, t_ctx *ctx)
 {
-    // printf("Debug:xxxxxxxxxxxxxxxxxxxxxxx handle_multiple_args: '%s'\n", args);
     char **arg_array;
+    int result;
 
+    result = 0;
     arg_array = ft_split(args, ' ');
     if (!arg_array)
         return 1;
-
-    int result = 0;
     for (int i = 0; arg_array[i]; i++)
         result |= export_single_var(arg_array[i], ctx);
-    // Nettoyage
     for (int i = 0; arg_array[i]; i++)
         free(arg_array[i]);
     free(arg_array);
@@ -266,41 +264,20 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
 
 int handle_export_builtin(const char *input, t_ctx *ctx)
 {
-    // printf("Debug:-++++++++++++++++ entree dans handle_export: '%s'\n", input);
-
-    // const char *args = input + 6;  // Sauter "export" + un espace
-    while (*input == ' ')  // Sauter les espaces
+    while (*input == ' ')
         input++;
-    // printf("Debug: Extracted args: '%s'\n", input);  // Debug supplémentaire
-    if (!*input)  // Si pas d'arguments
-        return handle_no_args(ctx);  // Traiter sans arguments
-    // printf("Debug: Arguments after trimming spaces: '%s'\n", input);
-    if (ft_strchr(input, '='))
-        return handle_single_arg(input, ctx);
-    return handle_multiple_args(input, ctx);
+    if (!*input)
+        return handle_no_args(ctx);
+    char **split_args = ft_split(input, ' ');
+    if (!split_args)
+        return (perror("ft_split"), 1);
+    for (int i = 0; split_args[i]; i++)
+    {
+        if (ft_strchr(split_args[i], '='))
+            handle_single_arg(split_args[i], ctx);
+        else
+            handle_multiple_args(split_args[i], ctx);
+    }
+    free_array(split_args);
+    return 0;
 }
-
-
-// int handle_export_builtin(char **args, t_ctx *ctx)
-// {
-//     if (!args[1])  // Aucun argument
-//         return handle_no_args(ctx);
-
-//     int i = 1;
-//     while (args[i])
-//     {
-//         // Vérifie si un argument contient un '='
-//         if (strchr(args[i], '='))
-//         {
-//             handle_single_arg(args[i], ctx);  // Ajoute ou met à jour une variable
-//         }
-//         else
-//         {
-//             fprintf(stderr, "export: `%s': not a valid identifier\n", args[i]);
-//             ctx->exit_status = 1;
-//         }
-//         i++;
-//     }
-
-//     return 0;
-// }

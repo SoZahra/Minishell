@@ -105,7 +105,7 @@ SRCS_FILES	=	main.c exec.c pipe.c\
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
 
 VMINI    = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes \
-         --suppressions=/home/llarrey/Documents/miniBG/minishell/minishell.sup \
+         --suppressions=/home/fzayani/Documents/MiniBG/merge/minishell_testBG/minishell.sup \
          --track-fds=yes ./minishell
 
 # Fichiers objets générés dans le dossier .objs/
@@ -117,11 +117,11 @@ INC_PATH	=	include/
 LIBFT_PATH	=	./libft/
 LIBFT_LIB	=	$(LIBFT_PATH)libft.a
 
-# Compilation
+# Compilation -fsanitize=address
 CC			=	cc
-CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3 -fsanitize=address
+CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
 CFLAGS 		+= -I/opt/homebrew/opt/readline/include
-LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline -fsanitize=address
+LFLAGS		=	-L$(LIBFT_PATH) -lft -lreadline
 LFLAGS		+= -L/opt/homebrew/opt/readline/lib -lreadline
 RM			=	rm -rf
 

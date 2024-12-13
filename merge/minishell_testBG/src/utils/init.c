@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 13:47:22 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 11:43:02 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,10 @@ int	initialize_ctx(t_ctx *ctx)
 	ctx->num_pipes = 0;
 	ctx->oldpwd = NULL;
 	ctx->pwd = getcwd(NULL, 0);
+	ctx->next = NULL;
 	if (!ctx->pwd)
 	{
 		perror("Failed to get current working directory");
-		free(ctx);
 		return (1);
 	}
 	return (0);

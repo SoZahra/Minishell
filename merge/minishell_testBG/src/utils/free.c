@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   free.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 00:17:32 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/13 13:35:26 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,25 +92,31 @@ void free_tokens(t_token *tokens)
    }
 }
 
+void free_token_resources(t_token *token)
+{
+    if (token)
+    {
+        free(token->value);
+        free(token->content);
+        free(token);
+    }
+}
+
 // Fonction principale pour tout free
 void free_all(t_ctx *ctx)
 {
-   if (!ctx)
-       return;
-
-   // Free les variables d'environnement
-   free_env_vars(ctx->env_vars);
-
-   // Free les chemins
-   free(ctx->oldpwd);
-   free(ctx->pwd);
-
-   // Free le contexte suivant s'il existe
-   if (ctx->next)
-       free_all(ctx->next);
-
-   // Free le contexte lui-même
-   free(ctx);
+    if (!ctx)
+        return;
+    free_env_vars(ctx->env_vars);
+    free(ctx->oldpwd);
+    free(ctx->pwd);
+    if (ctx->next)
+    {
+        free_all(ctx->next);
+        ctx->next = NULL;
+    }
+    // Maintenant on peut free ctx
+    free(ctx);
 }
 
 //---------------

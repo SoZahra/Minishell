@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:29:34 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 18:13:57 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
     t_env_var *prev = NULL;
 
     // printf("Debug: Adding var '%s=%s' to list\n", new_var->name, new_var->value);
-
     // Si la variable existe déjà, on met à jour sa valeur
     current = *head;
     while (current)
@@ -60,18 +59,13 @@ void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
         prev = current;
         current = current->next;
     }
-
     // Si on arrive ici, la variable n'existe pas encore
     if (!*head)
-    {
         // printf("Debug: Adding as first var\n");
         *head = new_var;
-    }
     else
-    {
         // printf("Debug: Adding at end of list\n");
         prev->next = new_var;
-    }
 }
 
 // void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)

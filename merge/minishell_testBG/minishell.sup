@@ -22,3 +22,24 @@
     ...
     obj:/usr/bin/*
 }
+{
+    ignore_system_env
+    Memcheck:Leak
+    ...
+    fun:getenv
+    fun:*
+}
+{
+    ignore_terminal_settings
+    Memcheck:Leak
+    ...
+    fun:tcsetattr
+    fun:*
+}
+{
+    ignore_vscode_system_libs
+    Memcheck:Leak
+    ...
+    obj:/usr/lib/*
+    obj:/usr/share/code/*
+}

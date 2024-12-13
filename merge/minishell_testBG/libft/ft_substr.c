@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 11:19:54 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/25 18:48:19 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 13:34:25 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 		return (ft_strdup(""));
 	if (len > ft_strlen(s + start))
 		len = ft_strlen(s + start);
-	ss = malloc(sizeof(char) * len + 1);
+	ss = malloc(sizeof(char) * (len + 1));
 	if (!ss)
 		return (NULL);
 	i = 0;

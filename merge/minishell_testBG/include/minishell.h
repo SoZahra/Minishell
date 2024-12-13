@@ -114,6 +114,12 @@ int prepare_command(t_command *cmd, t_ctx *ctx);
 int execute_piped_command(t_command *cmd, t_ctx *ctx);
 void wait_for_children(t_command *cmd, t_ctx *ctx);
 t_command *create_command_from_tokens_range(t_token *start, t_token *end);
+// t_command *create_command_from_tokens_range(t_token *start, t_token *end, t_ctx *ctx);
+int count_non_redir_tokens(t_token *start, t_token *end);
+void fill_command_args(t_command *cmd, t_token *start, t_token *end);
+
+int execute_builtin_in_pipe(t_command *cmd, t_ctx *ctx);
+
 
 // -------------------------------------------------------------
 
@@ -197,7 +203,7 @@ void free_tokens(t_token *tokens);
 void free_env_vars(t_env_var *env);
 void free_commands(t_command *cmd);
 void free_redirections(t_redirection *redirs);
-
+void free_token_resources(t_token *token);
 // -------------------------------------------------------------
 
 void print_tokens(t_token *tokens);
@@ -250,9 +256,7 @@ int						handle_env_var(char **line, t_token **token_list,
 							t_ctx *ctx);
 t_token					*lexer(const char *input);
 t_token					*create_token(t_token_type type, const char *value);
-// int	add_token(t_token **head, t_token_type type, const char *value);
-t_token					*add_token(t_token **token_list, t_token_type type,
-							const char *value);
+
 t_token_type			get_token_type(const char *str);
 int						finalize_tokens(int in_quotes, char quote_char,
 							char *buffer, int *i, t_token **token_list);
@@ -469,9 +473,9 @@ void handle_empty_quotes(char **line, int *i, t_token **token_list, char *curren
 
 int count_tokens(t_token *tokens);
 
-t_token *create_new_token(t_token_type type, const char *value);
-t_token *add_token(t_token **token_list, t_token_type type, const char *value);
-
+t_token *create_new_token(t_token_type type, char *value);
+// t_token *add_token(t_token **token_list, t_token_type type, const char *value);
+int add_token(t_token **token_list, t_token_type type, char *value);
 t_token *create_token_node(char *arg, t_token_type type);
 int is_valid_n(t_token *current);
 

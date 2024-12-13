@@ -3,20 +3,33 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 00:16:26 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/13 11:51:17 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-t_ctx	*get_ctx(void)
-{
-	static t_ctx	ctx;
+// t_ctx	*get_ctx(void)
+// {
+// 	static t_ctx	ctx;
 
-	return (&ctx);
+// 	return (&ctx);
+// }
+
+t_ctx *get_ctx(void)
+{
+    static t_ctx *ctx = NULL;
+
+    if (ctx == NULL)
+    {
+        ctx = malloc(sizeof(t_ctx));
+        if (ctx)
+            ft_memset(ctx, 0, sizeof(t_ctx));
+    }
+    return ctx;
 }
 
 int get_term_attr()
@@ -31,7 +44,6 @@ int set_term_attr()
 
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
 {
-	// atexit(__lsan_do_leak_check);
 	if (initialize_ctx(get_ctx()))
 		return (1);
 	get_term_attr();
@@ -44,11 +56,8 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 		free_all(get_ctx());
 		return (perror("Failed to build env list"), 1);
 	}
-	loop_with_pipes(get_ctx());
+	if(loop_with_pipes(get_ctx()) == 0)
+		return(-1);
 	free_all(get_ctx());
-	// (void)envp;
-	// char *args[] = {"echo", "hello", NULL};
-    // t_ctx ctx = {0};
-    // handle_echo_builtin(args, &ctx);
 	return (0);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 00:18:30 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/13 17:50:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,10 @@ t_token *tokenize_input(char *line)
 
     if (tokenizer(&tokens, line) < 0)
     {
-        free_tokens(tokens);
+        // free_tokens(tokens);
         return (NULL);
     }
+    // print_tokens(tokens);
     return (tokens);
 }
 
@@ -440,7 +441,7 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     if (!cmd)
         return NULL;
 
-     cmd->args = NULL;
+    cmd->args = NULL;
     cmd->redirs = NULL;
     cmd->path = NULL;
     cmd->pid = -1;
@@ -479,54 +480,10 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         current = current->next;
     }
     cmd->args[i] = NULL;
-
     // print_command_debug(cmd, "creation");
     return cmd;
 }
 
-// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
-// {
-//     t_command *cmd = malloc(sizeof(t_command));
-//     if (!cmd)
-//         return NULL;
-
-//     // Initialisation
-//     cmd->args = NULL;
-//     cmd->redirs = NULL;
-//     cmd->path = NULL;
-//     cmd->pid = -1;
-//     cmd->next = NULL;
-//     cmd->prev = NULL;
-//     cmd->pfd[0] = -1;
-//     cmd->pfd[1] = -1;
-
-//     // Parcourir les tokens jusqu'au pipe
-//     t_token *current = start;
-//     while (current && current != end)
-//     {
-//         if (current->type == '>' || current->type == 'A')
-//         {
-//             // Gérer les redirections
-//             if (!current->next || !add_redirection(&cmd->redirs, current->type, current->next->value))
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             current = current->next->next;
-//         }
-//         else
-//         {
-//             // Ajouter aux arguments
-//             if (!add_arg_to_command(cmd, current->value))
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             current = current->next;
-//         }
-//     }
-//     return cmd;
-// }
 void print_token_debug(t_token *tokens, const char *step)
 {
     printf("\nDebug: Tokens after %s:\n", step);
@@ -541,50 +498,64 @@ void print_token_debug(t_token *tokens, const char *step)
 
 t_command *parse_pipe_sequence(t_token *tokens)
 {
-    t_token *last = tokens;
-    while (last && last->next)
-        last = last->next;
-    if (tokens && tokens->type == '|')
-    {
-        fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
-        return NULL;
-    }
-    t_command *first_cmd = NULL;
-    t_command *current_cmd = NULL;
-    t_token *cmd_start = tokens;
+    t_token *first_cmd_end = tokens;
 
-    while (cmd_start)
-    {
-        if (cmd_start->type == '|' && (!cmd_start->next || cmd_start->next->type == '|'))
-        {
-            fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
-            if (first_cmd)
-                free_command(first_cmd);
-            return NULL;
-        }
-        // print_token_debug(tokens, "avant create command from tokens");
-        // Trouver la fin de la commande actuelle (prochain pipe)
-        t_token *cmd_end = find_pipe_token(cmd_start);
-        t_command *new_cmd = create_command_from_tokens_range(cmd_start, cmd_end);// Créer la commande jusqu'au pipe
-        // print_token_debug(tokens, "apres create command from tokens");
-        if (!new_cmd)
-        {
-            if (first_cmd)
-                free_command(first_cmd);
-            return NULL;
-        }
-        if (!first_cmd)  // Lier à la commande précédente
-            first_cmd = new_cmd;
-        else
-        {
-            current_cmd->next = new_cmd;
-            new_cmd->prev = current_cmd;
-        }
-        current_cmd = new_cmd; // Passer au token après le pipe
-        cmd_start = cmd_end ? cmd_end->next : NULL;
-    }
-    return first_cmd;
+    // Trouver la fin de la première commande (avant un éventuel pipe)
+    while (first_cmd_end && first_cmd_end->type != '|')
+        first_cmd_end = first_cmd_end->next;
+
+    // Créer la commande avec les tokens jusqu'au pipe ou jusqu'à la fin
+    t_command *cmd = create_command_from_tokens_range(tokens, first_cmd_end);
+
+    return cmd;
 }
+
+// t_command *parse_pipe_sequence(t_token *tokens)
+// {
+//     t_token *last = tokens;
+//     while (last && last->next)
+//         last = last->next;
+//     if (tokens && tokens->type == '|')
+//     {
+//         fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
+//         return NULL;
+//     }
+//     t_command *first_cmd = NULL;
+//     t_command *current_cmd = NULL;
+//     t_token *cmd_start = tokens;
+
+//     while (cmd_start)
+//     {
+//         if (cmd_start->type == '|' && (!cmd_start->next || cmd_start->next->type == '|'))
+//         {
+//             fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
+//             if (first_cmd)
+//                 free_command(first_cmd);
+//             return NULL;
+//         }
+//         // print_token_debug(tokens, "avant create command from tokens");
+//         // Trouver la fin de la commande actuelle (prochain pipe)
+//         t_token *cmd_end = find_pipe_token(cmd_start);
+//         t_command *new_cmd = create_command_from_tokens_range(cmd_start, cmd_end);// Créer la commande jusqu'au pipe
+//         // print_token_debug(tokens, "apres create command from tokens");
+//         if (!new_cmd)
+//         {
+//             if (first_cmd)
+//                 free_command(first_cmd);
+//             return NULL;
+//         }
+//         if (!first_cmd)  // Lier à la commande précédente
+//             first_cmd = new_cmd;
+//         else
+//         {
+//             current_cmd->next = new_cmd;
+//             new_cmd->prev = current_cmd;
+//         }
+//         current_cmd = new_cmd; // Passer au token après le pipe
+//         cmd_start = cmd_end ? cmd_end->next : NULL;
+//     }
+//     return first_cmd;
+// }
 
 t_token *find_pipe_token(t_token *start)
 {
@@ -594,7 +565,6 @@ t_token *find_pipe_token(t_token *start)
     return current;
 }
 
-
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!*line)
@@ -602,7 +572,6 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 
     add_history(line);
     t_token *tokens = tokenize_input(line);
-
     if (!tokens)
     {
         fprintf(stderr, "Error: tokenization failed\n");
@@ -623,19 +592,19 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 
     // Créer la commande
     t_command *cmd = parse_pipe_sequence(tokens);
-    if (!cmd)
-    {
-        free_tokens(tokens);
-        return 1;
-    }
+    // if (!cmd)
+    // {
+    //     free_tokens(tokens);
+    //     return 1;
+    // }
 
-    // Exécuter différemment selon le cas
-    if (cmd->next)  // Si on a des pipes
-    {
-        execute_pipeline(cmd, ctx);
-    }
-    else  // Commande simple
-    {
+    // // Exécuter différemment selon le cas
+    // if (cmd->next)  // Si on a des pipes
+    // {
+    //     execute_pipeline(cmd, ctx);
+    // }
+    // else  // Commande simple
+    // {
         char *final_cmd = tokens_to_string(tokens);
         if (!final_cmd)
         {
@@ -652,34 +621,35 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
             // printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
             execute_builtin(final_cmd, ctx);
         }
-        else
-        {
-            // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
-            execute_command(cmd, ctx);
-        }
+        // else
+        // {
+        //     // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
+        //     execute_command(cmd, ctx);
+        // }
         free(final_cmd);
-    }
+    // }
     free_commands(cmd);
     free_tokens(tokens);
     return 0;
 }
 
-t_token *prepare_tokens(t_token *tokens, t_ctx *ctx)
-{
-    // Faire l'expansion des variables
-    if (expand_proc(&tokens, ctx) == -1)
-        return NULL;
+// t_token *prepare_tokens(t_token *tokens, t_ctx *ctx)
+// {
+//     // Faire l'expansion des variables
+//     if (expand_proc(&tokens, ctx) == -1)
+//         return NULL;
 
-    // Joindre les tokens avec espace en respectant les flags
-    if (join_proc(&tokens, false) == -1)
-        return NULL;
+//     // Joindre les tokens avec espace en respectant les flags
+//     if (join_proc(&tokens, false) == -1)
+//         return NULL;
 
-    return tokens;
-}
+//     return tokens;
+// }
 
 int	loop_with_pipes(t_ctx *ctx)
 {
 	char	*line;
+    int exit_code;
 
 	while (1)
 	{
@@ -688,8 +658,9 @@ int	loop_with_pipes(t_ctx *ctx)
 		if (line == NULL)
 		{
 			write(1, "exit\n", 5);
+            exit_code = ctx->exit_status;
             free_all(ctx);
-			exit(ctx->exit_status);
+			exit(exit_code);
 		}
 		handle_line_for_loop(line, ctx);
 		free(line);

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 18:23:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 19:23:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,20 +89,40 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx)
 
 void print_env(t_ctx *ctx)
 {
-    // printf("Debug: Starting env print\n");
     t_env_var *current = ctx->env_vars;
     if (!current)
-		return ;
-        // printf("Debug: env list is empty\n");
-    // int count = 0;
+        return;
+
     while (current)
     {
-        // printf("Debug: Found var[%d] '%s'='%s'\n", count++, current->name, current->value);
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
+        // Force l'affichage de toutes les variables avec un retour à la ligne
+        if (current->name)
+        {
+            if (current->value)
+                printf("%s=%s\n", current->name, current->value);
+            else
+                printf("%s=\n", current->name);
+        }
         current = current->next;
     }
 }
+
+// void print_env(t_ctx *ctx)
+// {
+//     t_env_var *current = ctx->env_vars;
+//     if (!current)
+//         return;
+
+//     while (current)
+//     {
+//         // N'afficher que les variables non vides ET avec une valeur non vide
+//         if (current->name && current->value && current->value[0] != '\0')
+//         {
+//             printf("%s=%s\n", current->name, current->value);
+//         }
+//         current = current->next;
+//     }
+// }
 
 int handle_env_builtin(const char *input, t_ctx *ctx)
 {
@@ -244,10 +264,17 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
         result = handle_env_builtin(args, ctx);
     else if (ft_strcmp(cmd, "exit") == 0)
         result = handle_exit_builtin(args, ctx);
-    // ... autres builtins ...
-
+    else if (ft_strcmp(cmd, "unset") == 0)
+        result = handle_unset_builtin(args, ctx);
     free(cmd);
     return result;
+}
+
+int handle_unset_builtin(const char *input, t_ctx *ctx)
+{
+    while (*input == ' ')
+        input++;
+    
 }
 
 
