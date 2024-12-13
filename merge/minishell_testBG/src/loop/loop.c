@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 17:43:23 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 19:07:13 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ t_token *tokenize_input(char *line)
 //     return cmd;
 // }
 
-t_command *create_command(t_token *tokens, t_ctx *ctx)
+/* t_command *create_command(t_token *tokens, t_ctx *ctx)
 {
     (void)ctx;
     t_command *cmd = malloc(sizeof(t_command));
@@ -195,7 +195,7 @@ int count_command_args(char **array)
         i++;
     }
     return arg_count;
-}
+} */
 
 // Crée et ajoute une redirection à la liste
 // static int add_redirection_to_command(t_command *cmd, char *file, char type)
@@ -330,7 +330,7 @@ int append_arg_value(char **current_arg, const char *value, int had_space)
     return *current_arg != NULL;
 }
 
-t_command *create_command_from_tokens(t_token *tokens)
+/* t_command *create_command_from_tokens(t_token *tokens)
 {
     t_command *cmd = malloc(sizeof(t_command));
     if (!cmd)
@@ -390,7 +390,7 @@ t_command *create_command_from_tokens(t_token *tokens)
         }
     }
     return cmd;
-}
+} */
 
 // int handle_line_for_loop(char *line, t_ctx *ctx)
 // {
@@ -539,7 +539,7 @@ void print_token_debug(t_token *tokens, const char *step)
     }
 }
 
-t_command *parse_pipe_sequence(t_token *tokens)
+/* t_command *parse_pipe_sequence(t_token *tokens)
 {
     t_token *last = tokens;
     while (last && last->next)
@@ -593,75 +593,78 @@ t_token *find_pipe_token(t_token *start)
         current = current->next;
     return current;
 }
-
+ */
 
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!*line)
         return 0;
-
-    add_history(line);
-    t_token *tokens = tokenize_input(line);
-
-    if (!tokens)
+    if (*line)
     {
-        fprintf(stderr, "Error: tokenization failed\n");
-        return 1;
-    }
-    // print_token_debug(tokens, "tokenization");
-    // fprintf(stderr, "Debug: Tokens après tokenization:\n");
-    // for (t_token *cur = tokens; cur; cur = cur->next)
-    // {
-    //     fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
-    // }
-    if (expand_proc(&tokens, ctx) == -1)
-    {
-        // fprintf(stderr, "Debug: expand_proc failed\n");
-        free_tokens(tokens);
-        return 1;
-    }
-
-    // Créer la commande
-    t_command *cmd = parse_pipe_sequence(tokens);
-    if (!cmd)
-    {
-        free_tokens(tokens);
-        return 1;
-    }
-
-    // Exécuter différemment selon le cas
-    if (cmd->next)  // Si on a des pipes
-    {
-        execute_pipeline(cmd, ctx);
-    }
-    else  // Commande simple
-    {
-        char *final_cmd = tokens_to_string(tokens);
-        if (!final_cmd)
+        add_history(line);
+        t_token *tokens = tokenize_input(line);
+        if (tokens)
+			process_pline(tokens, ctx);
+        if (!tokens)
         {
-            // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
-            free_command(cmd);
+            fprintf(stderr, "Error: tokenization failed\n");
+            return 1;
+        }
+        /* }
+        // print_token_debug(tokens, "tokenization");
+        // fprintf(stderr, "Debug: Tokens après tokenization:\n");
+        // for (t_token *cur = tokens; cur; cur = cur->next)
+        // {
+        //     fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
+        // }
+        if (expand_proc(&tokens, ctx) == -1)
+        {
+            // fprintf(stderr, "Debug: expand_proc failed\n");
             free_tokens(tokens);
             return 1;
         }
-        // printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
-        // printf("Debug: final_cmd: '%s'\n", final_cmd);
-        // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
-        if (is_builtin(cmd->args[0]))
-        {
-            // printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
-            execute_builtin(final_cmd, ctx);
-        }
-        else
-        {
-            // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
-            execute_command(cmd, ctx);
-        }
-        free(final_cmd);
-    }
 
-    free_command(cmd);
-    free_tokens(tokens);
+        // Créer la commande
+        t_command *cmd = parse_pipe_sequence(tokens);
+        if (!cmd)
+        {
+            free_tokens(tokens);
+            return 1;
+        }
+
+        // Exécuter différemment selon le cas
+        if (cmd->next)  // Si on a des pipes
+        {
+            execute_pipeline(cmd, ctx);
+        }
+        else  // Commande simple
+        {
+            char *final_cmd = tokens_to_string(tokens);
+            if (!final_cmd)
+            {
+                // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
+                free_command(cmd);
+                free_tokens(tokens);
+                return 1;
+            }
+            // printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
+            // printf("Debug: final_cmd: '%s'\n", final_cmd);
+            // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+            if (is_builtin(cmd->args[0]))
+            {
+                // printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
+                execute_builtin(final_cmd, ctx);
+            }
+            else
+            {
+                // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
+                execute_command(cmd, ctx);
+            }
+            free(final_cmd);
+        } */
+    }
+    // free_command(cmd);
+    // free_tokens(tokens);
     return 0;
 }
 

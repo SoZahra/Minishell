@@ -89,7 +89,7 @@ UTILS_DIR	=	$(SRC_PATH)utils
 PIPE_DIR	=	$(SRC_PATH)pipe
 
 # Liste des fichiers source
-SRCS_FILES	=	main.c exec.c pipe.c\
+SRCS_FILES	=	main.c\
 				builtins/echo_utils.c builtins/echo.c builtins/env.c builtins/exit.c builtins/gestion_builtins.c builtins/utils_env.c\
 				env/build_env_list.c \
 				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c exec/handle_export.c exec/handle_cd.c\
@@ -98,8 +98,9 @@ SRCS_FILES	=	main.c exec.c pipe.c\
 				signaux/handle_signal.c \
 				tokens/add_tokens.c tokens/args.c \
 				utils/free.c utils/init.c utils/list.c utils/utils.c \
-				pipe/exc_pipe.c pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
-				pipe/pipe_utils.c pipe/pipe.c
+				pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
+				pipe/pipe_utils.c pipe/pipe_utils_3.c pipe/pipe_utils_4.c \
+				pipe/pipe_utils_5.c
 
 
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))

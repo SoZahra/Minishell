@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 18:23:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/12 19:53:52 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,28 +64,28 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx)
     return 0;
 }
 
-// int handle_pwd_builtin(char **args, t_ctx *ctx)
-// {
-//     if (args[1])  // Vérifie les arguments supplémentaires
-//     {
-//         fprintf(stderr, "pwd: too many arguments\n");
-//         ctx->exit_status = 1;
-//         return 1;
-//     }
+/* int handle_pwd_builtin(char **args, t_ctx *ctx)
+{
+    if (args[1])  // Vérifie les arguments supplémentaires
+    {
+        fprintf(stderr, "pwd: too many arguments\n");
+        ctx->exit_status = 1;
+        return 1;
+    }
 
-//     char *cwd = getcwd(NULL, 0);
-//     if (!cwd)
-//     {
-//         perror("pwd");
-//         ctx->exit_status = 1;
-//         return 1;
-//     }
+    char *cwd = getcwd(NULL, 0);
+    if (!cwd)
+    {
+        perror("pwd");
+        ctx->exit_status = 1;
+        return 1;
+    }
 
-//     printf("%s\n", cwd);
-//     free(cwd);
-//     ctx->exit_status = 0;
-//     return 0;
-// }
+    printf("%s\n", cwd);
+    free(cwd);
+    ctx->exit_status = 0;
+    return 0;
+} */
 
 void print_env(t_ctx *ctx)
 {

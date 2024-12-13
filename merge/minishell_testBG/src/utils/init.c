@@ -5,13 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-<<<<<<< HEAD:minishell/src/utils/free.c
-/*   Created: 2024/10/07 16:07:57 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/22 15:06:41 by llarrey          ###   ########.fr       */
-=======
 /*   Created: 2024/12/02 15:21:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 13:47:22 by fzayani          ###   ########.fr       */
->>>>>>> Fat:merge/minishell_testBG/src/utils/init.c
+/*   Updated: 2024/12/12 18:55:48 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

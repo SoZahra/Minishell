@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 17:53:22 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/13 13:43:52 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
+#include "../../include/minishell.h"
 
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
 {
@@ -513,7 +513,7 @@ int tokenizer(t_token **tokens, char *input)
         else if (input[i])
             i++;
     }
-    // print_tokens(*tokens);
+    //print_tokens(*tokens);
     return 0;
 }
 
