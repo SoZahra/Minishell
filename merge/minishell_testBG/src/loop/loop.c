@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 17:50:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 18:48:40 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,11 @@ void print_tokens(t_token *tokens)
 
 t_token *tokenize_input(char *line)
 {
-    t_token *tokens = NULL;
+    t_token *tokens;
 
+    tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
-    {
-        // free_tokens(tokens);
         return (NULL);
-    }
-    // print_tokens(tokens);
     return (tokens);
 }
 
@@ -572,25 +569,11 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 
     add_history(line);
     t_token *tokens = tokenize_input(line);
+    print_tokens(tokens);
     if (!tokens)
-    {
-        fprintf(stderr, "Error: tokenization failed\n");
-        return 1;
-    }
-    // print_token_debug(tokens, "tokenization");
-    // fprintf(stderr, "Debug: Tokens après tokenization:\n");
-    // for (t_token *cur = tokens; cur; cur = cur->next)
-    // {
-    //     fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
-    // }
+        return (fprintf(stderr, "Error: tokenization failed\n"), 1);
     if (expand_proc(&tokens, ctx) == -1)
-    {
-        // fprintf(stderr, "Debug: expand_proc failed\n");
-        free_tokens(tokens);
-        return 1;
-    }
-
-    // Créer la commande
+        return (free_tokens(tokens), 1);
     t_command *cmd = parse_pipe_sequence(tokens);
     // if (!cmd)
     // {
@@ -608,24 +591,14 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         char *final_cmd = tokens_to_string(tokens);
         if (!final_cmd)
         {
-            // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
             free_commands(cmd);
             free_tokens(tokens);
             return 1;
         }
-        // printf("Debug: final_cmd juste avant usage: '%s'\n", final_cmd);  // Afficher l'état final_cmd avant de l'utiliser
-        // printf("Debug: final_cmd: '%s'\n", final_cmd);
-        // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
         if (is_builtin(cmd->args[0]))
-        {
-            // printf("Debug: Command '%s' is a builtinnn\n", cmd->args[0]);
             execute_builtin(final_cmd, ctx);
-        }
-        // else
-        // {
-        //     // printf("Debug: Command '%s' is not a builtin\n", cmd->args[0]);
-        //     execute_command(cmd, ctx);
-        // }
+        else
+            execute_command(cmd, ctx);
         free(final_cmd);
     // }
     free_commands(cmd);
@@ -653,7 +626,6 @@ int	loop_with_pipes(t_ctx *ctx)
 
 	while (1)
 	{
-		// line = readline(PROMPT);
 		line = readline("MiniBG> ");
 		if (line == NULL)
 		{

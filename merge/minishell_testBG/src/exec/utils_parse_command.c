@@ -6,21 +6,12 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 19:19:34 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 17:25:38 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// int	count_args(char **args)
-// {
-// 	int	count;
-
-// 	count = 0;
-// 	while (args[count])
-// 		count++;
-// 	return (count);
-// }
 
 int count_args(char **args)
 {
@@ -41,56 +32,23 @@ t_env_var	*get_last_env_node(t_env_var **env)
 	return (tmp);
 }
 
-// int	is_valid_id(const char *var)
-// {
-// 	char	*equal_sign;
-// 	size_t	len;
-// 	size_t	i;
-
-// 	if (!var || !*var)
-// 		return (0);
-// 	equal_sign = ft_strchr(var, '=');
-// 	if (equal_sign)
-// 		len = (size_t)(equal_sign - var);
-// 	else
-// 		len = ft_strlen(var);
-// 	if (!ft_isalpha(var[0]) && var[0] != '_')
-// 		return (0);
-// 	i = 1;
-// 	while (i < len)
-// 	{
-// 		if (!ft_isalnum(var[i]) && var[i] != '_')
-// 			return (0);
-// 		i++;
-// 	}
-// 	return (1);
-// }
-
 int is_valid_id(const char *var)
 {
     size_t i;
 
     if (!var || !*var)
         return (0);
-
-    // Vérifie si le premier caractère est une lettre ou underscore
     if (!ft_isalpha(var[0]) && var[0] != '_')
         return (0);
-
-    // Vérifie le reste du nom
     i = 1;
     while (var[i] && var[i] != '=')
     {
-        // Seuls les caractères alphanumériques et underscore sont valides
         if (!ft_isalnum(var[i]) && var[i] != '_')
             return (0);
         i++;
     }
-
-    // Vérifie qu'il y a au moins un caractère avant le '='
     if (i == 0 || (var[0] == '=' && i == 1))
         return (0);
-
     return (1);
 }
 
@@ -101,15 +59,11 @@ static int is_valid_var_char(char c)
 
 int is_valid_var_name(const char *name)
 {
-    // Cas spéciaux à rejeter immédiatement
+
     if (!name || !*name || *name == '=' || ft_isdigit(*name) || *name == '-')
         return 0;
-
-    // Le premier caractère doit être une lettre ou _
     if (!ft_isalpha(*name) && *name != '_')
         return 0;
-
-    // Vérifier chaque caractère
     while (*name)
     {
         if (!is_valid_var_char(*name))
