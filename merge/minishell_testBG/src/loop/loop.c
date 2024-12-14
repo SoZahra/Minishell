@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 13:59:20 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 17:03:27 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -590,10 +590,7 @@ void count_tokens_redir(t_token *token, int *arg_count, int *redir_count)
             token = token->next ? token->next : NULL;
         }
         else if (token->type == 'S')
-        {
             (*arg_count)++;
-        }
-
         if (token)
             token = token->next;
     }
@@ -619,7 +616,6 @@ void fill_command_tokens(t_token *token, t_command *new_cmd)
                 {
                     new_cmd->redirs[redir_index - 1].next = &new_cmd->redirs[redir_index];
                 }
-
                 token = token->next;
             }
             redir_index++;
@@ -660,10 +656,7 @@ t_command *parse_pipe_sequence(t_token *tokens)
                 token_counter = token_counter->next ? token_counter->next : NULL;
             }
             else if (token_counter->type == 'S')
-            {
                 arg_count++;
-            }
-
             if (token_counter)
                 token_counter = token_counter->next;
         }
@@ -702,8 +695,7 @@ t_command *allocate_command(int arg_count, int redir_count)
     new_cmd->arg_count = arg_count;
 
     new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
-    memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
-
+    ft_memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
     return new_cmd;
 }
 
@@ -715,52 +707,51 @@ t_token *find_pipe_token(t_token *start)
     return current;
 }
 
+// char *trim_whitespace(const char *str) {
+//     if (!str)
+//         return NULL;
 
-char *trim_whitespace(const char *str) {
-    if (!str)
-        return NULL;
+//     const char *start = str;
+//     const char *end = str + strlen(str) - 1;
 
-    const char *start = str;
-    const char *end = str + strlen(str) - 1;
+//     // Skip spaces au début
+//     while (*start && ft_isspace((unsigned char)*start))
+//         start++;
+//     // Si la chaîne est vide après avoir skip les espaces
+//     if (*start == '\0')
+//         return strdup("");
+//     // Skip spaces à la fin
+//     while (end > start && ft_isspace((unsigned char)*end))
+//         end--;
+//     // Calculer la taille de la chaîne nettoyée
+//     size_t len = end - start + 1;
+//     // Allouer et copier la nouvelle chaîne
+//     char *trimmed = malloc(len + 1);
+//     if (!trimmed)
+//         return NULL;
+//     strncpy(trimmed, start, len);
+//     trimmed[len] = '\0';
+//     return trimmed;
+// }
 
-    // Skip spaces au début
-    while (*start && ft_isspace((unsigned char)*start))
-        start++;
-    // Si la chaîne est vide après avoir skip les espaces
-    if (*start == '\0')
-        return strdup("");
-    // Skip spaces à la fin
-    while (end > start && ft_isspace((unsigned char)*end))
-        end--;
-    // Calculer la taille de la chaîne nettoyée
-    size_t len = end - start + 1;
-    // Allouer et copier la nouvelle chaîne
-    char *trimmed = malloc(len + 1);
-    if (!trimmed)
-        return NULL;
-    strncpy(trimmed, start, len);
-    trimmed[len] = '\0';
-    return trimmed;
-}
-
-void clean_token_whitespace(t_command *cmd) {
-    while (cmd) {
-        for (int i = 0; i < cmd->arg_count; i++) {
-            if (cmd->args[i]) {
-                fprintf(stderr, "Debug: Before trim: '%s'\n", cmd->args[i]);
-                char *cleaned = trim_whitespace(cmd->args[i]);
-                if (cleaned) {
-                    free(cmd->args[i]);
-                    cmd->args[i] = cleaned;
-                    fprintf(stderr, "Debug: After trim: '%s'\n", cmd->args[i]);
-                } else {
-                    perror("trim_whitespace failed");
-                }
-            }
-        }
-        cmd = cmd->next;
-    }
-}
+// void clean_token_whitespace(t_command *cmd) {
+//     while (cmd) {
+//         for (int i = 0; i < cmd->arg_count; i++) {
+//             if (cmd->args[i]) {
+//                 fprintf(stderr, "Debug: Before trim: '%s'\n", cmd->args[i]);
+//                 char *cleaned = trim_whitespace(cmd->args[i]);
+//                 if (cleaned) {
+//                     free(cmd->args[i]);
+//                     cmd->args[i] = cleaned;
+//                     fprintf(stderr, "Debug: After trim: '%s'\n", cmd->args[i]);
+//                 } else {
+//                     perror("trim_whitespace failed");
+//                 }
+//             }
+//         }
+//         cmd = cmd->next;
+//     }
+// }
 
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
@@ -816,12 +807,14 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     }// Choisir le mode d'exécution
     if (cmd->next)  // Si on a des pipes
         execute_pipeline(cmd, ctx);
-    else if (has_redirections)
-        execute_command(cmd, ctx);  // Avec redirections
-    else if (is_builtin(cmd->args[0]))
-        execute_builtin(final_cmd, ctx);
     else
         execute_command(cmd, ctx);
+    // else if (has_redirections)
+    //     execute_command(cmd, ctx);  // Avec redirections
+    // else if (is_builtin(cmd->args[0]))
+    //     execute_builtin(final_cmd, ctx);
+    // else
+    //     execute_command(cmd, ctx);
     free_tokens(tokens);
     return 0;
 }

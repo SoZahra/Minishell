@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 02:03:02 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/14 16:00:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ int execute_piped_command(t_command *cmd, t_ctx *ctx)
 
     if (cmd->redirs) {
         fprintf(stderr, "Debug: Applying redirections for '%s'\n", cmd->args[0]);
-        apply_redirections(cmd->redirs);
+        apply_redirections(cmd->redirs, ctx);
     }
 
     fprintf(stderr, "Debug: Executing command '%s'\n", cmd->args[0]);
@@ -230,7 +230,6 @@ static int spawn_process(t_command *cmd, t_ctx *ctx)
         }
         // fprintf(stderr, "Debug: Created pipe [%d, %d] for '%s'\n", cmd->pfd[0], cmd->pfd[1], cmd->args[0]);
     }
-
     cmd->pid = fork();
     if (cmd->pid == -1) {
         perror("fork");
@@ -241,7 +240,6 @@ static int spawn_process(t_command *cmd, t_ctx *ctx)
         // fprintf(stderr, "Debug: Forked child for '%s', PID: %d\n", cmd->args[0], getpid());
         execute_piped_command(cmd, ctx);
     }
-
     if (cmd->pid > 0) {
         // fprintf(stderr, "Debug: Parent process for '%s', PID: %d\n", cmd->args[0], cmd->pid);
         parent_proc(cmd);
@@ -249,46 +247,230 @@ static int spawn_process(t_command *cmd, t_ctx *ctx)
     return 0;
 }
 
-void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//     if (!cmd) {
+//         // fprintf(stderr, "Debug: Pipeline is empty\n");
+//         return;
+//     }
+//     // fprintf(stderr, "Debug: Executing pipeline for command '%s'\n", cmd->args[0]);
+//     if (prepare_command(cmd, ctx) == -1) {
+//         // fprintf(stderr, "Debug: Failed to prepare command '%s'\n", cmd->args[0]);
+//         return;
+//     }
+//     if (spawn_process(cmd, ctx) == -1) {
+//         // fprintf(stderr, "Debug: Failed to spawn process for '%s'\n", cmd->args[0]);
+//         return;
+//     }
+//     if (cmd->next) {
+//         // fprintf(stderr, "Debug: Moving to next command in pipeline\n");
+//         execute_pipeline(cmd->next, ctx);
+//     } else {
+//         // fprintf(stderr, "Debug: Waiting for children\n");
+//         wait_for_children(cmd, ctx);
+//     }
+// }
+
+
+// Compte le nombre de commandes dans le pipeline
+int count_commands(t_command *cmd)
 {
-    if (!cmd) {
-        // fprintf(stderr, "Debug: Pipeline is empty\n");
+    int count = 0;
+    while (cmd)
+    {
+        count++;
+        cmd = cmd->next;
+    }
+    return count;
+}
+
+// Créer les pipes pour le pipeline
+int **create_pipeline_pipes(int num_commands)
+{
+    if (num_commands <= 1)
+        return NULL;
+
+    int **pipes = malloc(sizeof(int *) * (num_commands - 1));
+    for (int i = 0; i < num_commands - 1; i++)
+    {
+        pipes[i] = malloc(sizeof(int) * 2);
+        if (pipe(pipes[i]) == -1)
+        {
+            perror("pipe");
+            // Libérer les pipes déjà créés
+            while (i > 0)
+            {
+                i--;
+                close(pipes[i][0]);
+                close(pipes[i][1]);
+                free(pipes[i]);
+            }
+            free(pipes);
+            return NULL;
+        }
+    }
+    return pipes;
+}
+
+// Fermer les descripteurs de pipe
+void close_pipes(int **pipes, int num_commands)
+{
+    if (!pipes)
         return;
+
+    for (int i = 0; i < num_commands - 1; i++)
+    {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+        free(pipes[i]);
+    }
+    free(pipes);
+}
+
+// Rediriger l'entrée pour un processus
+void redirect_input(t_command *cmd, int **pipes, int index)
+{
+    // Redirections d'entrée définies
+    if (cmd->redirs)
+    {
+        t_redirection *redir = cmd->redirs;
+        while (redir && redir->type != 0)
+        {
+            if (redir->type == '<')
+                handle_input_redirection(redir);
+            redir = redir->next;
+        }
     }
 
-    // fprintf(stderr, "Debug: Executing pipeline for command '%s'\n", cmd->args[0]);
-    if (prepare_command(cmd, ctx) == -1) {
-        // fprintf(stderr, "Debug: Failed to prepare command '%s'\n", cmd->args[0]);
-        return;
-    }
-
-    if (spawn_process(cmd, ctx) == -1) {
-        // fprintf(stderr, "Debug: Failed to spawn process for '%s'\n", cmd->args[0]);
-        return;
-    }
-
-    if (cmd->next) {
-        // fprintf(stderr, "Debug: Moving to next command in pipeline\n");
-        execute_pipeline(cmd->next, ctx);
-    } else {
-        // fprintf(stderr, "Debug: Waiting for children\n");
-        wait_for_children(cmd, ctx);
+    // Redirection depuis le pipe précédent
+    if (index > 0 && pipes)
+    {
+        dup2(pipes[index - 1][0], STDIN_FILENO);
+        close(pipes[index - 1][0]);
+        close(pipes[index - 1][1]);
     }
 }
 
+// Rediriger la sortie pour un processus
+void redirect_output(int **pipes, int index, int num_commands)
+{
+    if (index < num_commands - 1 && pipes)
+    {
+        dup2(pipes[index][1], STDOUT_FILENO);
+        close(pipes[index][0]);
+        close(pipes[index][1]);
+    }
+}
 
-// void execute_pipeline(t_command *cmd, t_ctx *ctx)
-// {
-//     if (!cmd)
-//         return;
-//     // if (setup_pipeline(cmd) == -1)
-//     //     return;
-//     if (prepare_command(cmd, ctx) == -1)
-//         return;
-//     if (spawn_process(cmd, ctx) == -1)
-//         return;
-//     if (cmd->next)
-//         execute_pipeline(cmd->next, ctx);
-//     else
-//         wait_for_children(cmd, ctx);
-// }
+// Fermer tous les descripteurs de pipe sauf ceux utilisés
+void close_unused_pipes(int **pipes, int index, int num_commands)
+{
+    if (!pipes)
+        return;
+
+    for (int j = 0; j < num_commands - 1; j++)
+    {
+        if (j != index - 1 && j != index)
+        {
+            close(pipes[j][0]);
+            close(pipes[j][1]);
+        }
+    }
+}
+
+// Exécuter une commande unique dans un pipeline
+void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
+{
+    // Rediriger l'entrée
+    redirect_input(cmd, pipes, index);
+
+    // Rediriger la sortie
+    redirect_output(pipes, index, num_commands);
+
+    // Fermer les descripteurs de pipe non utilisés
+    close_unused_pipes(pipes, index, num_commands);
+
+    // Préparer et exécuter la commande
+    if (prepare_command(cmd, ctx) == -1)
+        exit(1);
+
+    if (is_builtin(cmd->args[0]))
+    {
+        char *cmd_line = tokens_to_string_from_command(cmd);
+        execute_builtin(cmd_line, ctx);
+        free(cmd_line);
+        exit(0);
+    }
+    else
+    {
+        execute_external_command(cmd, ctx);
+        exit(1);
+    }
+}
+
+// Attendre la fin des processus et définir le statut de sortie
+void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx)
+{
+    for (int i = 0; i < num_commands; i++)
+    {
+        int status;
+        waitpid(pids[i], &status, 0);
+
+        if (WIFEXITED(status))
+            ctx->exit_status = WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            ctx->exit_status = WTERMSIG(status) + 128;
+    }
+}
+
+void execute_pipeline(t_command *cmd, t_ctx *ctx)
+{
+    if (!cmd)
+        return;
+
+    // Compter le nombre de commandes
+    int num_commands = count_commands(cmd);
+
+    // Créer les pipes
+    int **pipes = create_pipeline_pipes(num_commands);
+
+    // Tableau pour stocker les PIDs
+    pid_t *pids = malloc(sizeof(pid_t) * num_commands);
+
+    // Exécuter chaque commande
+    t_command *current = cmd;
+    int index = 0;
+    while (current)
+    {
+        pids[index] = fork();
+        if (pids[index] == -1)
+        {
+            perror("fork");
+            break;
+        }
+
+        if (pids[index] == 0)  // Processus enfant
+        {
+            execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
+        }
+
+        // Fermer les descripteurs de pipe dans le processus parent
+        if (index > 0)
+        {
+            close(pipes[index - 1][0]);
+            close(pipes[index - 1][1]);
+        }
+
+        current = current->next;
+        index++;
+    }
+
+    // Fermer tous les descripteurs de pipe
+    close_pipes(pipes, num_commands);
+
+    // Attendre la fin des processus
+    wait_for_pipeline(pids, num_commands, ctx);
+
+    // Libérer la mémoire
+    free(pids);
+}

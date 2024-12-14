@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 14:13:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 14:24:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,36 +133,36 @@ void    read_heredoc(int fd, char *limiter)
 	close(fd);
 }
 
-int here_doc(char *limiter)
-{
-    int fd;
+// int here_doc(char *limiter)
+// {
+//     int fd;
 
-    fd = open(".heredoc.tmp", O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (fd < 0)
-        exit_error();
-    read_heredoc(fd, limiter);
-    fd = open(".heredoc.tmp", O_RDONLY);
-    if (fd >= 0)
-        unlink(".heredoc.tmp");
-    return fd;
-}
+//     fd = open(".heredoc.tmp", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+//     if (fd < 0)
+//         exit_error();
+//     read_heredoc(fd, limiter);
+//     fd = open(".heredoc.tmp", O_RDONLY);
+//     if (fd >= 0)
+//         unlink(".heredoc.tmp");
+//     return fd;
+// }
 
-void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input)
-{
-    int input_fd;
+// void handle_input_redirection(t_token *redir_token, int *redirect, int *redirect_input)
+// {
+//     int input_fd;
 
-    if (ft_strcmp(redir_token->value, "<<") == 0)
-        input_fd = here_doc(redir_token->next->value);
-    else
-        input_fd = open(redir_token->next->value, O_RDONLY);
-    //input_fd = open(redir_token->next->value, O_RDONLY);
-    if (input_fd == -1)
-        exit_error();
-    dup2(input_fd, STDIN_FILENO);
-    close(input_fd);
-    *redirect = 1;
-    *redirect_input = 1;
-}
+//     if (ft_strcmp(redir_token->value, "<<") == 0)
+//         input_fd = here_doc(redir_token->next->value);
+//     else
+//         input_fd = open(redir_token->next->value, O_RDONLY);
+//     //input_fd = open(redir_token->next->value, O_RDONLY);
+//     if (input_fd == -1)
+//         exit_error();
+//     dup2(input_fd, STDIN_FILENO);
+//     close(input_fd);
+//     *redirect = 1;
+//     *redirect_input = 1;
+// }
 
 void handle_output_redirection(t_token *redir_token, int *redirect, int *redirect_output)
 {
@@ -182,33 +182,33 @@ void handle_output_redirection(t_token *redir_token, int *redirect, int *redirec
     *redirect_output = 1;
 }
 
-void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
-{
-    t_token **exec_tokens_tail = exec_tokens;
-    t_token *redir_token = cmd_start;
+// void collect_exec_tokens(t_token *cmd_start, t_token *cmd_end, t_token **exec_tokens, int *redirect, int *redirect_input, int *redirect_output)
+// {
+//     t_token **exec_tokens_tail = exec_tokens;
+//     t_token *redir_token = cmd_start;
 
-    while (redir_token != cmd_end)
-	{
-        if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0)
-		{
-            handle_input_redirection(redir_token, redirect, redirect_input);
-            redir_token = redir_token->next;
-        }
-		else if (ft_strcmp(redir_token->value, ">") == 0
-        || ft_strcmp(redir_token->value, ">>") == 0)
-		{
-            handle_output_redirection(redir_token, redirect, redirect_output);
-            redir_token = redir_token->next;
-        }
-        else
-		{
-            *exec_tokens_tail = redir_token;
-            exec_tokens_tail = &(*exec_tokens_tail)->next;
-        }
-        redir_token = redir_token->next;
-    }
-    *exec_tokens_tail = NULL;
-}
+//     while (redir_token != cmd_end)
+// 	{
+//         if (ft_strcmp(redir_token->value, "<") == 0 || ft_strcmp(redir_token->value, "<<") == 0)
+// 		{
+//             handle_input_redirection(redir_token, redirect, redirect_input);
+//             redir_token = redir_token->next;
+//         }
+// 		else if (ft_strcmp(redir_token->value, ">") == 0
+//         || ft_strcmp(redir_token->value, ">>") == 0)
+// 		{
+//             handle_output_redirection(redir_token, redirect, redirect_output);
+//             redir_token = redir_token->next;
+//         }
+//         else
+// 		{
+//             *exec_tokens_tail = redir_token;
+//             exec_tokens_tail = &(*exec_tokens_tail)->next;
+//         }
+//         redir_token = redir_token->next;
+//     }
+//     *exec_tokens_tail = NULL;
+// }
 
 void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
 {

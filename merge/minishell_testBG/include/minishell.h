@@ -143,6 +143,9 @@ void fill_command_tokens(t_token *token, t_command *new_cmd);
 void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd);
 t_command *allocate_command(int arg_count, int redir_count);
 
+int handle_heredoc(t_redirection *redir, t_ctx *ctx);
+int handle_input_redirection(t_redirection *redir);
+
 //----------------------------------------------------------------
 
 // export
@@ -187,7 +190,8 @@ char **create_command_array(const char *cmd_str);
 
 t_command *create_command(t_token *tokens, t_ctx *ctx);
 void execute_command(t_command *cmd, t_ctx *ctx);
-int apply_redirections(t_redirection *redirs);
+// int apply_redirections(t_redirection *redirs);
+int apply_redirections(t_redirection *redirs, t_ctx *ctx);
 void restore_fds(int stdin_fd, int stdout_fd);
 void execute_builtin_command(t_command *cmd, t_ctx *ctx);
 void execute_external_command(t_command *cmd, t_ctx *ctx);
@@ -202,6 +206,12 @@ int append_arg_value(char **current_arg, const char *value, int had_space);
 
 
 t_command *parse_pipe_sequence(t_token *tokens);
+
+void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx);
+void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands);
+void close_unused_pipes(int **pipes, int index, int num_commands);
+void redirect_output(int **pipes, int index, int num_commands);
+void redirect_input(t_command *cmd, int **pipes, int index);
 
 // -------------------------------------------------------------
 
@@ -349,9 +359,9 @@ int						count_args(char **args);
 void					free_args(char **args);
 
 void					read_heredoc(int fd, char *limiter);
-int						here_doc(char *limiter);
-void					handle_input_redirection(t_token *redir_token,
-							int *redirect, int *redirect_input);
+int here_doc(char *delimiter, t_ctx *ctx);
+// void					handle_input_redirection(t_token *redir_token,
+// 							int *redirect, int *redirect_input);
 void					handle_output_redirection(t_token *redir_token,
 							int *redirect, int *redirect_output);
 void					initialize_pipe_if_needed(int *pipe_fd,

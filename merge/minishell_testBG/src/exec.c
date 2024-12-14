@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 13:30:15 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 15:55:20 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -413,7 +413,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     current = current->next;
 }
    // Appliquer toutes les redirections
-   if (apply_redirections(cmd->redirs) == -1)
+   if (apply_redirections(cmd->redirs, ctx) == -1)
    {
        restore_fds(stdin_backup, stdout_backup);
        return;
@@ -424,7 +424,6 @@ void execute_command(t_command *cmd, t_ctx *ctx)
 		execute_builtin(cmd_line, ctx);
 		free(cmd_line);
 	}
-		// execute_builtin(cmd, ctx);
    else
        execute_external_command(cmd, ctx);
    restore_fds(stdin_backup, stdout_backup);
@@ -517,7 +516,45 @@ void execute_command(t_command *cmd, t_ctx *ctx)
 //     cmd->args[new_arg_count] = NULL;
 // }
 
-int apply_redirections(t_redirection *redirs)
+int handle_heredoc(t_redirection *redir, t_ctx *ctx)
+{
+    int fd = here_doc(redir->file, ctx);
+    if (fd == -1)
+    {
+        perror("here_doc");
+        return -1;
+    }
+
+    if (dup2(fd, STDIN_FILENO) == -1)
+    {
+        perror("dup2 heredoc");
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0;
+}
+
+int handle_input_redirection(t_redirection *redir)
+{
+    int fd = open(redir->file, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("open input redirection");
+        return -1;
+    }
+
+    if (dup2(fd, STDIN_FILENO) == -1)
+    {
+        perror("dup2 input");
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0;
+}
+
+int apply_redirections(t_redirection *redirs, t_ctx *ctx)
 {
     if (!redirs || redirs->type == 0)
         return 0;
@@ -525,6 +562,16 @@ int apply_redirections(t_redirection *redirs)
     t_redirection *current = redirs;
     while (current && current->type != 0)
     {
+        if (current->type == '<')
+        {
+            if (handle_input_redirection(current) == -1)
+                return -1;
+        }
+        else if (current->type == 'H')
+        {
+            if (handle_heredoc(current, ctx) == -1)
+                return -1;
+        }
         if (current->type == '>' || current->type == 'A')
         {
             // Redirection sortante
@@ -537,25 +584,7 @@ int apply_redirections(t_redirection *redirs)
                 perror("open");
                 return -1;
             }
-
             if (dup2(fd, STDOUT_FILENO) == -1)
-            {
-                perror("dup2");
-                close(fd);
-                return -1;
-            }
-            close(fd);
-        }
-        else if (current->type == '<' || current->type == 'H')
-        {
-            // Redirection entrante
-            int fd = open(current->file, O_RDONLY);
-            if (fd == -1)
-            {
-                perror("open");
-                return -1;
-            }
-            if (dup2(fd, STDIN_FILENO) == -1)
             {
                 perror("dup2");
                 close(fd);
@@ -565,8 +594,108 @@ int apply_redirections(t_redirection *redirs)
         }
         current = current->next;
     }
-
     return 0;
+}
+
+
+// int here_doc(char *delimiter)
+// {
+//     int pipefd[2];
+//     char *line = NULL;
+//     size_t len = 0;
+//     ssize_t read;
+
+//     if (pipe(pipefd) == -1)
+//     {
+//         perror("pipe");
+//         return -1;
+//     }
+
+//     while (1)
+//     {
+//         printf("> ");  // Prompt pour le heredoc
+
+//         // Gérer Ctrl+D (fin de fichier)
+//         if ((read = getline(&line, &len, stdin)) == -1)
+//         {
+//             free(line);
+//             break;
+//         }
+
+//         // Vérifier si le délimiteur est atteint
+//         if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
+//             line[ft_strlen(delimiter)] == '\n')
+//         {
+//             free(line);
+//             break;
+//         }
+
+//         // Écrire la ligne dans le pipe
+//         write(pipefd[1], line, read);
+//         free(line);
+//         line = NULL;
+//     }
+
+//     close(pipefd[1]);
+//     return pipefd[0];
+// }
+
+int here_doc(char *delimiter, t_ctx *ctx)
+{
+    int pipefd[2];
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    if (pipe(pipefd) == -1)
+    {
+        perror("pipe");
+        return -1;
+    }
+
+    while (1)
+    {
+        printf("> ");  // Prompt pour le heredoc
+
+        // Gérer Ctrl+D (fin de fichier)
+        if ((read = getline(&line, &len, stdin)) == -1)
+        {
+            free(line);
+            break;
+        }
+
+        // Vérifier si le délimiteur est atteint
+        // Vérifier si le délimiteur est atteint
+    if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
+        (line[ft_strlen(delimiter)] == '\n' || line[ft_strlen(delimiter)] == '\0'))
+    {
+        free(line);
+        break;
+    }
+
+        // Créer un token pour l'expansion
+        t_token *expand_token = create_new_token('S', line);
+
+        // Appliquer l'expansion
+        if (expand_proc(&expand_token, ctx) == -1)
+        {
+            free(line);
+            free_tokens(expand_token);
+            break;
+        }
+
+        // Écrire la ligne expansée dans le pipe
+        write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
+        write(pipefd[1], "\n", 1);
+
+        // Libérer la mémoire
+        free(line);
+        free_tokens(expand_token);
+        line = NULL;
+    }
+
+    close(pipefd[1]);
+    return pipefd[0];
 }
 
 // int apply_redirections(t_redirection *redirs)
