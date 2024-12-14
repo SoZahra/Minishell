@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 10:03:21 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/14 13:59:20 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -458,8 +458,9 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         }
         else
         {
-            // Ajouter aux arguments
-            if (!add_arg_to_command(cmd, current->value))
+            // check if token->value[0] == '\0', if true then join the prev and next
+            // printf("wesh ici\n");
+            if (current->value[0] != 0 && !add_arg_to_command(cmd, current->value))
             {
                 free_command(cmd);
                 return NULL;
@@ -470,49 +471,240 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     return cmd;
 }
 
+// t_command *parse_pipe_sequence(t_token *tokens)
+// {
+//     t_command *first_cmd = NULL;
+//     t_command *current_cmd = NULL;
+//     t_token *current = tokens;
+
+//     while (current)
+//     {
+//         // Créer une nouvelle commande
+//         t_command *new_cmd = malloc(sizeof(t_command));
+//         memset(new_cmd, 0, sizeof(t_command));
+//         new_cmd->redirs = NULL;  // Initialiser à NULL
+
+//         // Compter les arguments et les redirections
+//         int arg_count = 0;
+//         int redir_count = 0;
+//         t_token *token = current;
+
+//         // Parcourir et compter
+//         while (token && token->type != '|')
+//         {
+//             if (token->type == '>' || token->type == '<' ||
+//                 token->type == TOKEN_REDIRECT_APPEND ||
+//                 token->type == TOKEN_HEREDOC)
+//             {
+//                 redir_count++;
+//                 if (token->next)
+//                     token = token->next;  // Passer le fichier de redirection
+//             }
+//             else if (token->type == 'S')
+//             {
+//                 arg_count++;
+//             }
+//             token = token->next;
+//         }
+
+//         // Allouer les arguments
+//         new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+//         new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
+//         new_cmd->arg_count = arg_count;
+
+//         // Allouer et initialiser les redirections
+//         new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
+//         memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
+
+//         // Réinitialiser pour le remplissage
+//         int arg_index = 0;
+//         int redir_index = 0;
+//         token = current;
+
+//         // Remplir les arguments et les redirections
+//         while (token && token->type != '|')
+//         {
+//             if (token->type == '>' || token->type == '<' ||
+//                 token->type == TOKEN_REDIRECT_APPEND ||
+//                 token->type == TOKEN_HEREDOC)
+//             {
+//                 // Ajouter la redirection
+//                 new_cmd->redirs[redir_index].type = token->type;
+//                 if (token->next)
+//                 {
+//                     new_cmd->redirs[redir_index].file = strdup(token->next->value);
+
+//                     // Chaîner les redirections
+//                     if (redir_index > 0)
+//                     {
+//                         new_cmd->redirs[redir_index - 1].next = &new_cmd->redirs[redir_index];
+//                     }
+
+//                     token = token->next;  // Passer le fichier de redirection
+//                 }
+//                 redir_index++;
+//             }
+//             else if (token->type == 'S')
+//             {
+//                 // Ajouter l'argument
+//                 new_cmd->args[arg_index] = strdup(token->value);
+//                 new_cmd->had_spaces[arg_index] = token->had_space;
+//                 arg_index++;
+//             }
+//             token = token->next;
+//         }
+
+//         // Terminer les tableaux
+//         new_cmd->args[arg_count] = NULL;
+//         new_cmd->redirs[redir_count].type = 0;  // Marquer la fin
+//         new_cmd->redirs[redir_count].file = NULL;
+
+//         // Chaîner les commandes
+//         if (!first_cmd)
+//             first_cmd = new_cmd;
+//         else
+//         {
+//             current_cmd->next = new_cmd;
+//             new_cmd->prev = current_cmd;
+//         }
+//         current_cmd = new_cmd;
+
+//         // Passer au prochain token après le pipe
+//         current = token ? token->next : NULL;
+//     }
+//     return first_cmd;
+// }
+
+void count_tokens_redir(t_token *token, int *arg_count, int *redir_count)
+{
+    *arg_count = 0;
+    *redir_count = 0;
+
+    while (token && token->type != '|')
+    {
+        if (token->type == '>' || token->type == '<' ||
+            token->type == TOKEN_REDIRECT_APPEND ||
+            token->type == TOKEN_HEREDOC)
+        {
+            (*redir_count)++;
+            token = token->next ? token->next : NULL;
+        }
+        else if (token->type == 'S')
+        {
+            (*arg_count)++;
+        }
+
+        if (token)
+            token = token->next;
+    }
+}
+
+void fill_command_tokens(t_token *token, t_command *new_cmd)
+{
+    int arg_index = 0;
+    int redir_index = 0;
+
+    while (token && token->type != '|')
+    {
+        if (token->type == '>' || token->type == '<' ||
+            token->type == TOKEN_REDIRECT_APPEND ||
+            token->type == TOKEN_HEREDOC)
+        {
+            new_cmd->redirs[redir_index].type = token->type;
+            if (token->next)
+            {
+                new_cmd->redirs[redir_index].file = strdup(token->next->value);
+
+                if (redir_index > 0)
+                {
+                    new_cmd->redirs[redir_index - 1].next = &new_cmd->redirs[redir_index];
+                }
+
+                token = token->next;
+            }
+            redir_index++;
+        }
+        else if (token->type == 'S')
+        {
+            new_cmd->args[arg_index] = strdup(token->value);
+            new_cmd->had_spaces[arg_index] = token->had_space;
+            arg_index++;
+        }
+        token = token->next;
+    }
+    new_cmd->args[arg_index] = NULL;
+    new_cmd->redirs[redir_index].type = 0;
+    new_cmd->redirs[redir_index].file = NULL;
+}
+
 t_command *parse_pipe_sequence(t_token *tokens)
 {
-    t_token *last = tokens;
-    while (last && last->next)
-        last = last->next;
-    if (tokens && tokens->type == '|')
-    {
-        fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
-        return NULL;
-    }
     t_command *first_cmd = NULL;
     t_command *current_cmd = NULL;
-    t_token *cmd_start = tokens;
+    t_token *current = tokens;
 
-    while (cmd_start)
+    while (current)
     {
-        if (cmd_start->type == '|' && (!cmd_start->next || cmd_start->next->type == '|'))
+        int arg_count = 0;
+        int redir_count = 0;
+
+        // Compter les tokens jusqu'au prochain pipe
+        t_token *token_counter = current;
+        while (token_counter && token_counter->type != '|')
         {
-            fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
-            if (first_cmd)
-                free_command(first_cmd);
-            return NULL;
+            if (token_counter->type == '>' || token_counter->type == '<' ||
+                token_counter->type == TOKEN_REDIRECT_APPEND ||
+                token_counter->type == TOKEN_HEREDOC)
+            {
+                redir_count++;
+                token_counter = token_counter->next ? token_counter->next : NULL;
+            }
+            else if (token_counter->type == 'S')
+            {
+                arg_count++;
+            }
+
+            if (token_counter)
+                token_counter = token_counter->next;
         }
-        // Trouver la fin de la commande actuelle (prochain pipe)
-        t_token *cmd_end = find_pipe_token(cmd_start);
-        t_command *new_cmd = create_command_from_tokens_range(cmd_start, cmd_end);// Créer la commande jusqu'au pipe
-        if (!new_cmd)
-        {
-            if (first_cmd)
-                free_command(first_cmd);
-            return NULL;
-        }
-        if (!first_cmd)  // Lier à la commande précédente
-            first_cmd = new_cmd;
-        else
-        {
-            current_cmd->next = new_cmd;
-            new_cmd->prev = current_cmd;
-        }
-        current_cmd = new_cmd; // Passer au token après le pipe
-        cmd_start = cmd_end ? cmd_end->next : NULL;
+        t_command *new_cmd = allocate_command(arg_count, redir_count);
+        // Remplir les tokens
+        fill_command_tokens(current, new_cmd);
+        // Chaîner les commandes
+        link_commands(&first_cmd, &current_cmd, new_cmd);
+        // Passer à la prochaine commande
+        current = (current_cmd->redirs && current_cmd->redirs[0].type != 0)
+                  ? NULL
+                  : (token_counter ? token_counter->next : NULL);
     }
     return first_cmd;
+}
+
+void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd)
+{
+    if (!*first_cmd)
+        *first_cmd = new_cmd;
+    else
+    {
+        (*current_cmd)->next = new_cmd;
+        new_cmd->prev = *current_cmd;
+    }
+    *current_cmd = new_cmd;
+}
+
+t_command *allocate_command(int arg_count, int redir_count)
+{
+    t_command *new_cmd = malloc(sizeof(t_command));
+    memset(new_cmd, 0, sizeof(t_command));
+
+    new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+    new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
+    new_cmd->arg_count = arg_count;
+
+    new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
+    memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
+
+    return new_cmd;
 }
 
 t_token *find_pipe_token(t_token *start)
@@ -570,28 +762,6 @@ void clean_token_whitespace(t_command *cmd) {
     }
 }
 
-
-// void clean_token_whitespace(t_command *cmd)
-// {
-//     while (cmd)
-//     {
-//         if (cmd->args && cmd->args[0])
-//         {
-//             char *cleaned = strdup(cmd->args[0]);
-//             if (!cleaned)
-//                 perror("strdup failed");
-//             else
-//             {
-//                 trim_whitespace(cleaned); // Assurez-vous que cette fonction est définie
-//                 free(cmd->args[0]);
-//                 cmd->args[0] = cleaned;
-//             }
-//         }
-//         cmd = cmd->next;
-//     }
-// }
-
-
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!*line)
@@ -611,35 +781,19 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         free_tokens(tokens);
         return 1;
     }
-    // 3. Création de la commande avec gestion des pipes
-    // t_command *cmd = parse_pipe_sequence(tokens);
-    // while(cmd)
-    // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
-    // printf("Debug: cmd->args[1]: '%s'\n", cmd->args[1]);
     print_tokens(tokens);
-   
     char *final_cmd = tokens_to_string(tokens);
-        if (!final_cmd)
-        {
-            // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
-            // free_command(cmd);
-            free_tokens(tokens);
-            return 1;
-        }
-    // t_command *cmd = parse_pipe_sequence(tokens);
-    // if (!cmd)
-    // {
-    //     free_tokens(tokens);
-    //     return 1;
-    // }
-    t_command *cmd = parse_pipe_sequence(tokens);
-    clean_token_whitespace(cmd);
-    if (!cmd) {
-        // fprintf(stderr, "Debug: Failed to parse command sequence\n");
+    if (!final_cmd)
+    {
         free_tokens(tokens);
         return 1;
     }
-
+    t_command *cmd = parse_pipe_sequence(tokens);
+    if (!cmd)
+    {
+        free_tokens(tokens);
+        return 1;
+    }
     t_command *current = cmd;
     while (current) {
         fprintf(stderr, "Debug: Command: '%s', Next: %s, Prev: %s\n",
@@ -648,17 +802,85 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
             current->prev ? current->prev->args[0] : "NULL");
         current = current->next;
     }
+    // Vérifier la présence de redirections
+    int has_redirections = 0;
+    current = cmd;
+    while (current)
+    {
+        if (current->redirs && current->redirs[0].type != 0)
+        {
+            has_redirections = 1;
+            break;
+        }
+        current = current->next;
+    }// Choisir le mode d'exécution
     if (cmd->next)  // Si on a des pipes
         execute_pipeline(cmd, ctx);
+    else if (has_redirections)
+        execute_command(cmd, ctx);  // Avec redirections
     else if (is_builtin(cmd->args[0]))
-            execute_builtin(final_cmd, ctx);
-    else  // Si c'est une commande simple
+        execute_builtin(final_cmd, ctx);
+    else
         execute_command(cmd, ctx);
-    // Nettoyage
-    free_command(cmd);
     free_tokens(tokens);
     return 0;
 }
+
+// int handle_line_for_loop(char *line, t_ctx *ctx)
+// {
+//     if (!*line)
+//         return 0;
+
+//     add_history(line);
+//     // 1. Tokenization
+//     t_token *tokens = tokenize_input(line);
+//     if (!tokens)
+//     {
+//         fprintf(stderr, "Error: tokenization failed\n");
+//         return 1;
+//     }
+//     // 2. Expansion et préparation
+//     if (expand_proc(&tokens, ctx) == -1)
+//     {
+//         free_tokens(tokens);
+//         return 1;
+//     }
+//     print_tokens(tokens);
+//     char *final_cmd = tokens_to_string(tokens);
+//     if (!final_cmd)
+//     {
+//         // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
+//         // free_command(cmd);
+//         free_tokens(tokens);
+//         return 1;
+//     }
+//     t_command *cmd = parse_pipe_sequence(tokens);
+//     // clean_token_whitespace(cmd);
+//     if (!cmd)
+//     {
+//         // fprintf(stderr, "Debug: Failed to parse command sequence\n");
+//         free_tokens(tokens);
+//         return 1;
+//     }
+//     t_command *current = cmd;
+//     while (current) {
+//         fprintf(stderr, "Debug: Command: '%s', Next: %s, Prev: %s\n",
+//             current->args[0],
+//             current->next ? current->next->args[0] : "NULL",
+//             current->prev ? current->prev->args[0] : "NULL");
+//         current = current->next;
+//     }
+//     if (cmd->next)  // Si on a des pipes
+//         execute_pipeline(cmd, ctx);
+//     else if (is_builtin(cmd->args[0]))
+//             execute_builtin(final_cmd, ctx);
+//     else
+//         execute_command(cmd, ctx);
+//     // Nettoyage
+//     free_command(cmd);
+//     free_tokens(tokens);
+//     return 0;
+// }
 
 t_token *prepare_tokens(t_token *tokens, t_ctx *ctx)
 {

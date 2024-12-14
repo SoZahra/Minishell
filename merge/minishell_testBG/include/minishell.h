@@ -104,6 +104,7 @@ typedef struct s_command {
     // int pipe_out;          // FD pour le pipe de sortie (si existe)
 	struct s_command *next;     // Commande suivante dans le pipe
     struct s_command *prev;
+	int *had_spaces;
 } t_command;
 
 // pipe(pfd);
@@ -131,7 +132,16 @@ int join_str(t_token *token, bool limiter);
 int expand_proc(t_token **tokens, t_ctx *ctx);
 int expand_str(t_token *token, t_ctx *ctx);
 
-char *trim_whitespace(const char *str);
+// char *trim_whitespace(const char *str);
+
+void update_command_from_tokens(t_command *cmd, t_token *tokens);
+t_token *create_tokens_from_command(t_command *cmd);
+
+
+void count_tokens_redir(t_token *token, int *arg_count, int *redir_count);
+void fill_command_tokens(t_token *token, t_command *new_cmd);
+void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd);
+t_command *allocate_command(int arg_count, int redir_count);
 
 //----------------------------------------------------------------
 

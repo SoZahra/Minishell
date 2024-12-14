@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:49:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:29:22 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 13:48:47 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int is_builtin(const char *cmd)
     // printf("Debug: Checking if '%s' is builtin\n", cmd);
 
     // Skip leading spaces
-    while (*cmd == ' ')
+    while (*cmd == ' ' && *cmd != '|')
         cmd++;
 
     const char *builtins[] = {

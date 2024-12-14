@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 10:01:44 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/14 13:30:15 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,7 @@ char *find_command_path(const char *command, t_ctx *ctx)
     free(path_copy);
     return NULL;
 }
-    
+
 
 // char *find_command_path(const char *cmd, t_ctx *ctx)
 // {
@@ -253,7 +253,7 @@ char *find_command_path(const char *command, t_ctx *ctx)
 //         char *temp = ft_strjoin(cmd_path, cmd);
 //         free(cmd_path);
 //         cmd_path = temp;
-        
+
 //         // Vérifier si le fichier existe et est exécutable
 //         if (access(cmd_path, X_OK) == 0)
 //         {
@@ -363,96 +363,38 @@ int add_redirection(t_redirection **redirs, char type, char *file)
     return 1;
 }
 
-// // Fonction pour debug
-// void print_redirections(t_redir *redirs)
-// {
-//     t_redir *current = redirs;
-//     printf("Debug: Redirections:\n");
-//     while (current)
-//     {
-//         printf("  type: %c, file: %s\n",
-//             current->type, current->file);
-//         current = current->next;
-//     }
-// }
+char *tokens_to_string_from_command(t_command *cmd)
+{
+    // Si aucun argument, retourner une chaîne vide
+    if (!cmd->args || cmd->arg_count == 0)
+        return ft_strdup("");
 
-// t_redir *get_redirections(char **cmd_array)
-// {
-//     printf("Debug: Looking for redirections in command array\n");
-//     t_redir *redirs = NULL;
-//     int i = 0;
+    // Commencer par le premier argument
+    char *result = ft_strdup(cmd->args[0]);
+    if (!result)
+        return NULL;
 
-//     while (cmd_array[i])
-//     {
-//         // Debug pour chaque élément
-//         printf("Debug: Checking arg[%d]: '%s'\n", i, cmd_array[i]);
+    // Ajouter les arguments suivants
+    for (int i = 1; i < cmd->arg_count; i++)
+    {
+        char *temp;
 
-//         // Vérifier si c'est une redirection
-//         if (cmd_array[i][0] == '>' || ft_strcmp(cmd_array[i], ">>") == 0)
-//         {
-//             printf("Debug: Found redirection: '%s'\n", cmd_array[i]);
+        // Ajouter un espace si nécessaire
+        if (!cmd->had_spaces[i])
+        {
+            temp = ft_strjoin(result, " ");
+            free(result);
+            result = temp;
+        }
 
-//             // Vérifier qu'il y a un fichier après
-//             if (!cmd_array[i + 1])
-//             {
-//                 printf("Debug: Error: no file after redirection\n");
-//                 return NULL;
-//             }
+        // Ajouter l'argument
+        temp = ft_strjoin(result, cmd->args[i]);
+        free(result);
+        result = temp;
+    }
 
-//             // Créer une nouvelle redirection
-//             t_redir *new = malloc(sizeof(t_redir));
-//             if (!new)
-//                 return NULL;
-
-//             // Type de redirection ('>' ou 'A' pour '>>')
-//             new->type = (cmd_array[i][1] == '>') ? 'A' : '>';
-//             new->file = ft_strdup(cmd_array[i + 1]);
-//             printf("Debug: Created redirection to file: '%s'\n", new->file);
-
-//             // Ajouter à la liste
-//             new->next = redirs;
-//             redirs = new;
-
-//             // Supprimer la redirection et le fichier du tableau
-//             remove_elements(cmd_array, i, 2);
-
-//             // Ne pas incrémenter i car on a supprimé des éléments
-//         }
-//         else
-//             i++;
-//     }
-//     return redirs;
-// }
-
-// // Applique les redirections
-// int apply_redirections(t_redir *redirs)
-// {
-//     t_redir *current = redirs;
-
-//     while (current)
-//     {
-//         int flags = O_WRONLY | O_CREAT;
-//         if (current->type == 'A')
-//             flags |= O_APPEND;
-//         else
-//             flags |= O_TRUNC;
-//         int fd = open(current->file, flags, 0644);
-//         if (fd == -1)
-//         {
-//             perror("open");
-//             return -1;
-//         }
-//         if (dup2(fd, STDOUT_FILENO) == -1)
-//         {
-//             perror("dup2");
-//             close(fd);
-//             return -1;
-//         }
-//         close(fd);
-//         current = current->next;
-//     }
-//     return 0;
-// }
+    return result;
+}
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
@@ -461,7 +403,8 @@ void execute_command(t_command *cmd, t_ctx *ctx)
    int stdout_backup = dup(STDOUT_FILENO);
 
     t_command *current = cmd;
-    while (current) {
+    while (current)
+	{
         fprintf(stderr, "Debug: Command: '%s', Args: ", current->args[0]);
         for (int i = 0; i < current->arg_count; i++) {
             fprintf(stderr, "'%s' ", current->args[i]);
@@ -475,99 +418,209 @@ void execute_command(t_command *cmd, t_ctx *ctx)
        restore_fds(stdin_backup, stdout_backup);
        return;
    }
-
-   // Exécuter la commande
    if (is_builtin(cmd->args[0]))
-       execute_builtin_command(cmd, ctx);
+    {
+		char *cmd_line = tokens_to_string_from_command(cmd);
+		execute_builtin(cmd_line, ctx);
+		free(cmd_line);
+	}
+		// execute_builtin(cmd, ctx);
    else
        execute_external_command(cmd, ctx);
-
-   // Restaurer les FD originaux
    restore_fds(stdin_backup, stdout_backup);
 }
 
-// int apply_redirections(t_redirection *redirs)
+// void execute_command(t_command *cmd, t_ctx *ctx)
 // {
-//    t_redirection *current = redirs;
+//    // Sauvegarder les FD originaux
+//    int stdin_backup = dup(STDIN_FILENO);
+//    int stdout_backup = dup(STDOUT_FILENO);
 
-//    while (current)
+//    // Créer des tokens à partir des arguments de la commande
+//    t_token *tokens = create_tokens_from_command(cmd);
+
+//    // Expansion des variables
+//    if (expand_proc(&tokens, ctx) == -1)
 //    {
-//        if (current->type == '>' || current->type == 'A')
-//        {
-//            // Redirection sortante
-//            int flags = O_WRONLY | O_CREAT;
-//            flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
-
-//            current->fd = open(current->file, flags, 0644);
-//            if (current->fd == -1)
-//            {
-//                perror("open");
-//                return -1;
-//            }
-
-//            if (dup2(current->fd, STDOUT_FILENO) == -1)
-//            {
-//                perror("dup2");
-//                close(current->fd);
-//                return -1;
-//            }
-//            close(current->fd);
-//        }
-//        current = current->next;
+//        free_tokens(tokens);
+//        restore_fds(stdin_backup, stdout_backup);
+//        return;
 //    }
-//    return 0;
+
+//    // Mettre à jour les arguments de la commande avec les tokens expandus
+//    update_command_from_tokens(cmd, tokens);
+
+//    // Libérer les tokens temporaires
+//    free_tokens(tokens);
+
+//    // Appliquer toutes les redirections
+//    if (apply_redirections(cmd->redirs) == -1)
+//    {
+//        restore_fds(stdin_backup, stdout_backup);
+//        return;
+//    }
+
+//    // Exécuter la commande
+//    if (is_builtin(cmd->args[0]))
+//        execute_builtin_command(cmd, ctx);
+//    else
+//        execute_external_command(cmd, ctx);
+
+//    // Restaurer les FD originaux
+//    restore_fds(stdin_backup, stdout_backup);
+// }
+
+// // Fonction pour créer des tokens à partir des arguments de la commande
+// t_token *create_tokens_from_command(t_command *cmd)
+// {
+//     t_token *tokens = NULL;
+//     for (int i = 0; i < cmd->arg_count; i++)
+//     {
+//         add_token(&tokens, 'S', cmd->args[i]);
+//     }
+//     return tokens;
+// }
+
+// // Fonction pour mettre à jour la commande avec les tokens expandus
+// void update_command_from_tokens(t_command *cmd, t_token *tokens)
+// {
+//     // Libérer les anciens arguments
+//     for (int i = 0; i < cmd->arg_count; i++)
+//     {
+//         free(cmd->args[i]);
+//     }
+//     free(cmd->args);
+//     free(cmd->had_spaces);
+
+//     // Compter les nouveaux tokens
+//     int new_arg_count = 0;
+//     t_token *current = tokens;
+//     while (current)
+//     {
+//         new_arg_count++;
+//         current = current->next;
+//     }
+
+//     // Allouer de nouveaux tableaux
+//     cmd->args = malloc(sizeof(char *) * (new_arg_count + 1));
+//     cmd->had_spaces = malloc(sizeof(int) * new_arg_count);
+//     cmd->arg_count = new_arg_count;
+
+//     // Copier les nouveaux arguments
+//     current = tokens;
+//     for (int i = 0; current; i++)
+//     {
+//         cmd->args[i] = strdup(current->value);
+//         cmd->had_spaces[i] = current->had_space;
+//         current = current->next;
+//     }
+//     cmd->args[new_arg_count] = NULL;
 // }
 
 int apply_redirections(t_redirection *redirs)
 {
+    if (!redirs || redirs->type == 0)
+        return 0;
+
     t_redirection *current = redirs;
-    int last_fd = -1;
-
-    // D'abord inverser l'ordre de la liste pour traiter la dernière redirection en premier
-    t_redirection *reversed = NULL;
-    while (current)
-    {
-        t_redirection *next = current->next;
-        current->next = reversed;
-        reversed = current;
-        current = next;
-    }
-
-    // Maintenant traiter les redirections dans l'ordre inverse
-    current = reversed;
-    while (current)
+    while (current && current->type != 0)
     {
         if (current->type == '>' || current->type == 'A')
         {
-            // Si on avait déjà ouvert un fichier, le fermer
-            if (last_fd != -1)
-                close(last_fd);
-
             // Redirection sortante
             int flags = O_WRONLY | O_CREAT;
             flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
 
-            current->fd = open(current->file, flags, 0644);
-            if (current->fd == -1)
+            int fd = open(current->file, flags, 0644);
+            if (fd == -1)
             {
                 perror("open");
                 return -1;
             }
 
-            if (dup2(current->fd, STDOUT_FILENO) == -1)
+            if (dup2(fd, STDOUT_FILENO) == -1)
             {
                 perror("dup2");
+                close(fd);
                 return -1;
             }
-            close(current->fd);
-
-            last_fd = current->fd;
+            close(fd);
+        }
+        else if (current->type == '<' || current->type == 'H')
+        {
+            // Redirection entrante
+            int fd = open(current->file, O_RDONLY);
+            if (fd == -1)
+            {
+                perror("open");
+                return -1;
+            }
+            if (dup2(fd, STDIN_FILENO) == -1)
+            {
+                perror("dup2");
+                close(fd);
+                return -1;
+            }
+            close(fd);
         }
         current = current->next;
     }
 
     return 0;
 }
+
+// int apply_redirections(t_redirection *redirs)
+// {
+//     t_redirection *current = redirs;
+//     int last_fd = -1;
+
+//     // D'abord inverser l'ordre de la liste pour traiter la dernière redirection en premier
+//     t_redirection *reversed = NULL;
+//     if(!current)
+//         return -1;
+//     while (current)
+//     {
+//         t_redirection *next = current->next;
+//         current->next = reversed;
+//         reversed = current;
+//         current = next;
+//     }
+
+//     // Maintenant traiter les redirections dans l'ordre inverse
+//     current = reversed;
+//     while (current)
+//     {
+//         if (current->type == '>' || current->type == 'A')
+//         {
+//             // Si on avait déjà ouvert un fichier, le fermer
+//             if (last_fd != -1)
+//                 close(last_fd);
+
+//             // Redirection sortante
+//             int flags = O_WRONLY | O_CREAT;
+//             flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
+
+//             current->fd = open(current->file, flags, 0644);
+//             if (current->fd == -1)
+//             {
+//                 perror("open");
+//                 return -1;
+//             }
+
+//             if (dup2(current->fd, STDOUT_FILENO) == -1)
+//             {
+//                 perror("dup2");
+//                 return -1;
+//             }
+//             close(current->fd);
+
+//             last_fd = current->fd;
+//         }
+//         current = current->next;
+//     }
+
+//     return 0;
+// }
 
 void restore_fds(int stdin_fd, int stdout_fd)
 {
@@ -600,7 +653,6 @@ char *args_to_string(char **args)
     char *result = malloc(total_len + 1);
     if (!result)
         return NULL;
-
     // Construire la chaîne
     result[0] = '\0';
     for (int i = 0; args[i]; i++)
@@ -609,7 +661,6 @@ char *args_to_string(char **args)
         if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
             strcat(result, " ");
     }
-
     return result;
 }
 
