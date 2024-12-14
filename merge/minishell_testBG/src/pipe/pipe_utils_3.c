@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:02:24 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/13 19:50:33 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 17:03:27 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,10 @@ int	exec(t_token *cmd_tokens, t_ctx *ctx)
 		free_tab(args);
 		exit(EXIT_FAILURE);
 	}
-	/* if (is_builtin(args[0]))
+	for(int i = 0; args[i]; i++)
 	{
-		exec_simple_cmd(cmd_tokens, ctx);
-		free_tab(args);
-		return (0);
-	} */
+		fprintf(stderr, "Args : %s\n", args[i]);
+	}
 	path = resolve_command(args, ctx);
 	execute_command(args, path, ctx);
 	free_tab(args);
@@ -66,7 +64,7 @@ void	collect_exec_tokens(t_token *cmd_start, t_token *cmd_end,
 		t_token **exec_tokens, t_redir **redir)
 {
 	t_token	*redir_token;
-
+	
 	redir_token = cmd_start;
 	while (redir_token != cmd_end)
 	{
@@ -106,6 +104,12 @@ void	prepare_child_execution(t_pipeline *pl, t_ctx *ctx)
 	collect_exec_tokens(pl->cmd_start, pl->cmd_end, &exec_tokens, &redir);
 	if (exec_tokens && is_builtin(exec_tokens->value))
 	{
+		if (ft_strcmp(exec_tokens->value, "export") == 0
+		||ft_strcmp(exec_tokens->value, "unset") == 0 )
+		{
+			return;
+			free(redir);
+		}
 		setup_redirects(pl->prev_fd, pl->pipe_fd, pl->cmd_end, redir);
 		free(redir);
 		execute_builtin(pl->cmd_line, ctx);

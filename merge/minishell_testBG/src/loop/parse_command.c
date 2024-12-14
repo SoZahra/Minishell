@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 13:43:52 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 16:14:56 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,11 +281,10 @@ char *tokens_to_string(t_token *tokens)
     char *result = ft_strdup("");
     char *temp;
 
-    while (current)
+    while (current && ft_strcmp(current->value, "|") != 0 && ft_strcmp(current->value, ">") != 0
+    && ft_strcmp(current->value, ">>") != 0 && ft_strcmp(current->value, "<") != 0
+    && ft_strcmp(current->value, "<<") != 0)
     {
-        // fprintf(stderr, "Debug: result avant concat: '%s'\n", result);  // Afficher avant chaque concaténation
-
-        // Si ce n'est pas le premier token et qu'il n'y a pas de had_space
         if (*result && !current->had_space)
         {
             temp = ft_strjoin(result, " ");
@@ -297,10 +296,6 @@ char *tokens_to_string(t_token *tokens)
             free(result);
             result = temp;
         }
-
-        // fprintf(stderr, "Debug: result après ajout d'espace: '%s'\n", result);  // Afficher après ajout de l'espace
-
-        // Ajouter la valeur du token
         temp = ft_strjoin(result, current->value);
         if (!temp)
         {
@@ -318,6 +313,31 @@ char *tokens_to_string(t_token *tokens)
     return result;
 }
 
+char *tokens_to_string_from_command(t_command *cmd)
+{
+    if (!cmd->args || cmd->arg_count == 0)
+        return ft_strdup("");
+    char *result = ft_strdup(cmd->args[0]);
+    if (!result)
+        return NULL;
+
+    for (int i = 1; i < cmd->arg_count; i++)
+    {
+        char *temp;
+
+        if (!cmd->had_spaces[i])
+        {
+            temp = ft_strjoin(result, " ");
+            free(result);
+            result = temp;
+        }
+        temp = ft_strjoin(result, cmd->args[i]);
+        free(result);
+        result = temp;
+    }
+
+    return result;
+}
 
 // char *tokens_to_string(t_token *tokens)
 // {

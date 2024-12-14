@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   add_tokens.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:00:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 23:02:45 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/14 15:39:28 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
+#include "../../include/minishell.h"
 
 static void	free_token_resources(t_token *token)
 {

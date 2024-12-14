@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:08:54 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/13 19:50:23 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 14:34:02 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ t_redir *redir)
 	t_token	*cmd_start;
 
 	cmd_start = cmd_end;
-	print_tokens(cmd_start);
 	if (prev_fd != -1 && redir->input != 1)
 	{
 		dup2(prev_fd, STDIN_FILENO);

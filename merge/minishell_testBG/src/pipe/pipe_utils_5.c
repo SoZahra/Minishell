@@ -6,11 +6,63 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:09:37 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/11 17:23:53 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 17:12:54 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+void handle_builtin_redirection(t_pipeline *pl)
+{
+    t_token *current = pl->cmd_start;
+    int fd;
+
+    while (current)
+    {
+        if (ft_strcmp(current->value, ">") == 0 && current->next)
+        {
+            fd = open(current->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (fd == -1)
+                perror("Error opening file for writing");
+            else
+            {
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
+            }
+            break;
+        }
+        else if (ft_strcmp(current->value, "<") == 0 && current->next)
+        {
+            fd = open(current->next->value, O_RDONLY);
+            if (fd == -1)
+                perror("Error opening file for reading");
+            else
+            {
+                dup2(fd, STDIN_FILENO);
+                close(fd);
+            }
+            break;
+        }
+        else if (ft_strcmp(current->value, ">>") == 0 && current->next)
+        {
+            fd = open(current->next->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            if (fd == -1)
+                perror("Error opening file for appending");
+            else
+            {
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
+            }
+            break;
+        }
+        else if (ft_strcmp(current->value, "<<") == 0 && current->next)
+        {
+            fprintf(stderr, "Heredoc redirection not supported in this function\n");
+            break;
+        }
+        current = current->next;
+    }
+}
 
 void	read_heredoc(int fd, char *limiter)
 {

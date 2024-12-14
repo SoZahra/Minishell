@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 19:50:49 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 17:41:38 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,25 @@ void	execute_in_child(t_pipeline *pl, t_ctx *ctx)
 
 void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 {
-	execute_builtin(pl->cmd_line, ctx);
+	pid_t	pid;
+	t_token	*tokens;
+	
+	tokens = pl->cmd_end;
+	while (tokens)
+	{
+		fprintf(stderr, "value tokens : %s\n", tokens->value);
+		if(ft_strcmp(tokens->value, "|") == 0)
+			return;
+		tokens = tokens->next;
+	}
+	pid = fork();
+	if (pid == -1)
+		exit(EXIT_FAILURE);
+	if (pid == 0)
+	{
+		handle_builtin_redirection(pl);
+		execute_builtin(pl->cmd_line, ctx);
+	}
 }
 
 void	process_pipeline_segment(t_pipeline *pl, t_ctx *ctx)

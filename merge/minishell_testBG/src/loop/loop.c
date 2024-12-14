@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 19:07:13 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 16:06:11 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -604,28 +604,29 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         add_history(line);
         t_token *tokens = tokenize_input(line);
         if (tokens)
+        {
+            if (expand_proc(&tokens, ctx) == -1)
+            {
+                free_tokens(tokens);
+                return 1;
+            }
 			process_pline(tokens, ctx);
+        }
         if (!tokens)
         {
             fprintf(stderr, "Error: tokenization failed\n");
             return 1;
         }
-        /* }
+        }
         // print_token_debug(tokens, "tokenization");
         // fprintf(stderr, "Debug: Tokens après tokenization:\n");
         // for (t_token *cur = tokens; cur; cur = cur->next)
         // {
         //     fprintf(stderr, "->>>>>>>>value: '%s', type: %d, had_space: %d\n", cur->value, cur->type, cur->had_space);
         // }
-        if (expand_proc(&tokens, ctx) == -1)
-        {
-            // fprintf(stderr, "Debug: expand_proc failed\n");
-            free_tokens(tokens);
-            return 1;
-        }
 
         // Créer la commande
-        t_command *cmd = parse_pipe_sequence(tokens);
+       /*  t_command *cmd = parse_pipe_sequence(tokens);
         if (!cmd)
         {
             free_tokens(tokens);
@@ -662,7 +663,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
             }
             free(final_cmd);
         } */
-    }
+    //}
     // free_command(cmd);
     // free_tokens(tokens);
     return 0;

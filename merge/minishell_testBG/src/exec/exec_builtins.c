@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 19:53:52 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 16:01:44 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,22 +213,16 @@ int handle_env_builtin(const char *input, t_ctx *ctx)
 
 int execute_builtin(const char *cmd_line, t_ctx *ctx)
 {
-    // printf("Debug: execute_builtin with command line: '%s'\n", cmd_line);
-
-    // Extraire le premier mot (la commande)
     char *cmd = ft_strdup(cmd_line);
     char *space = strchr(cmd, ' ');
     if (space)
         *space = '\0';
-
-    // printf("Debug: Command extracted: '%s'\n", cmd);
 
     // Trouver le début des arguments (après la commande)
     const char *args = cmd_line + ft_strlen(cmd);
     while (*args == ' ')
         args++;
 
-    // printf("Debug: Arguments: '%s'\n", args);
 
     // Exécuter le bon builtin
     int result = 0;

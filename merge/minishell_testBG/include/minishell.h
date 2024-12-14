@@ -134,6 +134,7 @@ int is_builtin(const char *cmd);
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
 
 char *tokens_to_string(t_token *tokens);
+char *tokens_to_string_from_command(t_command *cmd);
 // char *prepare_command(t_token *tokens, t_ctx *ctx);
 int join_proc(t_token **tokens, bool limiter);
 int join_tokens(t_token *prev, t_token *current);
@@ -365,7 +366,7 @@ void					initialize_pipe_if_needed(int *pipe_fd,
 							t_token *cmd_end);
 void					collect_exec_tokens(t_token *cmd_start, t_token *cmd_end,
 							t_token **exec_tokens, t_redir **redir);
-
+void					handle_builtin_redirection(t_pipeline *pl);
 int 					count_env_vars(t_env_var *env_vars);
 // char **create_env_array(t_env_var *env_vars, int count);
 char **ctx_to_env_array(t_ctx *ctx);

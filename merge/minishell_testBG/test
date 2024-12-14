@@ -1,14 +1,8 @@
-include
-libft
-Makefile
-minishell
-minishell.sup
-minishell_tester
-output.txt
-src
-tessstts
 test
-test2
-test3
-testtt
-ts
+[?2004hMiniBG> 
+[?2004l[?2004hMiniBG> 
+[?2004l[?2004hMiniBG> 
+[?2004l[?2004hMiniBG> 
+[?2004l[?2004hMiniBG> ^C[?2004l
+MiniBG> [?2004h[?2004l
+exit
