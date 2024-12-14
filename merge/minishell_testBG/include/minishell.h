@@ -59,7 +59,8 @@ typedef enum token_type
 	TOKEN_REDIRECT_OUTPUT = '>', // >
 	TOKEN_REDIRECT_APPEND = 'A', // >>
 	TOKEN_PIPE = '|',            // |
-	STRING = 'T',
+	STRING = 'S',
+    CMD = 'C',
 	DOUBLEQUOTE = '"',
 	SINGLE_QUOTE = '\'',
 }						t_token_type;
@@ -98,6 +99,7 @@ typedef struct s_command {
 	char *path;
     t_redirection *redirs; // Liste des redirections
 	int pfd[2];
+	int arg_count;
     // int pipe_in;           // FD pour le pipe d'entrée (si existe)
     // int pipe_out;          // FD pour le pipe de sortie (si existe)
 	struct s_command *next;     // Commande suivante dans le pipe
@@ -128,6 +130,8 @@ void token_del(t_token *token);
 int join_str(t_token *token, bool limiter);
 int expand_proc(t_token **tokens, t_ctx *ctx);
 int expand_str(t_token *token, t_ctx *ctx);
+
+char *trim_whitespace(const char *str);
 
 //----------------------------------------------------------------
 
@@ -186,6 +190,8 @@ int add_arg_to_command(t_command *cmd, char *arg);
 int handle_line_for_loop(char *line, t_ctx *ctx);
 int append_arg_value(char **current_arg, const char *value, int had_space);
 
+
+t_command *parse_pipe_sequence(t_token *tokens);
 
 // -------------------------------------------------------------
 

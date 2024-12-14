@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 15:49:49 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 10:03:21 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void print_tokens(t_token *tokens)
 	while (tmp)
 	{
 		if (tmp->value)
-			printf("value: %s \t type: %c  \t flag: %d\n", tmp->value, tmp->type, tmp->had_space);
+			printf("value: [%s] \t type: %c  \t flag: %d\n", tmp->value, tmp->type, tmp->had_space);
 		tmp = tmp->next;
 	}
 }
@@ -36,6 +36,7 @@ t_token *tokenize_input(char *line)
         free_tokens(tokens);
         return (NULL);
     }
+    print_tokens(tokens);
     return (tokens);
 }
 
@@ -522,6 +523,75 @@ t_token *find_pipe_token(t_token *start)
     return current;
 }
 
+
+char *trim_whitespace(const char *str) {
+    if (!str)
+        return NULL;
+
+    const char *start = str;
+    const char *end = str + strlen(str) - 1;
+
+    // Skip spaces au début
+    while (*start && ft_isspace((unsigned char)*start))
+        start++;
+    // Si la chaîne est vide après avoir skip les espaces
+    if (*start == '\0')
+        return strdup("");
+    // Skip spaces à la fin
+    while (end > start && ft_isspace((unsigned char)*end))
+        end--;
+    // Calculer la taille de la chaîne nettoyée
+    size_t len = end - start + 1;
+    // Allouer et copier la nouvelle chaîne
+    char *trimmed = malloc(len + 1);
+    if (!trimmed)
+        return NULL;
+    strncpy(trimmed, start, len);
+    trimmed[len] = '\0';
+    return trimmed;
+}
+
+void clean_token_whitespace(t_command *cmd) {
+    while (cmd) {
+        for (int i = 0; i < cmd->arg_count; i++) {
+            if (cmd->args[i]) {
+                fprintf(stderr, "Debug: Before trim: '%s'\n", cmd->args[i]);
+                char *cleaned = trim_whitespace(cmd->args[i]);
+                if (cleaned) {
+                    free(cmd->args[i]);
+                    cmd->args[i] = cleaned;
+                    fprintf(stderr, "Debug: After trim: '%s'\n", cmd->args[i]);
+                } else {
+                    perror("trim_whitespace failed");
+                }
+            }
+        }
+        cmd = cmd->next;
+    }
+}
+
+
+// void clean_token_whitespace(t_command *cmd)
+// {
+//     while (cmd)
+//     {
+//         if (cmd->args && cmd->args[0])
+//         {
+//             char *cleaned = strdup(cmd->args[0]);
+//             if (!cleaned)
+//                 perror("strdup failed");
+//             else
+//             {
+//                 trim_whitespace(cleaned); // Assurez-vous que cette fonction est définie
+//                 free(cmd->args[0]);
+//                 cmd->args[0] = cleaned;
+//             }
+//         }
+//         cmd = cmd->next;
+//     }
+// }
+
+
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!*line)
@@ -542,15 +612,46 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         return 1;
     }
     // 3. Création de la commande avec gestion des pipes
+    // t_command *cmd = parse_pipe_sequence(tokens);
+    // while(cmd)
+    // printf("Debug: cmd->args[0]: '%s'\n", cmd->args[0]);
+    // printf("Debug: cmd->args[1]: '%s'\n", cmd->args[1]);
+    print_tokens(tokens);
+   
+    char *final_cmd = tokens_to_string(tokens);
+        if (!final_cmd)
+        {
+            // fprintf(stderr, "Debug: tokens_to_string returned NULL\n");
+            // free_command(cmd);
+            free_tokens(tokens);
+            return 1;
+        }
+    // t_command *cmd = parse_pipe_sequence(tokens);
+    // if (!cmd)
+    // {
+    //     free_tokens(tokens);
+    //     return 1;
+    // }
     t_command *cmd = parse_pipe_sequence(tokens);
-    if (!cmd)
-    {
+    clean_token_whitespace(cmd);
+    if (!cmd) {
+        // fprintf(stderr, "Debug: Failed to parse command sequence\n");
         free_tokens(tokens);
         return 1;
     }
-    // 4. Exécution
+
+    t_command *current = cmd;
+    while (current) {
+        fprintf(stderr, "Debug: Command: '%s', Next: %s, Prev: %s\n",
+            current->args[0],
+            current->next ? current->next->args[0] : "NULL",
+            current->prev ? current->prev->args[0] : "NULL");
+        current = current->next;
+    }
     if (cmd->next)  // Si on a des pipes
         execute_pipeline(cmd, ctx);
+    else if (is_builtin(cmd->args[0]))
+            execute_builtin(final_cmd, ctx);
     else  // Si c'est une commande simple
         execute_command(cmd, ctx);
     // Nettoyage

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 17:37:03 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 10:01:44 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 char **create_command_array(const char *cmd_str)
 {
-    printf("Debug: Creating array for command: '%s'\n", cmd_str);
+    // printf("Debug: Creating array for command: '%s'\n", cmd_str);
 
     // Ignorer les espaces au début
     while (*cmd_str == ' ')
@@ -25,12 +25,12 @@ char **create_command_array(const char *cmd_str)
         return NULL;
 
     // Compter le nombre d'arguments pour debug
-    int i = 0;
-    while (cmd_array[i])
-    {
-        printf("Debug: arg[%d]: '%s'\n", i, cmd_array[i]);
-        i++;
-    }
+    // int i = 0;
+    // while (cmd_array[i])
+    // {
+    //     printf("Debug: arg[%d]: '%s'\n", i, cmd_array[i]);
+    //     i++;
+    // }
 
     return cmd_array;
 }
@@ -142,44 +142,130 @@ char *get_env_path(t_env_var *env_vars)
     return NULL;
 }
 
-char *find_command_path(const char *cmd, t_ctx *ctx)
+char *join_path(const char *dir, const char *file)
 {
-    // Si la commande contient un '/', c'est déjà un chemin
-    if (ft_strchr(cmd, '/'))
-        return ft_strdup(cmd);
+    size_t len_dir = strlen(dir);
+    size_t len_file = strlen(file);
+    char *full_path = malloc(len_dir + len_file + 2); // +1 pour '/' et +1 pour '\0'
 
-    // Récupérer le PATH
-    char *path = get_env_path(ctx->env_vars);
-    if (!path)
-        return NULL;
-
-    // Diviser le PATH en dossiers
-    char **directories = ft_split(path, ':');
-    if (!directories)
-        return NULL;
-
-    // Chercher la commande dans chaque dossier
-    char *cmd_path = NULL;
-    for (int i = 0; directories[i]; i++)
+    if (!full_path)
     {
-        // Construire le chemin complet
-        cmd_path = ft_strjoin(directories[i], "/");
-        char *temp = ft_strjoin(cmd_path, cmd);
-        free(cmd_path);
-        cmd_path = temp;
-
-        // Vérifier si le fichier existe et est exécutable
-        if (access(cmd_path, X_OK) == 0)
-        {
-            free_array(directories);
-            return cmd_path;
-        }
-        free(cmd_path);
+        perror("malloc");
+        return NULL;
     }
 
-    free_array(directories);
+    strcpy(full_path, dir);
+    if (full_path[len_dir - 1] != '/')
+        strcat(full_path, "/");
+    strcat(full_path, file);
+
+    return full_path;
+}
+
+int is_executable(const char *path)
+{
+    struct stat st;
+    if (stat(path, &st) == 0 && (st.st_mode & S_IXUSR))
+        return 1;
+    return 0;
+}
+
+char *find_command_path(const char *command, t_ctx *ctx)
+{
+    (void)ctx;
+    // Vérifier si la commande est déjà un chemin absolu ou relatif
+    if (strchr(command, '/'))
+    {
+        if (is_executable(command))
+        {
+            // fprintf(stderr, "Debug: Command '%s' is directly executable.\n", command);
+            return strdup(command);
+        }
+        // fprintf(stderr, "Debug: Command '%s' is not executable or does not exist.\n", command);
+        return NULL;
+    }
+
+    // Récupérer la variable PATH
+    char *path_env = getenv("PATH");
+    if (!path_env)
+    {
+        // fprintf(stderr, "Debug: PATH environment variable is not set.\n");
+        return NULL;
+    }
+
+    // Séparer les chemins dans PATH
+    char *path_copy = strdup(path_env);
+    if (!path_copy)
+    {
+        perror("strdup");
+        return NULL;
+    }
+
+    char *token = strtok(path_copy, ":");
+    while (token)
+    {
+        char *full_path = join_path(token, command);
+        if (!full_path)
+        {
+            free(path_copy);
+            return NULL;
+        }
+        // fprintf(stderr, "Debug: Checking path: %s\n", full_path);
+        if (is_executable(full_path))
+        {
+            // fprintf(stderr, "Debug: Found command '%s' at %s\n", command, full_path);
+            free(path_copy);
+            return full_path;
+        }
+
+        free(full_path);
+        token = strtok(NULL, ":");
+    }
+
+    // fprintf(stderr, "Debug: Command '%s' not found in PATH.\n", command);
+    free(path_copy);
     return NULL;
 }
+    
+
+// char *find_command_path(const char *cmd, t_ctx *ctx)
+// {
+//     // Si la commande contient un '/', c'est déjà un chemin
+//     if (ft_strchr(cmd, '/'))
+//         return ft_strdup(cmd);
+
+//     // Récupérer le PATH
+//     char *path = get_env_path(ctx->env_vars);
+//     if (!path)
+//         return NULL;
+
+//     // Diviser le PATH en dossiers
+//     char **directories = ft_split(path, ':');
+//     if (!directories)
+//         return NULL;
+
+//     // Chercher la commande dans chaque dossier
+//     char *cmd_path = NULL;
+//     for (int i = 0; directories[i]; i++)
+//     {
+//         // Construire le chemin complet
+//         cmd_path = ft_strjoin(directories[i], "/");
+//         char *temp = ft_strjoin(cmd_path, cmd);
+//         free(cmd_path);
+//         cmd_path = temp;
+        
+//         // Vérifier si le fichier existe et est exécutable
+//         if (access(cmd_path, X_OK) == 0)
+//         {
+//             free_array(directories);
+//             return cmd_path;
+//         }
+//         free(cmd_path);
+//     }
+
+//     free_array(directories);
+//     return NULL;
+// }
 
 char **create_env_array(t_env_var *env_vars)
 {
@@ -374,6 +460,15 @@ void execute_command(t_command *cmd, t_ctx *ctx)
    int stdin_backup = dup(STDIN_FILENO);
    int stdout_backup = dup(STDOUT_FILENO);
 
+    t_command *current = cmd;
+    while (current) {
+        fprintf(stderr, "Debug: Command: '%s', Args: ", current->args[0]);
+        for (int i = 0; i < current->arg_count; i++) {
+            fprintf(stderr, "'%s' ", current->args[i]);
+        }
+    fprintf(stderr, "\n");
+    current = current->next;
+}
    // Appliquer toutes les redirections
    if (apply_redirections(cmd->redirs) == -1)
    {
@@ -496,7 +591,7 @@ char *args_to_string(char **args)
     size_t total_len = 0;
     for (int i = 0; args[i]; i++)
     {
-        total_len += strlen(args[i]);
+        total_len += ft_strlen(args[i]);
         if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
             total_len++;
     }
@@ -520,8 +615,9 @@ char *args_to_string(char **args)
 
 void execute_builtin_command(t_command *cmd, t_ctx *ctx)
 {
-   // Convertir les arguments en une seule chaîne pour les builtins existants
    char *cmd_str = args_to_string(cmd->args);
+//    printf("Debug: cmd->argssss[0]: '%s'\n", cmd->args[0]);
+//     printf("Debug: cmd->argssss[1]: '%s'\n", cmd->args[1]);
    if (cmd_str)
    {
        ctx->exit_status = execute_builtin(cmd_str, ctx);
