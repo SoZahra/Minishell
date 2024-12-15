@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:08:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:35:24 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 // {
 // 	if (args[1] && args[2])
 // 	{
-// 		fprintf(stderr, "cd: too many arguments\n");
+// 		ft_fprintf(2, "cd: too many arguments\n");
 // 		ctx->exit_status = 1;
 // 		return (1);
 // 	}
@@ -26,7 +26,7 @@
 // 		return (ft_cd_oldpwd(ctx));
 // 	if (chdir(args[1]) != 0)
 // 	{
-// 		fprintf(stderr, "cd: %s: No such file or directory\n", args[1]);
+// 		ft_fprintf(2, "cd: %s: No such file or directory\n", args[1]);
 //         ctx->exit_status = 1;
 //         return (1);
 // 	}
@@ -38,7 +38,7 @@ int ft_cd_home(t_ctx *ctx)
     char *home = find_env_value("HOME", ctx->env_vars);
     if (!home)
     {
-        fprintf(stderr, "cd: HOME not set\n");
+        ft_fprintf(2, "cd: HOME not set\n");
         ctx->exit_status = 1;
         return 1;
     }
@@ -55,7 +55,7 @@ int ft_cd_oldpwd(t_ctx *ctx)
 {
     if (!ctx->oldpwd)
     {
-        fprintf(stderr, "cd: OLDPWD not set\n");
+        ft_fprintf(2, "cd: OLDPWD not set\n");
         ctx->exit_status = 1;
         return 1;
     }
@@ -102,7 +102,7 @@ void free_array(char **array)
 // 	home = find_env_value("HOME", ctx->env_vars);
 // 	if (!home)
 // 	{
-// 		fprintf(stderr, "cd: HOME not set\n");
+// 		ft_fprintf(2, "cd: HOME not set\n");
 // 		return (1);
 // 	}
 // 	if (chdir(home) != 0)
@@ -117,7 +117,7 @@ void free_array(char **array)
 // {
 // 	if (ctx->oldpwd == NULL)
 // 	{
-// 		fprintf(stderr, "cd: OLDPWD not set\n");
+// 		ft_fprintf(2, "cd: OLDPWD not set\n");
 // 		return (1);
 // 	}
 // 	if (chdir(ctx->oldpwd) != 0)

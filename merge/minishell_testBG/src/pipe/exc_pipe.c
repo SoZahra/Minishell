@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 15:02:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 16:55:54 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int	validate_pipe_syntax(t_token *tokens)
 	current = tokens;
 	if (!current || current->type == TOKEN_PIPE)
 	{
-		fprintf(stderr, "bash: syntax error near unexpected token '|'\n");
+		ft_fprintf(2, "bash: syntax error near unexpected token '|'\n");
 		return (-1);
 	}
 	while (current)
@@ -28,7 +28,7 @@ int	validate_pipe_syntax(t_token *tokens)
 		{
 			if (!current->next || current->next->type == TOKEN_PIPE)
 			{
-				fprintf(stderr,
+				ft_fprintf(2,
 					"bash: syntax error near unexpected token '|'\n");
 				return (-1);
 			}
@@ -44,14 +44,14 @@ int	valide_pipes(t_token *tokens)
 
 	current = tokens;
 	if (!current || current->type == TOKEN_PIPE)
-		return (fprintf(stderr,
+		return (ft_fprintf(2,
 				"minibg : syntax error near unexpected token `|'\n"), -1);
 	while (current)
 	{
 		if (current->type == TOKEN_PIPE)
 		{
 			if (!current->next || current->next->type == TOKEN_PIPE)
-				return (fprintf(stderr,
+				return (ft_fprintf(2,
 						"Minibg : syntax error near unexpected token `|'\n"),
 					-1);
 		}

@@ -97,7 +97,7 @@ SRCS_FILES	=	main.c exec.c pipe.c\
 				loop/loop.c loop/parse_command.c loop/utils_parse_2.c loop/utils_parse_command.c \
 				signaux/handle_signal.c \
 				tokens/add_tokens.c tokens/args.c \
-				utils/free.c utils/init.c utils/list.c utils/utils.c \
+				utils/free.c utils/init.c utils/list.c utils/utils.c utils/ft_fprintf.c \
 				pipe/exc_pipe.c pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
 				pipe/pipe_utils.c pipe/pipe.c
 

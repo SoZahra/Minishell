@@ -167,6 +167,11 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx);
 int handle_exit_builtin(const char *input, t_ctx *ctx);
 int process_exit_arg(char **args, t_ctx *ctx);
 
+//unset 
+
+int unset_v(t_env_var **env_vars, const char *var);
+int handle_unset_builtin(const char *input, t_ctx *ctx);
+
 
 //exec
 
@@ -212,10 +217,7 @@ char					**get_environment(char **envp);
 // int						export_v(char ***env_copy, const char *var,
 // 							const char *value);
 t_env_var *export_v(t_env_var *env_vars, const char *var, const char *value);
-// int unset_v(char ***env_copy, const char *var);
-// int unset_v(char ***env_copy, const char *var);
-// int unset_v(t_env_var **env_vars, const char *var, t_ctx *ctx);
-int						unset_v(t_env_var **env_vars, const char *var);
+
 // char *expand_env_var(char *token, int *exit_status);
 char					*ps_get_before_env(char *str, char *found);
 char					*ps_get_env_var(char *var_name, t_ctx *ctx);
@@ -481,5 +483,8 @@ int is_valid_n(t_token *current);
 
 int set_term_attr();
 int get_term_attr();
+
+int ft_fprintf(int fd, const char *format, ...);
+t_token *tokenize_input(char *line);
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 17:17:31 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/15 12:07:46 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 int	handle_invalid_identifier(char *arg, char *var, char *value)
 {
 	if (var)
-		fprintf(stderr, "export: `%s`: not a valid identifier\n", var);
+		ft_fprintf(2, "export: `%s`: not a valid identifier\n", var);
 	else
-		fprintf(stderr, "export: `%s`: not a valid identifier\n", arg);
+		ft_fprintf(2, "export: `%s`: not a valid identifier\n", arg);
 	free(var);
 	free(value);
 	return (1);
@@ -82,7 +82,7 @@ int handle_env_builtin(const char *input, t_ctx *ctx)
         input++;
     if (*input != '\0')
     {
-        fprintf(stderr, "env: too many arguments\n");
+        ft_fprintf(2, "env: too many arguments\n");
         ctx->exit_status = 1;
         return 1;
     }
@@ -118,16 +118,63 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
         result = handle_env_builtin(args, ctx);
     else if (ft_strcmp(cmd, "exit") == 0)
         result = handle_exit_builtin(args, ctx);
-    // else if (ft_strcmp(cmd, "unset") == 0)
-    //     result = handle_unset_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "unset") == 0)
+        result = handle_unset_builtin(args, ctx);
     free(cmd);
     return result;
 }
 
-// int handle_unset_builtin(const char *input, t_ctx *ctx)
-// {
-//     while (*input == ' ')
-//         input++;
+int handle_unset_builtin(const char *input, t_ctx *ctx)
+{
+    char **split_args;
+    int i;
 
-// }
+    while (*input == ' ')
+        input++;
+    if (!*input)
+        return 0;
+    split_args = ft_split(input, ' ');
+    if (!split_args)
+        return (perror("ft_split"), 1);
+    i = 0;
+    while(split_args[i])
+    {
+        if (!is_valid_var_name(split_args[i]))
+        {
+            ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
+            ctx->exit_status = 1;
+            continue;
+        }
+        if (unset_v(&ctx->env_vars, split_args[i]) != 0)
+            ctx->exit_status = 1;
+        i++;
+    }
+    free_array(split_args);
+    return 0;
+}
 
+int unset_v(t_env_var **env_vars, const char *var)
+{
+    t_env_var *current;
+    t_env_var *prev;
+
+    current = *env_vars;
+    prev = NULL;
+    while (current)
+    {
+        if (ft_strcmp(current->name, var) == 0)
+        {
+            if (prev == NULL)
+                *env_vars = current->next;
+            else
+                prev->next = current->next;
+            free(current->name);
+            free(current->value);
+            free(current);
+            return 0;
+        }
+        prev = current;
+        current = current->next;
+    }
+    return 1;
+}

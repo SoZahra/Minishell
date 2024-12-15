@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_export.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 17:23:49 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 23:12:14 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,11 +36,130 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     return 1;
 }
 
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     (void)ctx;
+//     write(STDOUT_FILENO, args, ft_strlen(args));
+//     write(STDOUT_FILENO, "\n", 1);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
+
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     // Les tokens sont déjà créés et expansés avant d'arriver ici
+//     t_token *tokens = tokenize_input((char *)args);
+//     int no_newline = 0;
+
+//     // Vérifier l'option -n
+//     if (tokens && is_valid_n(tokens))
+//     {
+//         no_newline = 1;
+//         // Supprimer les tokens -n
+//         while (tokens && tokens->value[0] == '-' && 
+//                ft_strchr(tokens->value, 'n'))
+//         {
+//             t_token *temp = tokens;
+//             tokens = tokens->next;
+//             free(temp->value);
+//             free(temp);
+//         }
+//     }
+//     t_token *current = tokens;
+//     while (current)
+//     {
+//         write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+//         if (current->next)
+//             write(STDOUT_FILENO, " ", 1);
+//         current = current->next;
+//     }
+//     if (!no_newline)
+//         write(STDOUT_FILENO, "\n", 1);
+//     free_tokens(tokens);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
+
+// Vérifie et supprime les tokens -n
+// t_token *handle_n_option(t_token *tokens, int *no_newline)
+// {
+//     *no_newline = 0;
+
+//     if (tokens && is_valid_n(tokens))
+//     {
+//         *no_newline = 1;
+//         while (tokens && tokens->value[0] == '-' && 
+//                ft_strchr(tokens->value, 'n'))
+//         {
+//             t_token *temp = tokens;
+//             tokens = tokens->next;
+//             free(temp->value);
+//             free(temp);
+//         }
+//     }
+
+//     return tokens;
+// }
+
+// // Écrire les tokens avec des espaces entre eux
+// void write_echo_tokens(t_token *tokens)
+// {
+//     t_token *current = tokens;
+//     while (current)
+//     {
+//         write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+//         if (current->next)
+//             write(STDOUT_FILENO, " ", 1);
+//         current = current->next;
+//     }
+// }
+
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     t_token *tokens;
+//     int no_newline = 0;
+
+//     tokens = tokenize_input((char *)args);
+//     tokens = handle_n_option(tokens, &no_newline);
+//     write_echo_tokens(tokens);
+//     if (!no_newline)
+//         write(STDOUT_FILENO, "\n", 1);
+//     free_tokens(tokens);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
+
 int handle_echo_builtin(const char *args, t_ctx *ctx)
 {
-    (void)ctx;
-    write(STDOUT_FILENO, args, ft_strlen(args));
-    write(STDOUT_FILENO, "\n", 1);
+    t_token *tokens = tokenize_input((char *)args);
+    int no_newline = 0;
+    // int has_non_n_token = 0;
+
+    t_token *current = tokens;
+    while (current && is_valid_n(current))
+    {
+        no_newline = 1;
+        current = current->next;
+    }
+
+    // Écrire les tokens
+    int first = 1;
+    while (current)
+    {
+        if (!first)
+            write(STDOUT_FILENO, " ", 1);
+        write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+        first = 0;
+        current = current->next;
+    }
+
+    // Ajouter un retour à la ligne sauf si -n
+    if (!no_newline)
+        write(STDOUT_FILENO, "\n", 1);
+
+    // Libérer les tokens
+    free_tokens(tokens);
+
     ctx->exit_status = 0;
     return 0;
 }
@@ -98,7 +217,7 @@ int handle_no_args(t_ctx *ctx)
 
 int handle_error(const char *arg, t_ctx *ctx)
 {
-    fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
+    ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
     ctx->exit_status = 1;
     return 1;
 }

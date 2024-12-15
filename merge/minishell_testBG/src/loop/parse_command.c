@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 18:42:33 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -433,7 +433,7 @@ int tokenizer(t_token **tokens, char *input)
 //    if (check_invalid_quotes(line))
 //    {
 //     printf("===============\n");
-//        fprintf(stderr, "miniBG: syntax error near unexpected token `newline'\n");
+//        ft_fprintf(2, "miniBG: syntax error near unexpected token `newline'\n");
 //        ctx->exit_status = 2;
 //        return NULL;
 //    }
@@ -495,7 +495,7 @@ int tokenizer(t_token **tokens, char *input)
 //                 buffer[j++] = line[i++];
 //             if (!line[i])
 //             {
-//                 fprintf(stderr, "Error: unclosed quote\n");
+//                 ft_fprintf(2, "Error: unclosed quote\n");
 //                 free(temp);
 //                 free_tokens(token_list);
 //                 return NULL;
@@ -602,7 +602,7 @@ int tokenizer(t_token **tokens, char *input)
 //            // Vérifie le cas "export ="
 //            if (ft_strcmp(current->value, "=") == 0)
 //            {
-//                fprintf(stderr, "MiniBG: export: `=': not a valid identifier\n");
+//                ft_fprintf(2, "MiniBG: export: `=': not a valid identifier\n");
 //                ctx->exit_status = 1;
 //                free_tokens(token_list);
 //                return NULL;
@@ -611,7 +611,7 @@ int tokenizer(t_token **tokens, char *input)
 //            // Vérifie si commence par un chiffre
 //            if (current->value[0] && ft_isdigit(current->value[0]))
 //            {
-//                fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n",
+//                ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
 //                        current->value);
 //                ctx->exit_status = 1;
 //                free_tokens(token_list);
@@ -623,7 +623,7 @@ int tokenizer(t_token **tokens, char *input)
 //            char *dash_pos = ft_strchr(current->value, '-');
 //            if (dash_pos && (!equal_pos || dash_pos < equal_pos))
 //            {
-//                fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n",
+//                ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
 //                        current->value);
 //                ctx->exit_status = 1;
 //                free_tokens(token_list);

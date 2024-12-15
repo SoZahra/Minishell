@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 18:48:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ t_token *tokenize_input(char *line)
 //             free_tokens(tokens);
 //         }
 //         else
-//             fprintf(stderr, "Error: tokenization failed\n");
+//             ft_fprintf(2, "Error: tokenization failed\n");
 //     }
 // }
 
@@ -400,7 +400,7 @@ t_command *create_command_from_tokens(t_token *tokens)
 //     t_token *tokens = tokenize_input(line);
 //     if (!tokens)
 //     {
-//         fprintf(stderr, "Error: tokenization failed\n");
+//         ft_fprintf(2, "Error: tokenization failed\n");
 //         return 1;
 //     }
 //     // 2. Expansion et préparation
@@ -514,7 +514,7 @@ t_command *parse_pipe_sequence(t_token *tokens)
 //         last = last->next;
 //     if (tokens && tokens->type == '|')
 //     {
-//         fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
+//         ft_fprintf(2, "MiniBG: syntax error near unexpected token `|'\n");
 //         return NULL;
 //     }
 //     t_command *first_cmd = NULL;
@@ -525,7 +525,7 @@ t_command *parse_pipe_sequence(t_token *tokens)
 //     {
 //         if (cmd_start->type == '|' && (!cmd_start->next || cmd_start->next->type == '|'))
 //         {
-//             fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
+//             ft_fprintf(2, "MiniBG: syntax error near unexpected token `|'\n");
 //             if (first_cmd)
 //                 free_command(first_cmd);
 //             return NULL;
@@ -571,7 +571,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     t_token *tokens = tokenize_input(line);
     print_tokens(tokens);
     if (!tokens)
-        return (fprintf(stderr, "Error: tokenization failed\n"), 1);
+        return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
     if (expand_proc(&tokens, ctx) == -1)
         return (free_tokens(tokens), 1);
     t_command *cmd = parse_pipe_sequence(tokens);

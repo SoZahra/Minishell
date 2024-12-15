@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils_parse_command.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 17:25:38 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ int split_env_v(char *arg, char **var, char **value)
         if (!is_valid_var_name(arg))
         {
             // printf("Debug: Invalid var name (no equal)\n");
-            fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
             return 0;
         }
         *var = ft_strdup(arg);
@@ -141,7 +141,7 @@ int split_env_v(char *arg, char **var, char **value)
     {
         // printf("Debug: Invalid var name\n");
         free(*var);
-        fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
+        ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
         return 0;
     }
 

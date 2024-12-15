@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_utils_2.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 14:13:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 // 	option_cmd = prepare_args(cmd_tokens, ctx);
 // 	if (!option_cmd[0])
 // 	{
-// 		fprintf(stderr, "Error: Command is empty\n");
+// 		ft_fprintf(2, "Error: Command is empty\n");
 // 		free_tab(option_cmd);
 // 		exit(EXIT_FAILURE);
 // 	}
@@ -67,7 +67,7 @@
 //     option_cmd = prepare_args(cmd_tokens, ctx);
 //     if (!option_cmd || !option_cmd[0])
 //     {
-//         fprintf(stderr, "Error: Command is empty\n");
+//         ft_fprintf(2, "Error: Command is empty\n");
 //         free_tab(option_cmd);
 //         exit(EXIT_FAILURE);
 //     }
@@ -78,7 +78,7 @@
 //         exit(ret);
 //     }
 //     env = ctx_to_env_array(ctx);
-//     // fprintf(stderr, "it went in\n");
+//     // ft_fprintf(2, "it went in\n");
 //     path = get_path(option_cmd[0], env);
 //     if (!path)
 //         path = option_cmd[0];
@@ -95,7 +95,7 @@
 //     // }
 //     // if (!path)
 //     // {
-//         // fprintf(stderr, "minishell: %s: command not found\n", option_cmd[0]);
+//         // ft_fprintf(2, "minishell: %s: command not found\n", option_cmd[0]);
 //         // free_tab(option_cmd);
 //         // free_tab(env);
 //         // env = NULL;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 14:07:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 17:16:40 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@
 // 	option_cmd = prepare_args(cmd_tokens);
 // 	if (!option_cmd[0])
 // 	{
-// 		fprintf(stderr, "Error: Command is empty\n");
+// 		ft_fprintf(2, "Error: Command is empty\n");
 // 		free_tab_2(option_cmd);
 // 		exit(EXIT_FAILURE);
 // 	}
@@ -124,7 +124,7 @@
 	option_cmd = prepare_args(cmd_tokens, ctx);
 	if (!option_cmd[0])
 	{
-		fprintf(stderr, "Error: Command is empty\n");
+		ft_fprintf(2, "Error: Command is empty\n");
 		free_tab_2(option_cmd);
 		exit(EXIT_FAILURE);
 	}
@@ -171,7 +171,7 @@ int	check_consecutive_pipes(t_token *tokens)
 		if (current->type == TOKEN_PIPE && (!current->next
 				|| current->next->type == TOKEN_PIPE))
 		{
-			fprintf(stderr, "Error: Consecutive pipes or missing command\n");
+			ft_fprintf(2, "Error: Consecutive pipes or missing command\n");
 			return (-1);
 		}
 		current = current->next;

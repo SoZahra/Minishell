@@ -6,54 +6,72 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:48:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 23:58:03 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/15 11:34:15 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
+// int is_valid_n(t_token *current)
+// {
+//     int i = 0;
+// 	t_token *tmp = current;
+// 	while (tmp)
+// 	{
+// 		while (tmp->value[i])
+// 		{
+// 			if (tmp->value[0] != '-')
+// 				break;
+// 			if (i != 0 && tmp->value[i] != 'n')
+// 				break;
+// 			if (tmp->value[i + 1] == '\0')
+// 				return (1);
+// 			i++;
+// 		}
+// 		tmp = tmp->next;
+// 	}
+// 	return (0);
+// }
+
 int is_valid_n(t_token *current)
 {
-    int i = 0;
-	t_token *tmp = current;
-	while (tmp)
-	{
-		while (tmp->value[i])
-		{
-			if (tmp->value[0] != '-')
-				break;
-			if (i != 0 && tmp->value[i] != 'n')
-				break;
-			if (tmp->value[i + 1] == '\0')
-				return (1);
-			i++;
-		}
-		tmp = tmp->next;
-	}
-	return (0);
-}
+    int i;
 
-void handle_echo(t_token *token_list, t_ctx *ctx)
-{
-    t_token *current;
-    t_token *start;
-    int n_option = 0;
-
-    current = token_list;
-	(void)ctx;
-    while (current && is_valid_n(current))
+    i = 0;
+    while (current->value[i])
     {
-        n_option = 1;
-        t_token *to_free = current;
-        current = current->next;
-        free(to_free->value);
-        free(to_free->content);
-        free(to_free);
+        if (current->value[0] != '-')
+            return (0);
+        if (i != 0 && current->value[i] != 'n')
+            return (0);
+        i++;
     }
-    start = current;
-    write_echo_content(start, n_option);
-    // ctx->exit_status = 0;
+    if (current->value[0] == '-')
+        return (1);
+    return 0;
 }
+
+// void handle_echo(t_token *token_list, t_ctx *ctx)
+// {
+//     t_token *current;
+//     t_token *start;
+//     int n_option = 0;
+
+//     current = token_list;
+// 	(void)ctx;
+//     while (current && is_valid_n(current))
+//     {
+//         n_option = 1;
+//         t_token *to_free = current;
+//         current = current->next;
+//         free(to_free->value);
+//         free(to_free->content);
+//         free(to_free);
+//     }
+//     start = current;
+//     write_echo_content(start, n_option);
+//     // ctx->exit_status = 0;
+// }
 
 // void    write_echo_content(t_token *token_list, int n_option)
 // {

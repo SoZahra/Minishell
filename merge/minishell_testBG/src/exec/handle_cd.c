@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_cd.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/12 16:41:47 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int handle_cd_builtin(const char *input, t_ctx *ctx)
 
     if (arg_count > 1)
     {
-        fprintf(stderr, "cd: too many arguments\n");
+        ft_fprintf(2, "cd: too many arguments\n");
         free_array(arg_array);
         ctx->exit_status = 1;
         return 1;
@@ -49,7 +49,7 @@ int handle_cd_builtin(const char *input, t_ctx *ctx)
     // Changer de répertoire
     if (chdir(arg_array[0]) != 0)
     {
-        fprintf(stderr, "cd: %s: No such file or directory\n", arg_array[0]);
+        ft_fprintf(2, "cd: %s: No such file or directory\n", arg_array[0]);
         free_array(arg_array);
         ctx->exit_status = 1;
         return 1;
@@ -70,14 +70,14 @@ int handle_cd_builtin(const char *input, t_ctx *ctx)
 //     // Vérifier si trop d'arguments
 //     if (args[2])
 //     {
-//         fprintf(stderr, "cd: too many arguments\n");
+//         ft_fprintf(2, "cd: too many arguments\n");
 //         ctx->exit_status = 1;
 //         return 1;
 //     }
 //     // Changer de répertoire
 //     if (chdir(args[1]) != 0)
 //     {
-//         fprintf(stderr, "cd: %s: No such file or directory\n", args[1]);
+//         ft_fprintf(2, "cd: %s: No such file or directory\n", args[1]);
 //         ctx->exit_status = 1;
 //         return 1;
 //     }
@@ -126,7 +126,7 @@ int process_var_assignment(char *arg, t_ctx *ctx)
 // 	value = NULL;
 // 	if (ft_strchr(arg, '-') != NULL)
 //     {
-//         fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
+//         ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
 //         return (1);
 //     }
 // 	if (!split_env_v(arg, &var, &value))

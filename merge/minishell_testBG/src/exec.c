@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 18:49:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,7 +223,7 @@ void execute_external_command(t_command *cmd, t_ctx *ctx)
    char *cmd_path = find_command_path(cmd->args[0], ctx);
    if (!cmd_path)
    {
-       fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
+       ft_fprintf(2, "MiniBG: %s: command not found\n", cmd->args[0]);
        return;
    }
    pid_t pid = fork();

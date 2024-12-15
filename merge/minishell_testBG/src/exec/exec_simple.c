@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_simple.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:04:03 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 10:35:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,14 +75,14 @@ int validate_args(char **args, t_ctx *ctx)
             // Vérifie le cas "export ="
             if (ft_strcmp(args[i], "=") == 0)
             {
-                fprintf(stderr, "MiniBG: export: `=': not a valid identifier\n");
+                ft_fprintf(2, "MiniBG: export: `=': not a valid identifier\n");
                 ctx->exit_status = 1;
                 return (0);
             }
             // Vérifie si commence par un chiffre
             if (ft_isdigit(args[i][0]))
             {
-                fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", args[i]);
+                ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", args[i]);
                 ctx->exit_status = 1;
                 return (0);
             }
@@ -91,7 +91,7 @@ int validate_args(char **args, t_ctx *ctx)
             char *dash_pos = ft_strchr(args[i], '-');
             if (dash_pos && (!equal_pos || dash_pos < equal_pos))
             {
-                fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", args[i]);
+                ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", args[i]);
                 ctx->exit_status = 1;
                 return (0);
             }
@@ -121,6 +121,6 @@ int validate_args(char **args, t_ctx *ctx)
 
 void	print_command_not_found(const char *cmd, t_ctx *ctx)
 {
-	fprintf(stderr, "miniBG: %s: command not found\n", cmd);
+	ft_fprintf(2, "miniBG: %s: command not found\n", cmd);
 	ctx->exit_status = 127;
 }

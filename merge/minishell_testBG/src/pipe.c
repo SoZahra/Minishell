@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/13 17:23:37 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ int execute_builtin_in_pipe(t_command *cmd, t_ctx *ctx)
         ft_strcmp(cmd_name, "unset") == 0 ||
         ft_strcmp(cmd_name, "exit") == 0)
     {
-        fprintf(stderr, "MiniBG: %s: cannot be used in a pipeline\n", cmd_name);
+        ft_fprintf(2, "MiniBG: %s: cannot be used in a pipeline\n", cmd_name);
         result = 1;
     }
 
@@ -239,7 +239,7 @@ int prepare_command(t_command *cmd, t_ctx *ctx)
 {
 	// if (!cmd || !cmd->args || !cmd->args[0])
     // {
-    //     fprintf(stderr, "MiniBG: syntax error near unexpected token `|'\n");
+    //     ft_fprintf(2, "MiniBG: syntax error near unexpected token `|'\n");
     //     return -1;
     // }
     if (is_builtin(cmd->args[0]))
@@ -247,7 +247,7 @@ int prepare_command(t_command *cmd, t_ctx *ctx)
     cmd->path = find_command_path(cmd->args[0], ctx);
     if (!cmd->path)
     {
-        fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
+        ft_fprintf(2, "MiniBG: %s: command not found\n", cmd->args[0]);
         return -1;
     }
     return 0;
@@ -291,7 +291,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
 
         if (pids[i] == 0)  // Processus enfant
         {
-            fprintf(stderr, "Processus %d (commande %s) démarré\n", getpid(), current->args[0]);
+            ft_fprintf(2, "Processus %d (commande %s) démarré\n", getpid(), current->args[0]);
             // Rediriger l'entrée si ce n'est pas la première commande
             if (i > 0)
             {
@@ -336,7 +336,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
                 perror("execve");
                 exit(1);
             }
-                fprintf(stderr, "Processus %d (commande %s) va exécuter la commande\n", getpid(), current->args[0]);
+                ft_fprintf(2, "Processus %d (commande %s) va exécuter la commande\n", getpid(), current->args[0]);
         }
 
         // Processus parent
