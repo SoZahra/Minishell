@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/15 18:18:21 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     {
         ft_fprintf(2, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
         free(cleaned_arg);
-        ctx->exit_status = 2;
+        ctx->exit_status = 255;
         return 1;
     }
     exit_code = ft_atoi(cleaned_arg);
@@ -59,7 +59,6 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
         ctx->exit_status = 1;
         return 1;
     }
-    // Gestion des codes de sortie négatifs et positifs
     if (exit_code < 0)
         ctx->exit_status = 256 + (exit_code % 256);
     else

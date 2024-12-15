@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 22:10:29 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/15 18:02:51 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,87 +113,86 @@ t_token *tokenize_input(char *line)
 //     return cmd;
 // }
 
-t_command *create_command(t_token *tokens, t_ctx *ctx)
-{
-    (void)ctx;
-    t_command *cmd = malloc(sizeof(t_command));
-    if (!cmd)
-        return NULL;
-    // cmd =  {0};
+// t_command *create_command(t_token *tokens, t_ctx *ctx)
+// {
+//     (void)ctx;
+//     t_command *cmd = malloc(sizeof(t_command));
+//     if (!cmd)
+//         return NULL;
+//     // cmd =  {0};
 
-    // Initialisation
-    cmd->redirs = NULL;
-    cmd->args = NULL;
-    cmd->path = NULL;
-    cmd->pid = -1;
-    cmd->next = NULL;
-    cmd->prev = NULL;
-    cmd->pfd[0] = -1;
-    cmd->pfd[1] = -1;
+//     // Initialisation
+//     cmd->redirs = NULL;
+//     cmd->args = NULL;
+//     cmd->path = NULL;
+//     cmd->pid = -1;
+//     cmd->next = NULL;
+//     cmd->prev = NULL;
+//     cmd->pfd[0] = -1;
+//     cmd->pfd[1] = -1;
 
-    char **args = NULL;
-    int arg_count = 0;
+//     char **args = NULL;
+//     int arg_count = 0;
 
-    t_token *current = tokens;
-    while (current)
-    {
-        if (current->type == '>' || current->type == 'A')
-        {
-            // Ajouter une redirection sortante
-            if (!add_redirection(&cmd->redirs, current->type,
-                               current->next ? current->next->value : NULL))
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            current = current->next ? current->next->next : NULL;
-        }
-        else
-        {
-            // Ajouter aux arguments de la commande
-            args = realloc(args, sizeof(char *) * (arg_count + 2));
-            if (!args)
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            args[arg_count] = ft_strdup(current->value);
-            if (!args[arg_count])
-            {
-                free_array(args);
-                free_command(cmd);
-                return NULL;
-            }
-            args[++arg_count] = NULL;
-            current = current->next;
-        }
-    }
-    cmd->args = args;
+//     t_token *current = tokens;
+//     while (current)
+//     {
+//         if (current->type == '>' || current->type == 'A')
+//         {
+//             // Ajouter une redirection sortante
+//             if (!add_redirection(&cmd->redirs, current->type,
+//                                current->next ? current->next->value : NULL))
+//             {
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             current = current->next ? current->next->next : NULL;
+//         }
+//         else
+//         {
+//             args = realloc(args, sizeof(char *) * (arg_count + 2));
+//             if (!args)
+//             {
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             args[arg_count] = ft_strdup(current->value);
+//             if (!args[arg_count])
+//             {
+//                 free_array(args);
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             args[++arg_count] = NULL;
+//             current = current->next;
+//         }
+//     }
+//     cmd->args = args;
 
-    return cmd;
-}
+//     return cmd;
+// }
 
 // Compte le nombre d'arguments en ignorant les redirections
-int count_command_args(char **array)
-{
-    int arg_count = 0;
-    int i = 0;
+// int count_command_args(char **array)
+// {
+//     int arg_count = 0;
+//     int i = 0;
 
-    while (array[i])
-    {
-        if (array[i][0] == '>' || ft_strcmp(array[i], ">>") == 0)
-        {
-            if(array[i + 1])
-                i++;
-            else
-                break;
-        }
-        else
-            arg_count++;
-        i++;
-    }
-    return arg_count;
-}
+//     while (array[i])
+//     {
+//         if (array[i][0] == '>' || ft_strcmp(array[i], ">>") == 0)
+//         {
+//             if(array[i + 1])
+//                 i++;
+//             else
+//                 break;
+//         }
+//         else
+//             arg_count++;
+//         i++;
+//     }
+//     return arg_count;
+// }
 
 // Crée et ajoute une redirection à la liste
 // static int add_redirection_to_command(t_command *cmd, char *file, char type)
@@ -447,7 +446,6 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = 0;
-    // Compter les arguments
     int arg_count = 0;
     t_token *current = start;
     while (current && current != end && current->type != '|')
@@ -569,7 +567,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 
     add_history(line);
     t_token *tokens = tokenize_input(line);
-    print_tokens(tokens);
+    // print_tokens(tokens);
     if (!tokens)
         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
     if (expand_proc(&tokens, ctx) == -1)

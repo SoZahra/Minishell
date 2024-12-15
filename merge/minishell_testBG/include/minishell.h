@@ -152,6 +152,7 @@ int handle_multiple_args(const char *args, t_ctx *ctx);
 
 //echo
 int handle_echo_builtin(const char *input, t_ctx *ctx);
+int handle_echo_builtin_n(const char *args, t_ctx *ctx);
 
 //env
 int handle_env_builtin(const char *input, t_ctx *ctx);
@@ -209,6 +210,10 @@ void free_env_vars(t_env_var *env);
 void free_commands(t_command *cmd);
 void free_redirections(t_redirection *redirs);
 void free_token_resources(t_token *token);
+
+// utils 
+
+size_t  ft_strspn(const char *str, const char *accept);
 // -------------------------------------------------------------
 
 void print_tokens(t_token *tokens);
@@ -292,7 +297,7 @@ int						split_env_v(char *arg, char **var, char **value);
 // int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
 // int						exec_builtin_cmd(char **args, t_env_var *env, t_ctx *ctx);
 int exec_builtin_cmd(char **args, char **env, t_ctx *ctx);
-t_token	*create_token_list(char **args, t_token_type type);
+// t_token	*create_token_list(char **args, t_token_type type);
 // int read_and_exec(char **env);
 int						read_and_exec(char **env, t_ctx *ctx);
 char					*strip_quotes(char *arg);

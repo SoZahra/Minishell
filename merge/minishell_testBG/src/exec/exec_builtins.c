@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/15 12:07:46 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/15 18:05:09 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,7 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
         result = handle_exit_builtin(args, ctx);
     else if (ft_strcmp(cmd, "unset") == 0)
         result = handle_unset_builtin(args, ctx);
-    free(cmd);
-    return result;
+    return (free(cmd), result);
 }
 
 int handle_unset_builtin(const char *input, t_ctx *ctx)
@@ -146,11 +145,10 @@ int handle_unset_builtin(const char *input, t_ctx *ctx)
             continue;
         }
         if (unset_v(&ctx->env_vars, split_args[i]) != 0)
-            ctx->exit_status = 1;
+            ctx->exit_status = 0;
         i++;
     }
-    free_array(split_args);
-    return 0;
+    return (free_array(split_args), 0);
 }
 
 int unset_v(t_env_var **env_vars, const char *var)

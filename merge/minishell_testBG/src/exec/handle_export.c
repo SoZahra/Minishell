@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 23:12:14 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/15 18:17:34 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,16 +34,9 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     write(1, "exit\n", 5);
     exit(ctx->exit_status);
     return 1;
-}
+} 
 
-// int handle_echo_builtin(const char *args, t_ctx *ctx)
-// {
-//     (void)ctx;
-//     write(STDOUT_FILENO, args, ft_strlen(args));
-//     write(STDOUT_FILENO, "\n", 1);
-//     ctx->exit_status = 0;
-//     return 0;
-// }
+
 
 // int handle_echo_builtin(const char *args, t_ctx *ctx)
 // {
@@ -129,21 +122,53 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
 //     return 0;
 // }
 
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     (void)ctx;
+    
+//    if (strncmp(args, "-n", 2) == 0 && (args[2] == ' ' || args[2] == '\0'))
+//     {
+//         // Si -n est au début, passer à la version sans retour à la ligne
+//         return handle_echo_builtin_n(args, ctx);
+//     }
+//     write(STDOUT_FILENO, args, ft_strlen(args));
+//     write(STDOUT_FILENO, "\n", 1);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
+
 int handle_echo_builtin(const char *args, t_ctx *ctx)
 {
-    t_token *tokens = tokenize_input((char *)args);
-    int no_newline = 0;
-    // int has_non_n_token = 0;
+    while (*args == ' ')
+        args++;
+    if (args[0] == '-' && 
+        (ft_strchr(args, 'n') == args + 1 || 
+         (ft_strspn(args + 1, "n") == ft_strlen(args + 1))))
+    {
+        return handle_echo_builtin_n(args, ctx);
+    }
+    write(STDOUT_FILENO, args, ft_strlen(args));
+    write(STDOUT_FILENO, "\n", 1);
+    ctx->exit_status = 0;
+    return 0;
+}
 
-    t_token *current = tokens;
+int handle_echo_builtin_n(const char *args, t_ctx *ctx)
+{
+    t_token *tokens;
+    int no_newline;
+    t_token *current;
+    int first;
+
+    tokens = tokenize_input((char *)args);
+    no_newline = 0;
+    current = tokens;
     while (current && is_valid_n(current))
     {
         no_newline = 1;
         current = current->next;
     }
-
-    // Écrire les tokens
-    int first = 1;
+    first = 1;
     while (current)
     {
         if (!first)
@@ -152,14 +177,9 @@ int handle_echo_builtin(const char *args, t_ctx *ctx)
         first = 0;
         current = current->next;
     }
-
-    // Ajouter un retour à la ligne sauf si -n
     if (!no_newline)
         write(STDOUT_FILENO, "\n", 1);
-
-    // Libérer les tokens
     free_tokens(tokens);
-
     ctx->exit_status = 0;
     return 0;
 }
@@ -267,15 +287,20 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
 {
     char **arg_array;
     int result;
+    int i;
 
     result = 0;
     arg_array = ft_split(args, ' ');
     if (!arg_array)
         return 1;
-    for (int i = 0; arg_array[i]; i++)
+    i = 0;
+    while(arg_array[i])
+    {
         result |= export_single_var(arg_array[i], ctx);
-    for (int i = 0; arg_array[i]; i++)
-        free(arg_array[i]);
+        i++;
+    }
+    while(arg_array[i])
+        free(arg_array[i++]);
     free(arg_array);
     return result;
 }
