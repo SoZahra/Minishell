@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 16:00:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/15 22:38:12 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,14 +198,14 @@ int prepare_command(t_command *cmd, t_ctx *ctx)
     return 0;
 }
 
-static void parent_proc(t_command *cmd)
-{
-    if (cmd->prev)
-    {
-        close(cmd->prev->pfd[0]);
-        close(cmd->prev->pfd[1]);
-    }
-}
+// static void parent_proc(t_command *cmd)
+// {
+//     if (cmd->prev)
+//     {
+//         close(cmd->prev->pfd[0]);
+//         close(cmd->prev->pfd[1]);
+//     }
+// }
 
 // static int spawn_process(t_command *cmd, t_ctx *ctx)
 // {
@@ -221,31 +221,31 @@ static void parent_proc(t_command *cmd)
 //     return 0;
 // }
 
-static int spawn_process(t_command *cmd, t_ctx *ctx)
-{
-    if (cmd->next) {
-        if (pipe(cmd->pfd) == -1) {
-            perror("pipe");
-            return -1;
-        }
-        // fprintf(stderr, "Debug: Created pipe [%d, %d] for '%s'\n", cmd->pfd[0], cmd->pfd[1], cmd->args[0]);
-    }
-    cmd->pid = fork();
-    if (cmd->pid == -1) {
-        perror("fork");
-        return -1;
-    }
+// static int spawn_process(t_command *cmd, t_ctx *ctx)
+// {
+//     if (cmd->next) {
+//         if (pipe(cmd->pfd) == -1) {
+//             perror("pipe");
+//             return -1;
+//         }
+//         // fprintf(stderr, "Debug: Created pipe [%d, %d] for '%s'\n", cmd->pfd[0], cmd->pfd[1], cmd->args[0]);
+//     }
+//     cmd->pid = fork();
+//     if (cmd->pid == -1) {
+//         perror("fork");
+//         return -1;
+//     }
 
-    if (cmd->pid == 0) {
-        // fprintf(stderr, "Debug: Forked child for '%s', PID: %d\n", cmd->args[0], getpid());
-        execute_piped_command(cmd, ctx);
-    }
-    if (cmd->pid > 0) {
-        // fprintf(stderr, "Debug: Parent process for '%s', PID: %d\n", cmd->args[0], cmd->pid);
-        parent_proc(cmd);
-    }
-    return 0;
-}
+//     if (cmd->pid == 0) {
+//         // fprintf(stderr, "Debug: Forked child for '%s', PID: %d\n", cmd->args[0], getpid());
+//         execute_piped_command(cmd, ctx);
+//     }
+//     if (cmd->pid > 0) {
+//         // fprintf(stderr, "Debug: Parent process for '%s', PID: %d\n", cmd->args[0], cmd->pid);
+//         parent_proc(cmd);
+//     }
+//     return 0;
+// }
 
 // void execute_pipeline(t_command *cmd, t_ctx *ctx)
 // {

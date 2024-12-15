@@ -59,8 +59,7 @@ typedef enum token_type
 	TOKEN_REDIRECT_OUTPUT = '>', // >
 	TOKEN_REDIRECT_APPEND = 'A', // >>
 	TOKEN_PIPE = '|',            // |
-	STRING = 'S',
-    CMD = 'C',
+	STRING = 'T',
 	DOUBLEQUOTE = '"',
 	SINGLE_QUOTE = '\'',
 }						t_token_type;
@@ -99,13 +98,26 @@ typedef struct s_command {
 	char *path;
     t_redirection *redirs; // Liste des redirections
 	int pfd[2];
-	int arg_count;
     // int pipe_in;           // FD pour le pipe d'entrée (si existe)
     // int pipe_out;          // FD pour le pipe de sortie (si existe)
 	struct s_command *next;     // Commande suivante dans le pipe
     struct s_command *prev;
-	int *had_spaces;
+	int			*had_spaces;
+	int			arg_count;
 } t_command;
+
+typedef struct s_pipeline {
+    int prev_fd;
+    int pipe_fd[2];
+    t_token *cmd_start;
+    t_token *cmd_end;
+	char	*cmd_line;
+} t_pipeline;
+
+typedef struct s_redir {
+    int input;
+    int output;
+} t_redir;
 
 // pipe(pfd);
 
@@ -113,20 +125,16 @@ t_token *find_pipe_token(t_token *start);
 void execute_pipeline(t_command *cmd, t_ctx *ctx);
 int prepare_command(t_command *cmd, t_ctx *ctx);
 int execute_piped_command(t_command *cmd, t_ctx *ctx);
-void wait_for_children(t_command *cmd, t_ctx *ctx);
 t_command *create_command_from_tokens_range(t_token *start, t_token *end);
-
-
-char *tokens_to_string_from_command(t_command *cmd);
 
 // -------------------------------------------------------------
 
 int tokenizer(t_token **tokens, char *input);
-int execute_builtin(const char *input, t_ctx *ctx);
 int is_builtin(const char *cmd);
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
 
 char *tokens_to_string(t_token *tokens);
+char *tokens_to_string_from_command(t_command *cmd);
 // char *prepare_command(t_token *tokens, t_ctx *ctx);
 int join_proc(t_token **tokens, bool limiter);
 int join_tokens(t_token *prev, t_token *current);
@@ -134,20 +142,9 @@ void token_del(t_token *token);
 int join_str(t_token *token, bool limiter);
 int expand_proc(t_token **tokens, t_ctx *ctx);
 int expand_str(t_token *token, t_ctx *ctx);
-
-// char *trim_whitespace(const char *str);
-
-void update_command_from_tokens(t_command *cmd, t_token *tokens);
-t_token *create_tokens_from_command(t_command *cmd);
-
-
-void count_tokens_redir(t_token *token, int *arg_count, int *redir_count);
-void fill_command_tokens(t_token *token, t_command *new_cmd);
-void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd);
-t_command *allocate_command(int arg_count, int redir_count);
-
-int handle_heredoc(t_redirection *redir, t_ctx *ctx);
-int handle_input_redirection(t_redirection *redir);
+char *args_to_string(t_command *cmd);
+// int execute_builtin(char **args, t_ctx *ctx);
+// int execute_builtin(const char *cmd_line, t_ctx *ctx);
 
 //----------------------------------------------------------------
 
@@ -180,7 +177,7 @@ int process_exit_arg(char **args, t_ctx *ctx);
 
 //exec
 
-char **create_env_array(t_env_var *env_vars);
+char	**create_env_array(t_env_var *env_vars, int count);
 char *find_command_path(const char *cmd, t_ctx *ctx);
 char *get_env_path(t_env_var *env_vars);
 char **create_command_array(const char *cmd_str);
@@ -192,9 +189,8 @@ char **create_command_array(const char *cmd_str);
 // void print_redirections(t_redir *redirs);
 
 t_command *create_command(t_token *tokens, t_ctx *ctx);
-void execute_command(t_command *cmd, t_ctx *ctx);
-// int apply_redirections(t_redirection *redirs);
-int apply_redirections(t_redirection *redirs, t_ctx *ctx);
+void	execute_command(char **args, char *path, t_ctx *ctx);
+int apply_redirections(t_redirection *redirs);
 void restore_fds(int stdin_fd, int stdout_fd);
 void execute_builtin_command(t_command *cmd, t_ctx *ctx);
 void execute_external_command(t_command *cmd, t_ctx *ctx);
@@ -207,14 +203,6 @@ int add_arg_to_command(t_command *cmd, char *arg);
 int handle_line_for_loop(char *line, t_ctx *ctx);
 int append_arg_value(char **current_arg, const char *value, int had_space);
 
-
-t_command *parse_pipe_sequence(t_token *tokens);
-
-void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx);
-void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands);
-void close_unused_pipes(int **pipes, int index, int num_commands);
-void redirect_output(int **pipes, int index, int num_commands);
-void redirect_input(t_command *cmd, int **pipes, int index);
 
 // -------------------------------------------------------------
 
@@ -362,29 +350,34 @@ int						count_args(char **args);
 void					free_args(char **args);
 
 void					read_heredoc(int fd, char *limiter);
-int here_doc(char *delimiter, t_ctx *ctx);
-// void					handle_input_redirection(t_token *redir_token,
-// 							int *redirect, int *redirect_input);
-void					handle_output_redirection(t_token *redir_token,
-							int *redirect, int *redirect_output);
+int						here_doc(char *limiter);
+void 					handle_input_redirection(t_token *redir_token, t_redir *redir);
+void 					handle_output_redirection(t_token *redir_token, t_redir *redir);
+void					setup_redirects(int prev_fd, int *pipe_fd, t_token *cmd_end, t_redir *redir);
+void					process_single_builtin(t_pipeline *pl, t_ctx *ctx);
+void					execute_in_child(t_pipeline *pl, t_ctx *ctx);
+void					process_pipeline_segment(t_pipeline *pl, t_ctx *ctx);
+void					process_pipeline_stage(t_pipeline *pl, t_ctx *ctx);
+void					close_pipe(t_pipeline *pl);
+void					wait_for_children(void);
+void					prepare_child_execution(t_pipeline *pl, t_ctx *ctx);
+void					setup_pipe(t_pipeline *pl);
 void					initialize_pipe_if_needed(int *pipe_fd,
 							t_token *cmd_end);
-void					execute_command_in_child(t_token *cmd_start,
-							t_token *cmd_end, int prev_fd, int *pipe_fd,
-							t_ctx *ctx);
-void					cleanup_parent_resources(int *prev_fd, int *pipe_fd,
-							t_token **cmd_start, t_token *cmd_end);
-// int					wait_for_all_children(void);
-int wait_for_all_children(int status, t_token *tokens, t_ctx *ctx);
-void					setup_pipe_for_child(int prev_fd, int *pipe_fd,
-							int redirect_input, int redirect_output,
-							t_token *cmd_end);
-void					collect_exec_tokens(t_token *cmd_start,
-							t_token *cmd_end, t_token **exec_tokens,
-							int *redirect, int *redirect_input,
-							int *redirect_output);
-
+void					collect_exec_tokens(t_token *cmd_start, t_token *cmd_end,
+							t_token **exec_tokens, t_redir **redir);
 int 					count_env_vars(t_env_var *env_vars);
+int						check_for_pipe(t_pipeline *pl);
+void 					setup_redirects_single_builtin(t_pipeline *pl, t_ctx *ctx);
+int 					check_for_pipe_builtin(t_pipeline *pl);
+void 					adjust_cmd_line_to_builtin(t_pipeline *pl);
+char 					*reconstruct_cmd_line_from_token(t_token *start_token);
+t_token 				*find_builtin_start(t_token *tokens);
+void					apply_redirect_and_execute(t_pipeline *pl, t_ctx *ctx, int saved_stdin,
+							int saved_stdout);
+void					process_redirections(t_token *current);
+void					handle_redirection(t_token *current);
+int						save_and_restore_fds(int *saved_stdin, int *saved_stdout, int restore);
 // char **create_env_array(t_env_var *env_vars, int count);
 char **ctx_to_env_array(t_ctx *ctx);
 
@@ -398,8 +391,6 @@ int loop_with_pipes(t_ctx *ctx);
 t_token					*get_next_command(t_token *start);
 char					*ft_strjoin_free(char *s1, char *s2, int free_str);
 char					*ft_strjoin_char(char *str, char c);
-void					handle_output_redirection(t_token *redir_token,
-							int *redirect, int *redirect_output);
 // void					ps_expand_env(t_token *tokens, t_ctx *ctx,
 // 							t_env_var *myEnv);
 void	ps_expand_env(t_token *tokens, t_ctx *ctx);
@@ -448,7 +439,7 @@ int handle_special_case(char *arg, t_ctx *ctx);
 int	handle_invalid_identifier(char *arg, char *var, char *value);
 int	create_and_add_var(t_ctx *ctx, char *var, char *value);
 
-// int	execute_builtin(t_ctx *ctx, char **args);
+int	execute_builtin(const char *cmd_line, t_ctx *ctx);
 int	validate_args(char **args, t_ctx *ctx);
 void	print_command_not_found(const char *cmd, t_ctx *ctx);
 

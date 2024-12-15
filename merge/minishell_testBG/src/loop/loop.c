@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 17:03:27 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/15 22:42:36 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -794,13 +794,13 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         current = current->next;
     }
     // Vérifier la présence de redirections
-    int has_redirections = 0;
+    // int has_redirections = 0;
     current = cmd;
     while (current)
     {
         if (current->redirs && current->redirs[0].type != 0)
         {
-            has_redirections = 1;
+            // has_redirections = 1;
             break;
         }
         current = current->next;
