@@ -100,7 +100,7 @@ SRCS_FILES	=	main.c\
 				utils/free.c utils/init.c utils/list.c utils/utils.c \
 				pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
 				pipe/pipe_utils.c pipe/pipe_utils_3.c pipe/pipe_utils_4.c \
-				pipe/pipe_utils_5.c
+				pipe/pipe_utils_5.c pipe/setup_builtin.c pipe/setup_builtin_2.c
 
 
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))

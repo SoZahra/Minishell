@@ -6,62 +6,45 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:09:37 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/14 17:12:54 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/15 18:14:13 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-void handle_builtin_redirection(t_pipeline *pl)
+int	check_for_pipe(t_pipeline *pl)
 {
-    t_token *current = pl->cmd_start;
-    int fd;
+	t_token	*tokens;
+	int		flag;
 
-    while (current)
-    {
-        if (ft_strcmp(current->value, ">") == 0 && current->next)
-        {
-            fd = open(current->next->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd == -1)
-                perror("Error opening file for writing");
-            else
-            {
-                dup2(fd, STDOUT_FILENO);
-                close(fd);
-            }
-            break;
-        }
-        else if (ft_strcmp(current->value, "<") == 0 && current->next)
-        {
-            fd = open(current->next->value, O_RDONLY);
-            if (fd == -1)
-                perror("Error opening file for reading");
-            else
-            {
-                dup2(fd, STDIN_FILENO);
-                close(fd);
-            }
-            break;
-        }
-        else if (ft_strcmp(current->value, ">>") == 0 && current->next)
-        {
-            fd = open(current->next->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            if (fd == -1)
-                perror("Error opening file for appending");
-            else
-            {
-                dup2(fd, STDOUT_FILENO);
-                close(fd);
-            }
-            break;
-        }
-        else if (ft_strcmp(current->value, "<<") == 0 && current->next)
-        {
-            fprintf(stderr, "Heredoc redirection not supported in this function\n");
-            break;
-        }
-        current = current->next;
-    }
+	flag = 0;
+	tokens = pl->cmd_start;
+	while (tokens)
+	{
+		if (is_builtin(tokens->value))
+			flag = 1;
+		if (ft_strcmp(tokens->value, "|") == 0
+			&& is_builtin(tokens->next->value) != 0)
+			flag = 0;
+		tokens = tokens->next;
+	}
+	return (flag);
+}
+
+int	check_for_pipe_builtin(t_pipeline *pl)
+{
+	t_token	*tokens;
+	int		flag;
+
+	flag = 0;
+	tokens = pl->cmd_start;
+	while (tokens)
+	{
+		if (ft_strcmp(tokens->value, "export") == 0)
+			flag = 1;
+		tokens = tokens->next;
+	}
+	return (flag);
 }
 
 void	read_heredoc(int fd, char *limiter)

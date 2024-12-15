@@ -6,7 +6,7 @@
 /*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 17:41:38 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/15 18:30:03 by llarrey          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,25 +25,26 @@ void	execute_in_child(t_pipeline *pl, t_ctx *ctx)
 
 void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 {
-	pid_t	pid;
 	t_token	*tokens;
-	
-	tokens = pl->cmd_end;
+
+	fprintf(stderr, "value cmd_line : %s\n", pl->cmd_line);
+	fprintf(stderr, "value pl cmd start : %s\n", pl->cmd_start->value);
+	if ((ft_strcmp(pl->cmd_start->value, "export") == 0
+			&& ft_strncmp(pl->cmd_line, "export", 6) != 0)
+		|| (ft_strcmp(pl->cmd_start->value, "unset") == 0
+			&& ft_strncmp(pl->cmd_line, "unset", 5) != 0))
+		return ;
+	tokens = pl->cmd_start;
 	while (tokens)
 	{
-		fprintf(stderr, "value tokens : %s\n", tokens->value);
-		if(ft_strcmp(tokens->value, "|") == 0)
-			return;
+		if (check_for_pipe_builtin(pl))
+			break ;
+		if (ft_strcmp(tokens->value, "|") == 0)
+			return ;
 		tokens = tokens->next;
 	}
-	pid = fork();
-	if (pid == -1)
-		exit(EXIT_FAILURE);
-	if (pid == 0)
-	{
-		handle_builtin_redirection(pl);
-		execute_builtin(pl->cmd_line, ctx);
-	}
+	adjust_cmd_line_to_builtin(pl);
+	setup_redirects_single_builtin(pl, ctx);
 }
 
 void	process_pipeline_segment(t_pipeline *pl, t_ctx *ctx)
@@ -55,8 +56,8 @@ void	process_pipeline_segment(t_pipeline *pl, t_ctx *ctx)
 
 void	process_pipeline_stage(t_pipeline *pl, t_ctx *ctx)
 {
-	if (is_builtin(pl->cmd_start->value) && (!pl->cmd_end
-			|| pl->cmd_end->value[0] != '|'))
+	if ((is_builtin(pl->cmd_start->value) && (!pl->cmd_end
+				|| check_for_pipe(pl))))
 	{
 		process_single_builtin(pl, ctx);
 		if (pl->cmd_end)
