@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/15 18:02:51 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/16 13:34:28 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -573,31 +573,18 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     if (expand_proc(&tokens, ctx) == -1)
         return (free_tokens(tokens), 1);
     t_command *cmd = parse_pipe_sequence(tokens);
-    // if (!cmd)
-    // {
-    //     free_tokens(tokens);
-    //     return 1;
-    // }
-
-    // // Exécuter différemment selon le cas
-    // if (cmd->next)  // Si on a des pipes
-    // {
-    //     execute_pipeline(cmd, ctx);
-    // }
-    // else  // Commande simple
-    // {
-        char *final_cmd = tokens_to_string(tokens);
-        if (!final_cmd)
-        {
-            free_commands(cmd);
-            free_tokens(tokens);
-            return 1;
-        }
-        if (is_builtin(cmd->args[0]))
-            execute_builtin(final_cmd, ctx);
-        else
-            execute_command(cmd, ctx);
-        free(final_cmd);
+    char *final_cmd = tokens_to_string(tokens);
+    if (!final_cmd)
+    {
+        free_commands(cmd);
+        free_tokens(tokens);
+        return 1;
+    }
+    if (is_builtin(cmd->args[0]))
+        execute_builtin(final_cmd, ctx);
+    else
+        execute_command(cmd, ctx);
+    free(final_cmd);
     // }
     free_commands(cmd);
     free_tokens(tokens);
