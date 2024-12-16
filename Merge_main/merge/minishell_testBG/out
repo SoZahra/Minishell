@@ -1,0 +1,10 @@
+# NAME		=	minishell
+
+# # Fichiers sources organisés par répertoires
+# SRC_PATH	=	src/
+# ENV_DIR		=	$(SRC_PATH)env
+# LOOP_DIR	=	$(SRC_PATH)loop
+# LEXER_DIR	=	$(SRC_PATH)lexer
+# PIPE_DIR	=	$(SRC_PATH)pipe
+# SIGNALS_DIR	=	$(SRC_PATH)signals
+# UTILS_DIR	=	$(SRC_PATH)utils
