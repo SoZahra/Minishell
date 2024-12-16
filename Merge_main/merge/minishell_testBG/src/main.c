@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 16:25:08 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 18:03:53 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 t_ctx	*get_ctx(void)
 {
 	static t_ctx	ctx;
-
 	return (&ctx);
 }
 

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 17:49:25 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 19:33:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -446,6 +446,7 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
         type = 'H';
     else if (type == '>' && x > 1)
         type = 'A';
+    printf("test 5\n");
     if(add_token(tokens, type, value) != 0)
         return (free(value), -1);
     return 0;
@@ -455,6 +456,7 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
 
 int token_proc(t_token **tokens, char *input, int *i)
 {
+    printf("test 4\n");
     if (input[*i] == '<' || input[*i] == '>' )
     {
         if (operators_proc(tokens, input, i, 2))
@@ -477,7 +479,7 @@ int word_proc(t_token **tokens, char *input, int *i)
 {
     char *value;
     int j;
-    int result;
+    // int result;
 
     j = *i;
     while (input[(*i)] && !ft_isspace(input[(*i)]) && !is_token(input[*i], TOKENS))
@@ -487,9 +489,10 @@ int word_proc(t_token **tokens, char *input, int *i)
     value = ft_substr(input, j, *i - j);
     if (!value)
         return -1;
-    result = add_token(tokens, 'S', value);
-    if (result != 0)
-        return (free(value), -1);
+    // result = add_token(tokens, 'S', value);
+    add_token(tokens, 'S', value);
+    // if (result != 0)
+    //     return (free(value), -1);
     if (j > 0 && input[j - 1] && !ft_isspace(input[j - 1]) && !is_token(input[j - 1], UNJOIN))
         get_last_token(*tokens)->had_space = 1;
     return 0;
@@ -564,7 +567,7 @@ int tokenizer(t_token **tokens, char *input)
         else if (input[i])
             i++;
     }
-    // print_tokens(*tokens);
+    print_tokens(*tokens);
     _join_limiter(tokens);
     return 0;
 }

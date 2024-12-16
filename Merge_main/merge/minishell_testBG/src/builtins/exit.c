@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 17:02:33 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 18:34:25 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     cleaned_arg = ft_strdup(args[0]);  // Plus besoin de strip_quotes car déjà fait par le parser
     if (!is_numeric_argument(cleaned_arg))
     {
-        fprintf(stderr, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
+        ft_fprintf(2, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
         free(cleaned_arg);
         ctx->exit_status = 2;
         return 1;
@@ -55,7 +55,7 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     free(cleaned_arg);
     if (args[1])
     {
-        fprintf(stderr, "minishell: exit: too many arguments\n");
+        ft_fprintf(2, "minishell: exit: too many arguments\n");
         ctx->exit_status = 1;
         return 1;
     }

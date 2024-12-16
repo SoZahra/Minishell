@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 17:25:35 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 18:35:54 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,28 +82,28 @@ int	handle_special_case(char *arg, t_ctx *ctx)
 	return (0);
 }
 
-int process_var_assignment(char *arg, t_ctx *ctx)
-{
-    char *var;
-    char *value;
-    int result;
+// int process_var_assignment(char *arg, t_ctx *ctx)
+// {
+//     char *var;
+//     char *value;
+//     int result;
 
-    var = NULL;
-    value = NULL;
+//     var = NULL;
+//     value = NULL;
 
-    if (!split_env_v(arg, &var, &value))
-    {
-        ctx->exit_status = 1;  // Set exit status on error
-        return (1);
-    }
+//     if (!split_env_v(arg, &var, &value))
+//     {
+//         ctx->exit_status = 1;  // Set exit status on error
+//         return (1);
+//     }
 
-    result = create_and_add_var(ctx, var, value);
-    if (result != 0)
-    {
-        ctx->exit_status = 1;
-    }
-    return result;
-}
+//     result = create_and_add_var(ctx, var, value);
+//     if (result != 0)
+//     {
+//         ctx->exit_status = 1;
+//     }
+//     return result;
+// }
 
 // int	process_var_assignment(char *arg, t_ctx *ctx)
 // {

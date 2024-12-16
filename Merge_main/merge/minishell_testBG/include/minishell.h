@@ -360,10 +360,13 @@ char					*expand_variables(const char *str, t_ctx *ctx,
 int						count_args(char **args);
 void					free_args(char **args);
 
+void handle_output_redirection(t_token *redir_token, t_redir *redir);
+void	handle_input_redirection(t_token *redir_token, t_redir *redir);
+
 void					read_heredoc(int fd, char *limiter);
 int						here_doc(char *limiter);
-void 					handle_input_redirection(t_token *redir_token, t_redir *redir);
-void 					handle_output_redirection(t_token *redir_token, t_redir *redir);
+// void 					handle_input_redirection(t_token *redir_token, t_redir *redir);
+// void 					handle_output_redirection(t_token *redir_token, t_redir *redir);
 void					setup_redirects(int prev_fd, int *pipe_fd, t_token *cmd_end, t_redir *redir);
 void					process_single_builtin(t_pipeline *pl, t_ctx *ctx);
 void					execute_in_child(t_pipeline *pl, t_ctx *ctx);

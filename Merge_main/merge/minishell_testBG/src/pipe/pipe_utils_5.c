@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_utils_5.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:09:37 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/15 18:14:13 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/16 19:28:26 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,17 +84,14 @@ int	here_doc(char *limiter)
 	return (fd);
 }
 
-void	handle_input_redirection(t_token *redir_token, t_redir *redir)
+void handle_input_redirection(t_token *redir_token, t_redir *redir)
 {
-	int	input_fd;
-
-	if (ft_strcmp(redir_token->value, "<<") == 0)
-		input_fd = here_doc(redir_token->next->value);
-	else
-		input_fd = open(redir_token->next->value, O_RDONLY);
-	if (input_fd == -1)
-		exit(EXIT_FAILURE);
-	dup2(input_fd, STDIN_FILENO);
-	close(input_fd);
-	redir->input = 1;
+    if (redir->input > 0)
+        close(redir->input);
+    redir->input = open(redir_token->value, O_RDONLY);
+    if (redir->input == -1)
+    {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
 }

@@ -6,11 +6,19 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:02:24 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/16 16:56:55 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 19:27:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+int is_redirection(t_token_type type)
+{
+    return (type == TOKEN_REDIRECT_INPUT||    // 
+            type == TOKEN_REDIRECT_OUTPUT ||    // >
+            type == TOKEN_REDIRECT_APPEND ||       // >>
+            type == TOKEN_HEREDOC);       // 
+}
 
 char	*resolve_command(char **args, t_ctx *ctx)
 {
@@ -56,38 +64,75 @@ int	exec(t_token *cmd_tokens, t_ctx *ctx)
 	return (0);
 }
 
-void	collect_exec_tokens(t_token *cmd_start, t_token *cmd_end,
-		t_token **exec_tokens, t_redir **redir)
+void collect_exec_tokens(t_token *start, t_token *end, t_token **exec_tokens, t_redir **redir)
 {
-	t_token	*redir_token;
+    t_token *current = start;
+    t_token *prev = NULL;
+    char *token_value;
 
-	redir_token = cmd_start;
-	while (redir_token != cmd_end)
-	{
-		if (ft_strcmp(redir_token->value, "<") == 0
-			|| ft_strcmp(redir_token->value, "<<") == 0)
-		{
-			handle_input_redirection(redir_token, *redir);
-			redir_token = redir_token->next;
-		}
-		else if (ft_strcmp(redir_token->value, ">") == 0
-			|| ft_strcmp(redir_token->value, ">>") == 0)
-		{
-			handle_output_redirection(redir_token, *redir);
-			redir_token = redir_token->next;
-		}
-		else
-		{
-			*exec_tokens = redir_token;
-			exec_tokens = &(*exec_tokens)->next;
-		}
-		redir_token = redir_token->next;
-	}
-	*exec_tokens = NULL;
+    while (current && current != end)
+    {
+        if (is_redirection(current->type))
+        {
+            if (current->next)
+            {
+                if (current->type == TOKEN_REDIRECT_OUTPUT)
+                    handle_output_redirection(current->next, *redir);
+                else if (current->type == TOKEN_REDIRECT_INPUT)
+                    handle_input_redirection(current->next, *redir);
+                current = current->next;
+            }
+        }
+        else
+        {
+            token_value = ft_strdup(current->value);
+            if (token_value)
+            {
+                if (!*exec_tokens)
+                    *exec_tokens = create_new_token(current->type, token_value);
+                else
+                    add_token(exec_tokens, current->type, token_value);
+                free(token_value);
+            }
+        }
+        prev = current;
+        current = current->next;
+    }
 }
+
+// void	collect_exec_tokens(t_token *cmd_start, t_token *cmd_end,
+// 		t_token **exec_tokens, t_redir **redir)
+// {
+// 	t_token	*redir_token;
+
+// 	redir_token = cmd_start;
+// 	while (redir_token != cmd_end)
+// 	{
+// 		if (ft_strcmp(redir_token->value, "<") == 0
+// 			|| ft_strcmp(redir_token->value, "<<") == 0)
+// 		{
+// 			handle_input_redirection(redir_token, *redir);
+// 			redir_token = redir_token->next;
+// 		}
+// 		else if (ft_strcmp(redir_token->value, ">") == 0
+// 			|| ft_strcmp(redir_token->value, ">>") == 0)
+// 		{
+// 			handle_output_redirection(redir_token, *redir);
+// 			redir_token = redir_token->next;
+// 		}
+// 		else
+// 		{
+// 			*exec_tokens = redir_token;
+// 			exec_tokens = &(*exec_tokens)->next;
+// 		}
+// 		redir_token = redir_token->next;
+// 	}
+// 	*exec_tokens = NULL;
+// }
 
 void	prepare_child_execution(t_pipeline *pl, t_ctx *ctx)
 {
+	ft_fprintf(2, "test 13\n");
 	t_token	*exec_tokens;
 	t_redir	*redir;
 

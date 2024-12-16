@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 17:01:20 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 19:19:09 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 int	handle_invalid_identifier(char *arg, char *var, char *value)
 {
 	if (var)
-		fprintf(stderr, "export: `%s`: not a valid identifier\n", var);
+		ft_fprintf(2, "export: `%s`: not a valid identifier\n", var);
 	else
-		fprintf(stderr, "export: `%s`: not a valid identifier\n", arg);
+		ft_fprintf(2, "export: `%s`: not a valid identifier\n", arg);
 	free(var);
 	free(value);
 	return (1);
@@ -209,6 +209,7 @@ int handle_env_builtin(const char *input, t_ctx *ctx)
 
 int execute_builtin(const char *cmd_line, t_ctx *ctx)
 {
+    ft_fprintf(2, "test 14\n");
     char *cmd;
     char *space;
     const char *args;
@@ -216,6 +217,7 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
 
     cmd = ft_strdup(cmd_line);
     space = ft_strchr(cmd, ' ');
+    ft_fprintf(2, "testt : %s\n", cmd_line);
     if (space)
         *space = '\0';
     args = cmd_line + ft_strlen(cmd);

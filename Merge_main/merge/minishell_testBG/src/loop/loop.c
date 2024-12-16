@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 16:35:01 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 18:53:15 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,201 +34,9 @@ t_token *tokenize_input(char *line)
     tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
         return (NULL);
+    print_tokens(tokens);
     return (tokens);
 }
-
-// void handle_line_for_loop(char *line, t_ctx *ctx)
-// {
-//     t_token *tokens;
-//     char *output;
-
-//     if (*line)
-//     {
-//         add_history(line);
-//         tokens = tokenize_input(line);
-//         if (tokens)
-//         {
-//             output = prepare_command(tokens, ctx);
-//             if (output)
-//             {
-// 				char **cmd_array = create_command_array(output);
-//                 if (cmd_array)
-//                 {
-//                     int builtin_result = is_builtin(output);
-//                     if (builtin_result)
-//                         execute_builtin(output, ctx); // ou passer cmd_array à la place de output
-//                     else
-//                         execute_external_command(output, ctx);
-//                     free_array(cmd_array);
-//                 }
-//                 free(output);
-//             }
-//             free_tokens(tokens);
-//         }
-//         else
-//             fprintf(stderr, "Error: tokenization failed\n");
-//     }
-// }
-
-// t_command *create_command(t_token *tokens, t_ctx *ctx)
-// {
-// 	(void)ctx;
-//     t_command *cmd = malloc(sizeof(t_command));
-//     if (!cmd)
-//         return NULL;
-
-//     // cmd->redirs = NULL;
-//     // cmd->pipe_in = -1;
-//     // cmd->pipe_out = -1;
-
-
-//     // Traiter les tokens pour séparer commande et redirections
-//     char **args = NULL;
-//     int arg_count = 0;
-
-//     t_token *current = tokens;
-//     while (current)
-//     {
-//         if (current->type == '>' || current->type == 'A')
-//         {
-//             // Ajouter une redirection sortante
-//             if (!add_redirection(&cmd->redirs, current->type, current->next ? current->next->value : NULL))
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             current = current->next ? current->next->next : NULL;
-//         }
-//         else
-//         {
-//             // Ajouter aux arguments de la commande
-//             args = realloc(args, sizeof(char *) * (arg_count + 2));
-//             args[arg_count++] = ft_strdup(current->value);
-//             args[arg_count] = NULL;
-//             current = current->next;
-//         }
-//     }
-//     cmd->args = args;
-
-//     return cmd;
-// }
-
-/* t_command *create_command(t_token *tokens, t_ctx *ctx)
-{
-    (void)ctx;
-    t_command *cmd = malloc(sizeof(t_command));
-    if (!cmd)
-        return NULL;
-    // cmd =  {0};
-
-    // Initialisation
-    cmd->redirs = NULL;
-    cmd->args = NULL;
-    cmd->path = NULL;
-    cmd->pid = -1;
-    cmd->next = NULL;
-    cmd->prev = NULL;
-    cmd->pfd[0] = -1;
-    cmd->pfd[1] = -1;
-
-    char **args = NULL;
-    int arg_count = 0;
-
-    t_token *current = tokens;
-    while (current)
-    {
-        if (current->type == '>' || current->type == 'A')
-        {
-            // Ajouter une redirection sortante
-            if (!add_redirection(&cmd->redirs, current->type,
-                               current->next ? current->next->value : NULL))
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            current = current->next ? current->next->next : NULL;
-        }
-        else
-        {
-            // Ajouter aux arguments de la commande
-            args = realloc(args, sizeof(char *) * (arg_count + 2));
-            if (!args)
-            {
-                free_command(cmd);
-                return NULL;
-            }
-            args[arg_count] = ft_strdup(current->value);
-            if (!args[arg_count])
-            {
-                free_array(args);
-                free_command(cmd);
-                return NULL;
-            }
-            args[++arg_count] = NULL;
-            current = current->next;
-        }
-    }
-    cmd->args = args;
-
-    return cmd;
-}
-
-// Compte le nombre d'arguments en ignorant les redirections
-int count_command_args(char **array)
-{
-    int arg_count = 0;
-    int i = 0;
-
-    while (array[i])
-    {
-        if (array[i][0] == '>' || ft_strcmp(array[i], ">>") == 0)
-        {
-            if(array[i + 1])
-                i++;
-            else
-                break;
-        }
-        else
-            arg_count++;
-        i++;
-    }
-    return arg_count;
-} */
-
-// Crée et ajoute une redirection à la liste
-// static int add_redirection_to_command(t_command *cmd, char *file, char type)
-// {
-//     // On passe l'adresse de cmd->redirs car la fonction attend un t_redirection**
-//     if (!add_redirection(&cmd->redirs, type, file))
-//         return 0;
-//     return 1;
-// }
-
-// Alloue et remplit le tableau d'arguments
-// static char **fill_command_args(char **array, int arg_count)
-// {
-//     char **args = malloc(sizeof(char *) * (arg_count + 1));
-//     if (!args)
-//         return NULL;
-
-//     int arg_idx = 0;
-//     int i = 0;
-//     while (array[i])
-//     {
-//         if (array[i][0] == '>' || ft_strcmp(array[i], ">>") == 0)
-//         {
-//             if(array[i + 1])
-//                 i++;
-//             else
-//                 break;
-//         }
-//         else
-//             args[arg_idx++] = ft_strdup(array[i++]);
-//         i++;
-//     }
-//     args[arg_idx] = NULL;
-//     return args;
-// }
 
 int add_arg_to_command(t_command *cmd, char *arg)
 {
@@ -256,77 +64,37 @@ int add_arg_to_command(t_command *cmd, char *arg)
    return 1;
 }
 
-// Fonction principale simplifiée
-// t_command *create_command_from_array(char **array, t_ctx *ctx)
+// int append_arg_value(char **current_arg, const char *value, int had_space)
 // {
-// 	(void)ctx;
-//     t_command *cmd = malloc(sizeof(t_command));
-//     if (!cmd)
-//         return NULL;
-
-//     // Initialisation
-//     cmd->redirs = NULL;
-//     cmd->pipe_in = -1;
-//     cmd->pipe_out = -1;
-
-//     // Traitement des redirections
-//     for (int i = 0; array[i]; i++)
+//     if (!*current_arg)
 //     {
-//         if (array[i][0] == '>' || ft_strcmp(array[i], ">>") == 0)
-//         {
-//             if(!array[i + 1])
-//                 return (free_command(cmd), NULL);
-//             char type = (array[i][1] == '>') ? 'A' : '>';
-//             if (!add_redirection_to_command(cmd, array[i + 1], type))
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             i++;  // Sauter le fichier de redirection
-//         }
+//         *current_arg = ft_strdup(value);
+//         return *current_arg != NULL;
 //     }
-//     // Création des arguments
-//     int arg_count = count_command_args(array);
-//     cmd->args = fill_command_args(array, arg_count);
-//     if (!cmd->args)
+
+//     // Si had_space est à 1, on ajoute directement
+//     if (had_space)
 //     {
-//         free_command(cmd);
-//         return NULL;
+//         char *temp = ft_strjoin(*current_arg, value);
+//         if (!temp)
+//             return 0;
+//         free(*current_arg);
+//         *current_arg = temp;
+//         return 1;
 //     }
-//     return cmd;
+
+//     // Si had_space est à 0, on ajoute avec espace
+//     char *temp = *current_arg;
+//     *current_arg = ft_strjoin(temp, " ");
+//     free(temp);
+//     if (!*current_arg)
+//         return 0;
+
+//     temp = *current_arg;
+//     *current_arg = ft_strjoin(temp, value);
+//     free(temp);
+//     return *current_arg != NULL;
 // }
-
-int append_arg_value(char **current_arg, const char *value, int had_space)
-{
-    if (!*current_arg)
-    {
-        *current_arg = ft_strdup(value);
-        return *current_arg != NULL;
-    }
-
-    // Si had_space est à 1, on ajoute directement
-    if (had_space)
-    {
-        char *temp = ft_strjoin(*current_arg, value);
-        if (!temp)
-            return 0;
-        free(*current_arg);
-        *current_arg = temp;
-        return 1;
-    }
-
-    // Si had_space est à 0, on ajoute avec espace
-    char *temp = *current_arg;
-    *current_arg = ft_strjoin(temp, " ");
-    free(temp);
-    if (!*current_arg)
-        return 0;
-
-    temp = *current_arg;
-    *current_arg = ft_strjoin(temp, value);
-    free(temp);
-    return *current_arg != NULL;
-}
 
 /* t_command *create_command_from_tokens(t_token *tokens)
 {
@@ -424,63 +192,63 @@ int append_arg_value(char **current_arg, const char *value, int had_space)
 //     return 0;
 // }
 
-void print_command_debug(t_command *cmd, const char *step)
-{
-    printf("Debug: Command after %s:\n", step);
-    printf("Args and had_spaces:\n");
-    for (int i = 0; i < cmd->arg_count; i++)
-        printf("arg[%d]: '%s', had_space: %d\n", i, cmd->args[i], cmd->had_spaces[i]);
-}
+// void print_command_debug(t_command *cmd, const char *step)
+// {
+//     printf("Debug: Command after %s:\n", step);
+//     printf("Args and had_spaces:\n");
+//     for (int i = 0; i < cmd->arg_count; i++)
+//         printf("arg[%d]: '%s', had_space: %d\n", i, cmd->args[i], cmd->had_spaces[i]);
+// }
 
-t_command *create_command_from_tokens_range(t_token *start, t_token *end)
-{
-    t_command *cmd = malloc(sizeof(t_command));
-    if (!cmd)
-        return NULL;
+// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+// {
+//     t_command *cmd = malloc(sizeof(t_command));
+//     if (!cmd)
+//         return NULL;
 
-     cmd->args = NULL;
-    cmd->redirs = NULL;
-    cmd->path = NULL;
-    cmd->pid = -1;
-    cmd->next = NULL;
-    cmd->prev = NULL;
-    cmd->pfd[0] = -1;
-    cmd->pfd[1] = -1;
-    cmd->arg_count = 0;
-    // Compter les arguments
-    int arg_count = 0;
-    t_token *current = start;
-    while (current && current != end && current->type != '|')
-    {
-        if (current->type != '>' && current->type != 'A')
-            arg_count++;
-        current = current->next;
-    }
+//      cmd->args = NULL;
+//     cmd->redirs = NULL;
+//     cmd->path = NULL;
+//     cmd->pid = -1;
+//     cmd->next = NULL;
+//     cmd->prev = NULL;
+//     cmd->pfd[0] = -1;
+//     cmd->pfd[1] = -1;
+//     cmd->arg_count = 0;
+//     // Compter les arguments
+//     int arg_count = 0;
+//     t_token *current = start;
+//     while (current && current != end && current->type != '|')
+//     {
+//         if (current->type != '>' && current->type != 'A')
+//             arg_count++;
+//         current = current->next;
+//     }
 
-    cmd->args = malloc(sizeof(char *) * (arg_count + 1));
-    cmd->had_spaces = malloc(sizeof(int) * arg_count);
-    cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
+//     cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+//     cmd->had_spaces = malloc(sizeof(int) * arg_count);
+//     cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
 
-    // Remplir les tableaux
-    int i = 0;
-    current = start;
-    while (current && current != end && current->type != '|')
-    {
-        if (current->type != '>' && current->type != 'A')
-        {
-            cmd->args[i] = ft_strdup(current->value);
-            cmd->had_spaces[i] = current->had_space;
-            // printf("Debug: Copying arg[%d]: '%s', had_space: %d\n",
-                //    i, current->value, current->had_space);
-            i++;
-        }
-        current = current->next;
-    }
-    cmd->args[i] = NULL;
+//     // Remplir les tableaux
+//     int i = 0;
+//     current = start;
+//     while (current && current != end && current->type != '|')
+//     {
+//         if (current->type != '>' && current->type != 'A')
+//         {
+//             cmd->args[i] = ft_strdup(current->value);
+//             cmd->had_spaces[i] = current->had_space;
+//             // printf("Debug: Copying arg[%d]: '%s', had_space: %d\n",
+//                 //    i, current->value, current->had_space);
+//             i++;
+//         }
+//         current = current->next;
+//     }
+//     cmd->args[i] = NULL;
 
-    // print_command_debug(cmd, "creation");
-    return cmd;
-}
+//     // print_command_debug(cmd, "creation");
+//     return cmd;
+// }
 
 // t_command *create_command_from_tokens_range(t_token *start, t_token *end)
 // {
@@ -525,17 +293,17 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
 //     }
 //     return cmd;
 // }
-void print_token_debug(t_token *tokens, const char *step)
-{
-    printf("\nDebug: Tokens after %s:\n", step);
-    t_token *current = tokens;
-    while (current)
-    {
-        printf("value: '%s', type: %c, had_space: %d\n",
-               current->value, current->type, current->had_space);
-        current = current->next;
-    }
-}
+// void print_token_debug(t_token *tokens, const char *step)
+// {
+//     printf("\nDebug: Tokens after %s:\n", step);
+//     t_token *current = tokens;
+//     while (current)
+//     {
+//         printf("value: '%s', type: %c, had_space: %d\n",
+//                current->value, current->type, current->had_space);
+//         current = current->next;
+//     }
+// }
 
 /* t_command *parse_pipe_sequence(t_token *tokens)
 {
@@ -601,6 +369,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     {
         add_history(line);
         t_token *tokens = tokenize_input(line);
+        printf("test 1\n");
         if (tokens)
         {
             if (expand_proc(&tokens, ctx) == -1)
@@ -608,11 +377,12 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
                 free_tokens(tokens);
                 return 1;
             }
+            printf("test 2\n");
 			process_pline(tokens, ctx);
         }
         if (!tokens)
         {
-            fprintf(stderr, "Error: tokenization failed\n");
+            ft_fprintf(2, "Error: tokenization failed\n");
             return 1;
         }
     }

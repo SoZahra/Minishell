@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 17:02:02 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 19:29:19 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,20 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
 //     return 0;
 // }
 
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     printf("testtttt----------");
+//     (void)ctx;
+//     // printf("Debug: echo: traitement des single quotes correct, pas d'expansion\n");
+//     write(STDOUT_FILENO, args, ft_strlen(args));
+//     write(STDOUT_FILENO, "\n", 1);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
 
 int handle_echo_builtin(const char *args, t_ctx *ctx)
 {
+    printf("testtttt----------\n");
     while (*args == ' ')
         args++;
     if (args[0] == '-' && 
@@ -232,7 +243,7 @@ int handle_no_args(t_ctx *ctx)
 
 int handle_error(const char *arg, t_ctx *ctx)
 {
-    fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", arg);
+    ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
     ctx->exit_status = 1;
     return 1;
 }
