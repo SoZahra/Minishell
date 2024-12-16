@@ -23,7 +23,7 @@ t_token	*find_builtin_start(t_token *tokens)
 	return (NULL);
 }
 
-char	*reconstruct_cmd_line_from_token(t_token *start_token, t_ctx *ctx)
+char	*reconstruct_cmd_line_from_token(t_token *start_token)
 {
 	char	*cmd_line;
 	char	*temp;
@@ -35,21 +35,21 @@ char	*reconstruct_cmd_line_from_token(t_token *start_token, t_ctx *ctx)
 	start_token = start_token->next;
 	while (start_token && ft_strcmp(start_token->value, ">") != 0)
 	{
-		if (expand_proc(&start_token, ctx) == -1)
+		if (!start_token->had_space)
 		{
-			free_tokens(start_token);
-			exit(EXIT_FAILURE);
+			temp = cmd_line;
+			cmd_line = ft_strjoin(cmd_line, " ");
+			free(temp);
 		}
-		temp = ft_strjoin(cmd_line, " ");
-		free(cmd_line);
-		cmd_line = ft_strjoin(temp, start_token->value);
+		temp = cmd_line;
+		cmd_line = ft_strjoin(cmd_line, start_token->value);
 		free(temp);
 		start_token = start_token->next;
 	}
 	return (cmd_line);
 }
 
-void	adjust_cmd_line_to_builtin(t_pipeline *pl, t_ctx *ctx)
+void	adjust_cmd_line_to_builtin(t_pipeline *pl)
 {
 	t_token	*builtin_start;
 	char	*new_cmd_line;
@@ -57,7 +57,7 @@ void	adjust_cmd_line_to_builtin(t_pipeline *pl, t_ctx *ctx)
 	builtin_start = find_builtin_start(pl->cmd_start);
 	if (builtin_start)
 	{
-		new_cmd_line = reconstruct_cmd_line_from_token(builtin_start, ctx);
+		new_cmd_line = reconstruct_cmd_line_from_token(builtin_start);
 		free(pl->cmd_line);
 		pl->cmd_line = new_cmd_line;
 	}
@@ -70,7 +70,6 @@ int	has_redirect(t_pipeline *pl)
 	current = pl->cmd_start;
 	while (current)
 	{
-		fprintf(stderr, " value current : %s\n", current->value);
 		if (ft_strcmp(current->value, ">") == 0
 			|| ft_strcmp(current->value, "<") == 0
 			|| ft_strcmp(current->value, ">>") == 0

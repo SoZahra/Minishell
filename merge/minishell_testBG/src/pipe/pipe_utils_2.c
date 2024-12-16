@@ -42,11 +42,11 @@ void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 		tokens = tokens->next;
 	}
 	if (!has_redirect(pl))
-		adjust_cmd_line_to_builtin(pl, ctx);
+		adjust_cmd_line_to_builtin(pl);
 	if (!has_pipe(pl))
 	{
 		if (has_redirect(pl))
-			adjust_cmd_line_to_builtin(pl, ctx);
+			adjust_cmd_line_to_builtin(pl);
 	}
 	setup_redirects_single_builtin(pl, ctx);
 }
