@@ -370,8 +370,8 @@ int 					count_env_vars(t_env_var *env_vars);
 int						check_for_pipe(t_pipeline *pl);
 void 					setup_redirects_single_builtin(t_pipeline *pl, t_ctx *ctx);
 int 					check_for_pipe_builtin(t_pipeline *pl);
-void 					adjust_cmd_line_to_builtin(t_pipeline *pl);
-char 					*reconstruct_cmd_line_from_token(t_token *start_token);
+void 					adjust_cmd_line_to_builtin(t_pipeline *pl, t_ctx * ctx);
+char 					*reconstruct_cmd_line_from_token(t_token *start_token, t_ctx *ctx);
 t_token 				*find_builtin_start(t_token *tokens);
 void					apply_redirect_and_execute(t_pipeline *pl, t_ctx *ctx, int saved_stdin,
 							int saved_stdout);
@@ -380,6 +380,7 @@ void					handle_redirection(t_token *current);
 int						save_and_restore_fds(int *saved_stdin, int *saved_stdout, int restore);
 int						is_pipe_after_builtin(t_pipeline *pl);
 int						has_redirect(t_pipeline *pl);
+int						has_pipe(t_pipeline *pl);
 // char **create_env_array(t_env_var *env_vars, int count);
 char **ctx_to_env_array(t_ctx *ctx);
 

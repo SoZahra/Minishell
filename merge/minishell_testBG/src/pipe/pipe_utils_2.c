@@ -27,8 +27,6 @@ void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 {
 	t_token	*tokens;
 
-	fprintf(stderr, "value cmd_line : %s\n", pl->cmd_line);
-	fprintf(stderr, "value pl cmd start : %s\n", pl->cmd_start->value);
 	if ((ft_strcmp(pl->cmd_start->value, "export") == 0
 			&& ft_strncmp(pl->cmd_line, "export", 6) != 0)
 		|| (ft_strcmp(pl->cmd_start->value, "unset") == 0
@@ -44,7 +42,12 @@ void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 		tokens = tokens->next;
 	}
 	if (!has_redirect(pl))
-		adjust_cmd_line_to_builtin(pl);
+		adjust_cmd_line_to_builtin(pl, ctx);
+	if (!has_pipe(pl))
+	{
+		if (has_redirect(pl))
+			adjust_cmd_line_to_builtin(pl, ctx);
+	}
 	setup_redirects_single_builtin(pl, ctx);
 }
 
@@ -57,7 +60,6 @@ void	process_pipeline_segment(t_pipeline *pl, t_ctx *ctx)
 
 void	process_pipeline_stage(t_pipeline *pl, t_ctx *ctx)
 {
-	fprintf(stderr, " value check : %d\n", check_for_pipe(pl));
 	if ((is_builtin(pl->cmd_start->value) && (!pl->cmd_end
 				|| check_for_pipe(pl))
 			&& !is_pipe_after_builtin(pl)))
