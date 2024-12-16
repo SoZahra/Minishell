@@ -43,7 +43,8 @@ void	process_single_builtin(t_pipeline *pl, t_ctx *ctx)
 			return ;
 		tokens = tokens->next;
 	}
-	adjust_cmd_line_to_builtin(pl);
+	if (!has_redirect(pl))
+		adjust_cmd_line_to_builtin(pl);
 	setup_redirects_single_builtin(pl, ctx);
 }
 
@@ -56,8 +57,10 @@ void	process_pipeline_segment(t_pipeline *pl, t_ctx *ctx)
 
 void	process_pipeline_stage(t_pipeline *pl, t_ctx *ctx)
 {
+	fprintf(stderr, " value check : %d\n", check_for_pipe(pl));
 	if ((is_builtin(pl->cmd_start->value) && (!pl->cmd_end
-				|| check_for_pipe(pl))))
+				|| check_for_pipe(pl))
+			&& !is_pipe_after_builtin(pl)))
 	{
 		process_single_builtin(pl, ctx);
 		if (pl->cmd_end)

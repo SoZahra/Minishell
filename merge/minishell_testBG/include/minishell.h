@@ -378,6 +378,8 @@ void					apply_redirect_and_execute(t_pipeline *pl, t_ctx *ctx, int saved_stdin,
 void					process_redirections(t_token *current);
 void					handle_redirection(t_token *current);
 int						save_and_restore_fds(int *saved_stdin, int *saved_stdout, int restore);
+int						is_pipe_after_builtin(t_pipeline *pl);
+int						has_redirect(t_pipeline *pl);
 // char **create_env_array(t_env_var *env_vars, int count);
 char **ctx_to_env_array(t_ctx *ctx);
 

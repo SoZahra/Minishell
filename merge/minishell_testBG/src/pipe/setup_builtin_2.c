@@ -57,3 +57,20 @@ void	adjust_cmd_line_to_builtin(t_pipeline *pl)
 		pl->cmd_line = new_cmd_line;
 	}
 }
+
+int	has_redirect(t_pipeline *pl)
+{
+	t_token	*current;
+
+	current = pl->cmd_start;
+	while (current)
+	{
+		if (ft_strcmp(current->value, ">") == 0
+			|| ft_strcmp(current->value, "<") == 0
+			|| ft_strcmp(current->value, ">>") == 0
+			|| ft_strcmp(current->value, "<<") == 0)
+			return (1);
+			current = current->next;
+	}
+	return (0);
+}

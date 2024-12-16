@@ -77,3 +77,21 @@ char	**ctx_to_env_array(t_ctx *ctx)
 	count = count_env_vars(ctx->env_vars);
 	return (create_env_array(ctx->env_vars, count));
 }
+
+int	is_pipe_after_builtin(t_pipeline *pl)
+{
+	t_token	*current;
+	int		found_builtin;
+
+	current = pl->cmd_start;
+	found_builtin = 0;
+	while (current)
+	{
+		if (is_builtin(current->value))
+			found_builtin = 1;
+		else if (found_builtin && ft_strcmp(current->value, "|") == 0)
+			return (1);
+		current = current->next;
+	}
+	return (0);
+}
