@@ -1,0 +1,26 @@
+# LEXER_DIR	=	$(SRC_PATH)lexer
+# 				# env/env.c env/utils_env.c env/expand.c\
+# 				# lexer/lexer.c lexer/lexer_utils.c lexer/handle.c lexer/tokens.c\
+# 				# pipe/exc_pipe.c pipe/pipe.c pipe/pipe_utils.c pipe/pipe_utils_2.c\
+# SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
+# CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
+LEXER_DIR	=	$(SRC_PATH)lexer
+				builtins/echo_utils.c builtins/echo.c builtins/env.c builtins/exit.c builtins/gestion_builtins.c builtins/utils_env.c\
+				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c exec/handle_export.c exec/handle_cd.c\
+				expand/expand_variables.c expand/utils_expand.c\
+				signaux/handle_signal.c \
+				pipe/exec_struct_utils.c pipe/pipe_utils_2.c \
+SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
+CFLAGS		=	-Wall -Werror -Wextra -I$(INC_PATH) -I$(LIBFT_PATH) -g3
+include
+libft
+Makefile
+minishell
+minishell.sup
+minishell_tester
+src
+test
+test|
+test~
+tet
+tst
