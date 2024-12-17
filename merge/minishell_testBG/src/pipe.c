@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 12:17:59 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 17:52:12 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -446,8 +446,7 @@ void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int in
                 int in_fd = open(cmd->redirs[i].file, O_RDONLY);
                 if (in_fd == -1)
                 {
-                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
-                             cmd->redirs[i].file);
+                    ft_fprintf(2, "minishell: %s: Permission denied\n",  cmd->redirs[i].file);
                     exit(1);
                 }
                 dup2(in_fd, STDIN_FILENO);
@@ -544,7 +543,8 @@ void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int in
             
         int ret = execute_builtin(builtin_cmd, ctx);
         free(builtin_cmd);
-        exit(ret);
+        clear_and_exit(NULL ,cmd, ret);
+        // exit(ret);
     }
     else
     {
@@ -552,8 +552,21 @@ void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int in
             exit(1);
         execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
         perror("execve");
-        exit(1);
+        clear_and_exit(NULL ,cmd, 1);
+        // exit(1);
     }
+}
+
+void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code)
+{
+	free_ctx(get_ctx());
+    free_env(get_ctx()->env_vars);
+    (void)pids;
+    // free pids
+    free_tokens(get_ctx()->tokens);
+    free_args(cmds->args);
+    free_command(cmds);
+    exit(exit_code);
 }
 
 
@@ -642,9 +655,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
 
     // Compter le nombre de commandes
     int num_commands = count_commands(cmd);
-    // Créer les pipes
     int **pipes = create_pipeline_pipes(num_commands);
-    // Tableau pour stocker les PIDs
     pid_t *pids = malloc(sizeof(pid_t) * num_commands);
 
     // Exécuter chaque commande
@@ -671,13 +682,12 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
         current = current->next;
         index++;
     }
-    // Fermer tous les descripteurs de pipe
     close_pipes(pipes, num_commands);
-    // Attendre la fin des processus
     wait_for_pipeline(pids, num_commands, ctx);
-    // Libérer la mémoire
     free(pids);
 }
+
+
 
 // void execute_pipeline(t_command *cmd, t_ctx *ctx)
 // {

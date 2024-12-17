@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 16:12:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 15:51:08 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,21 @@ t_ctx	*get_ctx(void)
 	return (&ctx);
 }
 
-int get_term_attr()
+int	get_term_attr(void)
 {
-    return (tcgetattr(STDIN_FILENO, &get_ctx()->term));
+	return (tcgetattr(STDIN_FILENO, &get_ctx()->term));
 }
 
-int set_term_attr()
+int	set_term_attr(void)
 {
-    return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
+	return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
 }
 
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp)
+int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
+		char **envp)
 {
+	int	final_status;
+
 	if (initialize_ctx(get_ctx()))
 		return (1);
 	get_term_attr();
@@ -43,7 +46,7 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 		free_ctx(get_ctx());
 		return (perror("Failed to build env list"), 1);
 	}
-	loop_with_pipes(get_ctx());
+	final_status = loop_with_pipes(get_ctx());
 	free_ctx(get_ctx());
-	return (0);
+	return (final_status);
 }

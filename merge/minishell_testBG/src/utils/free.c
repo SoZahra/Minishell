@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 13:44:53 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 17:44:48 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,24 +36,25 @@ void	free_env(t_env_var *env_var)
 		to_free = env_var;
 		env_var = env_var->next;
 		free(to_free->name);
+		to_free->name = NULL;
 		free(to_free->value);
+		to_free->value = NULL;
 		free(to_free);
+		to_free = NULL;
 	}
 }
 
-void	free_ctx(t_ctx *ctx)
+void free_ctx(t_ctx *ctx)
 {
-	t_ctx	*to_free;
-
-	while (ctx)
-	{
-		to_free = ctx;
-		ctx = ctx->next;
-		free_env(to_free->env_vars);
-		free(to_free->oldpwd);
-		free(to_free->pwd);
-		free(to_free);
-	}
+    if (ctx)
+    {
+        free_env(ctx->env_vars);
+		ctx->env_vars = NULL;
+        free(ctx->oldpwd);
+		ctx->pwd = NULL;
+        free(ctx->pwd);
+		ctx->pwd = NULL;
+    }
 }
 
 void	*free_tab(char **tab)
@@ -78,10 +79,13 @@ void	free_tokens(t_token *tokens)
 	while (tokens)
 	{
 		tmp = tokens;
-		tokens = tokens->next;
 		free(tmp->value);
+		tmp->value = NULL;
 		free(tmp->content);
+		tmp->content = NULL;
 		free(tmp);
+		tmp = NULL;
+		tokens = tokens->next;
 	}
 }
 
@@ -95,7 +99,26 @@ void	free_args(char **args)
 	while (args[i])
 	{
 		free(args[i]);
+		args[i] = NULL;
 		i++;
 	}
 	free(args);
+	args = NULL;
+}
+
+void free_pipeline_pipes(int **pipes, int num_commands)
+{
+    if (!pipes || num_commands <= 1)
+        return;
+        
+    for (int i = 0; i < num_commands - 1; i++)
+    {
+        if (pipes[i])
+		{
+            free(pipes[i]);
+			pipes[i] = NULL;
+		}
+    }
+    free(pipes);
+	pipes = NULL;
 }

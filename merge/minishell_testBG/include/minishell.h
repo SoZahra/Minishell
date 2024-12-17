@@ -21,8 +21,11 @@
 
 extern char				**environ;
 
+// c
+
 # define PROMPT "\033[1;34mMiniBG>\033[0m "
 #define TOKENS "<>|\"'"
+#define REDIRS "<>HA"
 #define OPERATORS "AH<>|"
 #define UNJOIN "<>|"
 
@@ -37,20 +40,6 @@ typedef struct s_env_var
 	struct s_env_var	*next;
 	// struct t_ctx 		*env_vars;
 }						t_env_var;
-
-typedef struct s_ctx
-{
-	t_env_var 			*env_vars; // Liste des variables d'environnement
-	unsigned char		exit_status;
-	int					num_pipes;
-	char				*oldpwd;
-	char				*pwd;
-	struct s_ctx		*next;
-	struct termios		term;
-	// char				*name;
-	// char				*value;
-
-}						t_ctx;
 
 typedef enum token_type
 {
@@ -76,6 +65,26 @@ typedef struct s_token
 	int					had_space;
 }						t_token;
 
+typedef struct s_ctx
+{
+	t_token *tokens;
+	t_env_var 			*env_vars; // Liste des variables d'environnement
+	unsigned char		exit_status;
+	int					num_pipes;
+	char				*oldpwd;
+	char				*pwd;
+	struct s_ctx		*next;
+	struct termios		term;
+	struct sigaction	s_sigint;
+	struct sigaction	s_sigquit;
+
+	int save_stdin;
+	int save_stdout;
+	// char				*name;
+	// char				*value;
+
+}						t_ctx;
+
 // typedef struct s_pipe_cmd
 // {
 // 	t_token				*cmd;
@@ -85,6 +94,11 @@ typedef struct s_token
 // 	int					pipe_write;
 // 	struct s_pipe_cmd	*next;
 // }						t_pipe_cmd;
+
+// typedef struct s_utils {
+// 	int **pipes;
+// 	pid_t *pids;
+// }
 
 typedef struct s_redirection {
     char type;              // '>' pour >, 'A' pour >>, '<' pour <, 'H' pour
@@ -107,6 +121,10 @@ typedef struct s_command {
     struct s_command *prev;
 	int *had_spaces;
 } t_command;
+
+
+bool is_token(char c, char *str);
+void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code);
 
 // pipe(pfd);
 
@@ -506,6 +524,8 @@ t_token *tokenize_input(char *line);
 
 t_token *create_token_node(char *arg, t_token_type type);
 int is_valid_n(t_token *current);
+
+void free_pipeline_pipes(int **pipes, int num_commands);
 
 int set_term_attr();
 int get_term_attr();

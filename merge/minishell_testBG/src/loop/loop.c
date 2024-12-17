@@ -6,11 +6,41 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 11:52:15 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 19:01:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+int		g_var_global = 0;
+
+char	*empty_completion(const char *text, int state)
+{
+	(void)text;
+	(void)state;
+	return (NULL);
+}
+
+void	handle_sigint(int sig)
+{
+	(void)sig;
+	printf("\n");
+	rl_on_new_line();
+	rl_replace_line("", 0);
+	rl_redisplay();
+	g_var_global = 0;
+}
+
+void	handle_sigquit(int sig)
+{
+	(void)sig;
+}
+
+void	init_sig(void)
+{
+	signal(SIGINT, handle_sigint);
+	signal(SIGQUIT, SIG_IGN);
+}
 
 void print_tokens(t_token *tokens)
 {
@@ -60,13 +90,32 @@ void print_command_debug(t_command *cmd)
     fprintf(stderr, "=== End Debug ===\n\n");
 }
 
+t_token *get_last_node(t_token *tokens)
+{
+    t_token *tmp;
+
+    tmp = tokens;
+    while (tmp->next)
+        tmp = tmp->next;
+    return tmp;
+}
+
 t_token *tokenize_input(char *line)
 {
     t_token *tokens;
+    t_token *tmp;
 
     tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
         return (NULL);
+    get_ctx()->tokens = tokens;
+    tmp = get_last_node(tokens);
+    if (is_token(tmp->type, REDIRS))
+    {
+        printf("syntax error\n");
+        free_tokens(tokens);
+        return NULL;
+    }
     return (tokens);
 }
 
@@ -653,7 +702,7 @@ void fill_command_tokens(t_token *token, t_command *new_cmd)
                  token->type == '\'' ||
                  token->type == '"')  // Ajout du type double quote
         {
-            new_cmd->args[arg_index] = strdup(token->value);
+            new_cmd->args[arg_index] = ft_strdup(token->value);
             new_cmd->had_spaces[arg_index] = token->had_space;
             arg_index++;
         }
@@ -719,16 +768,14 @@ void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *ne
 t_command *allocate_command(int arg_count, int redir_count)
 {
     t_command *new_cmd = malloc(sizeof(t_command));
-    ft_memset(new_cmd, 0, sizeof(t_command));
+    *new_cmd = (t_command){0};
     new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
     new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
     new_cmd->arg_count = arg_count;
     new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
-    ft_memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
-     for (int i = 0; i <= redir_count; i++)
-    {
+    *new_cmd->redirs = (t_redirection){0};
+    for (int i = 0; i <= redir_count; i++)
         new_cmd->redirs[i].heredoc_fd = -1;
-    }
     return new_cmd;
 }
 
@@ -793,35 +840,21 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 
     add_history(line);
     t_token *tokens = tokenize_input(line);
-    // print_tokens(tokens);
     if (!tokens)
         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
     if (expand_proc(&tokens, ctx) == -1)
         return(free_tokens(tokens), 1);
-    char *final_cmd = tokens_to_string(tokens);
-    // printf("final cmd %s\n", final_cmd);
-    if (!final_cmd)
-        return(free_tokens(tokens), 1);
+    // char *final_cmd = tokens_to_string(tokens);
+    // if (!final_cmd)
+    //     return(free_tokens(tokens), 1);
     t_command *cmd = parse_pipe_sequence(tokens);
     if (!cmd)
         return(free_tokens(tokens), 1);
-    t_command *current = cmd;
-    // int has_redirections = 0;
-    current = cmd;
-    while (current)
-    {
-        if (current->redirs && current->redirs[0].type != 0)
-        {
-            // has_redirections = 1;
-            break;
-        }
-        current = current->next;
-    }
     if (cmd->next)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
-    return(free_tokens(tokens), 0);
+    return(free_command(cmd), free(tokens), 0);
 }
 
 // int handle_line_for_loop(char *line, t_ctx *ctx)
@@ -900,8 +933,15 @@ int	loop_with_pipes(t_ctx *ctx)
 		if (line == NULL)
 		{
 			write(1, "exit\n", 5);
-			exit(ctx->exit_status);
+            if(g_var_global)
+                ctx->exit_status = 130;
+			return(ctx->exit_status);
 		}
+        // if (g_var_global)
+        // {
+        //     ctx->exit_status = 130;
+        //     g_var_global = 0;
+        // }
 		handle_line_for_loop(line, ctx);
 		free(line);
 	}

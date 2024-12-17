@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 12:20:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 19:10:39 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -417,15 +417,15 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     }
 
     // Sauvegarder les FD originaux
-    int stdin_backup = dup(STDIN_FILENO);
-    int stdout_backup = dup(STDOUT_FILENO);
+    get_ctx()->save_stdin = dup(STDIN_FILENO);
+    get_ctx()->save_stdout = dup(STDOUT_FILENO);
 
     if (cmd->redirs)
     {
         if (apply_redirections(cmd->redirs, ctx) == -1)
         {
             ctx->exit_status = 1;
-            restore_fds(stdin_backup, stdout_backup);
+            restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
             return;
         }
     }
@@ -438,7 +438,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     }
     else
         ctx->exit_status = execute_external_command(cmd, ctx);
-    restore_fds(stdin_backup, stdout_backup);
+    restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
 }
 
 // void execute_command(t_command *cmd, t_ctx *ctx)
@@ -922,6 +922,8 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
 
     if (pid == 0)
     {
+        close(get_ctx()->save_stdin);
+        close(get_ctx()->save_stdout);
         char **env = create_env_array(ctx->env_vars);
         execve(cmd->path, cmd->args, env);
         perror("execve");
@@ -931,8 +933,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
     {
         int status;
         waitpid(pid, &status, 0);
-        free(cmd->path);
-        
+        // free(cmd->path);
         if (WIFEXITED(status))
             return WEXITSTATUS(status);
         else if (WIFSIGNALED(status))
@@ -946,26 +947,38 @@ void free_command(t_command *cmd)
 {
     if (!cmd)
         return;
-
-    // Libérer le tableau d'arguments
+    if (cmd->next)
+    {
+        free_command(cmd->next);
+        cmd->next = NULL;  
+    }
     if (cmd->args)
     {
         for (int i = 0; cmd->args[i]; i++)
+        {
             free(cmd->args[i]);
+            cmd->args[i] = NULL;
+        }
         free(cmd->args);
+        cmd->args = NULL;
     }
-
-    // Libérer les redirections
-    t_redirection *current = cmd->redirs;
-    while (current)
+    free(cmd->had_spaces);
+    cmd->had_spaces = NULL;
+    if (cmd->redirs)
     {
-        t_redirection *next = current->next;
-        if (current->file)
-            free(current->file);
-        free(current);
-        current = next;
+        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        {
+            if (cmd->redirs[i].file)
+            {
+                free(cmd->redirs[i].file);
+                cmd->redirs[i].file = NULL;
+            }
+        }
+        free(cmd->redirs);
+        cmd->redirs = NULL;
     }
-
-    // Libérer la structure elle-même
+    free(cmd->path);
+    cmd->path = NULL;
     free(cmd);
+    cmd = NULL;
 }

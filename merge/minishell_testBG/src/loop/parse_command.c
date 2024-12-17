@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 23:49:29 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 17:04:41 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,36 +268,62 @@ int join_proc(t_token **tokens, bool limiter)
 //     return tokens_to_string(tokens);
 // }
 
+// char *tokens_to_string(t_token *tokens)
+// {
+//     if(!tokens)
+//         return (NULL);
+//     t_token *current;
+//     char *result;
+//     char *temp;
+
+//     current = tokens;
+//     result = ft_strdup("");
+//     if(!result)
+//         return (NULL);
+//     while (current)
+//     {
+        
+//         if (*result && !current->had_space)
+//         {
+//             temp = ft_strjoin(result, " ");
+//             if (!temp)
+//                 return (free(result),NULL);
+//             free(result);
+//             result = temp;
+//         }
+//         temp = ft_strjoin(result, current->value);
+//         if (!temp)
+//             return (free(result), NULL);
+//         free(result);
+//         result = temp;
+//         current = current->next;
+//     }
+//     return result;
+// }
+
 char *tokens_to_string(t_token *tokens)
 {
+    t_token *token;
+    char *str;
+    char *tmp;
+
     if(!tokens)
         return (NULL);
-    t_token *current;
-    char *result;
-    char *temp;
-
-    current = tokens;
-    result = ft_strdup("");
-    if(!result)
-        return (NULL);
-    while (current)
+    token = tokens;
+    str = ft_strdup(token->value);
+    if (!str)
+        return NULL;
+    token = token->next;
+    while (token)
     {
-        if (*result && !current->had_space)
-        {
-            temp = ft_strjoin(result, " ");
-            if (!temp)
-                return (free(result),NULL);
-            free(result);
-            result = temp;
-        }
-        temp = ft_strjoin(result, current->value);
-        if (!temp)
-            return (free(result), NULL);
-        free(result);
-        result = temp;
-        current = current->next;
+        tmp = str;
+        str = ft_strjoin(str, token->value);
+        if (!str)
+            return (free(tmp), NULL);
+        free(tmp);
+        token = token->next;
     }
-    return result;
+    return str;
 }
 
 bool is_token(char c, char *str)
@@ -386,8 +412,11 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
         type = 'H';
     else if (type == '>' && x > 1)
         type = 'A';
-    if(add_token(tokens, type, value) != 0)
-        return (free(value), 1);
+    int ret = add_token(tokens, type, value);
+        // return (free(value), 1);
+    free(value);
+    if(ret != 0)
+        return 1;
     return 0;
 }
 
@@ -428,6 +457,7 @@ int word_proc(t_token **tokens, char *input, int *i)
     if (!value)
         return -1;
     result = add_token(tokens, 'S', value);
+    free(value);
     if (result != 0)
         return (free(value), -1);
     if (j > 0 && input[j - 1] && !ft_isspace(input[j - 1]) && !is_token(input[j - 1], UNJOIN))
