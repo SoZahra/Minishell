@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 10:28:11 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 12:20:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,9 +398,27 @@ char *tokens_to_string_from_command(t_command *cmd)
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
-   // Sauvegarder les FD originaux
-   int stdin_backup = dup(STDIN_FILENO);
-   int stdout_backup = dup(STDOUT_FILENO);
+    // Traiter d'abord les heredocs si présents
+    if (cmd->redirs)
+    {
+        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        {
+            if (cmd->redirs[i].type == 'H')
+            {
+                int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
+                if (heredoc_fd == -1)
+                {
+                    ctx->exit_status = 1;
+                    return;
+                }
+                cmd->redirs[i].heredoc_fd = heredoc_fd;
+            }
+        }
+    }
+
+    // Sauvegarder les FD originaux
+    int stdin_backup = dup(STDIN_FILENO);
+    int stdout_backup = dup(STDOUT_FILENO);
 
     if (cmd->redirs)
     {
@@ -411,16 +429,42 @@ void execute_command(t_command *cmd, t_ctx *ctx)
             return;
         }
     }
-   if (is_builtin(cmd->args[0]))
+
+    if (is_builtin(cmd->args[0]))
     {
-		char *cmd_line = tokens_to_string_from_command(cmd);
-		ctx->exit_status = execute_builtin(cmd_line, ctx);
-		free(cmd_line);
-	}
-   else
-       ctx->exit_status = execute_external_command(cmd, ctx);
-   restore_fds(stdin_backup, stdout_backup);
+        char *cmd_line = tokens_to_string_from_command(cmd);
+        ctx->exit_status = execute_builtin(cmd_line, ctx);
+        free(cmd_line);
+    }
+    else
+        ctx->exit_status = execute_external_command(cmd, ctx);
+    restore_fds(stdin_backup, stdout_backup);
 }
+
+// void execute_command(t_command *cmd, t_ctx *ctx)
+// {
+//    int stdin_backup = dup(STDIN_FILENO);
+//    int stdout_backup = dup(STDOUT_FILENO);
+
+//     if (cmd->redirs)
+//     {
+//         if (apply_redirections(cmd->redirs, ctx) == -1)
+//         {
+//             ctx->exit_status = 1;
+//             restore_fds(stdin_backup, stdout_backup);
+//             return;
+//         }
+//     }
+//    if (is_builtin(cmd->args[0]))
+//     {
+// 		char *cmd_line = tokens_to_string_from_command(cmd);
+// 		ctx->exit_status = execute_builtin(cmd_line, ctx);
+// 		free(cmd_line);
+// 	}
+//    else
+//        ctx->exit_status = execute_external_command(cmd, ctx);
+//    restore_fds(stdin_backup, stdout_backup);
+// }
 
 // void execute_command(t_command *cmd, t_ctx *ctx)
 // {
@@ -511,22 +555,39 @@ void execute_command(t_command *cmd, t_ctx *ctx)
 
 int handle_heredoc(t_redirection *redir, t_ctx *ctx)
 {
-    int fd = here_doc(redir->file, ctx);
-    if (fd == -1)
+    (void)ctx;
+    if (redir->heredoc_fd != -1)
     {
-        perror("here_doc");
-        return -1;
+        if (dup2(redir->heredoc_fd, STDIN_FILENO) == -1)
+        {
+            perror("dup2 heredoc");
+            close(redir->heredoc_fd);
+            return -1;
+        }
+        close(redir->heredoc_fd);
+        return 0;
     }
-
-    if (dup2(fd, STDIN_FILENO) == -1)
-    {
-        perror("dup2 heredoc");
-        close(fd);
-        return -1;
-    }
-    close(fd);
-    return 0;
+    return -1;
 }
+
+// int handle_heredoc(t_redirection *redir, t_ctx *ctx)
+// {
+//     int fd = here_doc(redir->file, ctx);
+//     if (fd == -1)
+//     {
+//         perror("here_doc");
+//         return -1;
+//     }
+
+//     if (dup2(fd, STDIN_FILENO) == -1)
+//     {
+//         perror("dup2 heredoc");
+//         close(fd);
+//         return -1;
+//     }
+//     close(fd);
+//     return 0;
+// }
 
 int handle_input_redirection(t_redirection *redir)
 {

@@ -91,6 +91,7 @@ typedef struct s_redirection {
     char *file;            // Nom du fichier ou délimiteur
     int fd;                // File descriptor
     struct s_redirection *next;
+	int heredoc_fd;
 } t_redirection;
 
 typedef struct s_command {

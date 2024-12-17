@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 09:40:52 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 11:52:15 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -681,7 +681,7 @@ t_command *parse_pipe_sequence(t_token *tokens)
         {
             if (token_counter->type == '>' || token_counter->type == '<' ||
                 token_counter->type == TOKEN_REDIRECT_APPEND ||
-                token_counter->type == TOKEN_HEREDOC)
+                token_counter->type == 'H')
             {
                 redir_count++;
                 token_counter = token_counter->next ? token_counter->next : NULL;
@@ -719,14 +719,16 @@ void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *ne
 t_command *allocate_command(int arg_count, int redir_count)
 {
     t_command *new_cmd = malloc(sizeof(t_command));
-    memset(new_cmd, 0, sizeof(t_command));
-
+    ft_memset(new_cmd, 0, sizeof(t_command));
     new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
     new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
     new_cmd->arg_count = arg_count;
-
     new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
     ft_memset(new_cmd->redirs, 0, sizeof(t_redirection) * (redir_count + 1));
+     for (int i = 0; i <= redir_count; i++)
+    {
+        new_cmd->redirs[i].heredoc_fd = -1;
+    }
     return new_cmd;
 }
 

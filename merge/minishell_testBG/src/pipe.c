@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 00:59:36 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 12:17:59 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -410,7 +410,7 @@ int has_input_redirection(t_command *cmd)
         return 0;
     for (int i = 0; cmd->redirs[i].type != 0; i++)
     {
-        if (cmd->redirs[i].type == '<')
+        if (cmd->redirs[i].type == '<' || cmd->redirs[i].type == 'H')
             return 1;
     }
     return 0;
@@ -452,6 +452,35 @@ void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int in
                 }
                 dup2(in_fd, STDIN_FILENO);
                 close(in_fd);
+            }
+            else if (cmd->redirs[i].type == 'H')
+            {
+                if (cmd->redirs[i].heredoc_fd != -1)
+                {
+                    if (dup2(cmd->redirs[i].heredoc_fd, STDIN_FILENO) == -1)
+                    {
+                        perror("dup2 heredoc");
+                        exit(1);
+                    }
+                    close(cmd->redirs[i].heredoc_fd);
+                }
+                else
+                {
+                    // Si heredoc_fd n'est pas initialisé, on le crée maintenant
+                    int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
+                    if (heredoc_fd == -1)
+                    {
+                        ft_fprintf(2, "minishell: heredoc error\n");
+                        exit(1);
+                    }
+                    if (dup2(heredoc_fd, STDIN_FILENO) == -1)
+                    {
+                        perror("dup2 heredoc");
+                        close(heredoc_fd);
+                        exit(1);
+                    }
+                    close(heredoc_fd);
+                }
             }
             else if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
             {
@@ -574,22 +603,52 @@ void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx)
     }
 }
 
+int has_heredoc(t_command *cmd)
+{
+    if (!cmd->redirs)
+        return 0;
+    for (int i = 0; cmd->redirs[i].type != 0; i++)
+    {
+        if (cmd->redirs[i].type == 'H')
+            return 1;
+    }
+    return 0;
+}
+
 void execute_pipeline(t_command *cmd, t_ctx *ctx)
 {
     if (!cmd)
         return;
 
+    // Traiter d'abord tous les heredocs
+    t_command *current = cmd;
+    while (current)
+    {
+        if (current->redirs)
+        {
+            for (int i = 0; current->redirs[i].type != 0; i++)
+            {
+                if (current->redirs[i].type == 'H')
+                {
+                    int heredoc_fd = here_doc(current->redirs[i].file, ctx);
+                    if (heredoc_fd == -1)
+                        return;
+                    current->redirs[i].heredoc_fd = heredoc_fd;
+                }
+            }
+        }
+        current = current->next;
+    }
+
     // Compter le nombre de commandes
     int num_commands = count_commands(cmd);
-
     // Créer les pipes
     int **pipes = create_pipeline_pipes(num_commands);
-    
     // Tableau pour stocker les PIDs
     pid_t *pids = malloc(sizeof(pid_t) * num_commands);
 
     // Exécuter chaque commande
-    t_command *current = cmd;
+    current = cmd;
     int index = 0;
     while (current)
     {
@@ -599,29 +658,75 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
             perror("fork");
             break;
         }
-
-        if (pids[index] == 0)  // Processus enfant
+        if (pids[index] == 0) // Processus enfant
         {
-             
             execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
         }
-
         // Fermer les descripteurs de pipe dans le processus parent
         if (index > 0)
         {
             close(pipes[index - 1][0]);
             close(pipes[index - 1][1]);
         }
-
         current = current->next;
         index++;
     }
     // Fermer tous les descripteurs de pipe
     close_pipes(pipes, num_commands);
-
     // Attendre la fin des processus
     wait_for_pipeline(pids, num_commands, ctx);
-
     // Libérer la mémoire
     free(pids);
 }
+
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//     if (!cmd)
+//         return;
+
+//     // Compter le nombre de commandes
+//     int num_commands = count_commands(cmd);
+
+//     // Créer les pipes
+//     int **pipes = create_pipeline_pipes(num_commands);
+    
+//     // Tableau pour stocker les PIDs
+//     pid_t *pids = malloc(sizeof(pid_t) * num_commands);
+
+//     // Exécuter chaque commande
+//     t_command *current = cmd;
+//     int index = 0;
+//     while (current)
+//     {
+//         pids[index] = fork();
+//         if (pids[index] == -1)
+//         {
+//             perror("fork");
+//             break;
+//         }
+
+//         if (pids[index] == 0)  // Processus enfant
+//         {
+             
+//             execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
+//         }
+
+//         // Fermer les descripteurs de pipe dans le processus parent
+//         if (index > 0)
+//         {
+//             close(pipes[index - 1][0]);
+//             close(pipes[index - 1][1]);
+//         }
+
+//         current = current->next;
+//         index++;
+//     }
+//     // Fermer tous les descripteurs de pipe
+//     close_pipes(pipes, num_commands);
+
+//     // Attendre la fin des processus
+//     wait_for_pipeline(pids, num_commands, ctx);
+
+//     // Libérer la mémoire
+//     free(pids);
+// }
