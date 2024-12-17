@@ -160,7 +160,7 @@ void update_command_from_tokens(t_command *cmd, t_token *tokens);
 t_token *create_tokens_from_command(t_command *cmd);
 
 
-void count_tokens_redir(t_token *token, int *arg_count, int *redir_count);
+void count_tokens_redir(t_token *start, t_token *end, int *arg_count, int *redir_count);
 void fill_command_tokens(t_token *token, t_command *new_cmd);
 void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd);
 t_command *allocate_command(int arg_count, int redir_count);
@@ -397,9 +397,11 @@ void					handle_output_redirection(t_token *redir_token,
 							int *redirect, int *redirect_output);
 void					initialize_pipe_if_needed(int *pipe_fd,
 							t_token *cmd_end);
-void					execute_command_in_child(t_token *cmd_start,
-							t_token *cmd_end, int prev_fd, int *pipe_fd,
-							t_ctx *ctx);
+// void					execute_command_in_child(t_token *cmd_start,
+// 							t_token *cmd_end, int prev_fd, int *pipe_fd,
+// 							t_ctx *ctx);
+
+void execute_command_in_child(t_command *cmd, t_ctx *ctx);
 void					cleanup_parent_resources(int *prev_fd, int *pipe_fd,
 							t_token **cmd_start, t_token *cmd_end);
 // int					wait_for_all_children(void);

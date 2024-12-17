@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 17:52:12 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 23:05:14 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,135 +427,202 @@ int has_output_redirection(t_command *cmd)
     return 0;
 }
 
-
-void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
+void setup_pipe_redirections(t_command *cmd, int index, int cmd_count)
 {
-    // Gérer les redirections en premier
-    if (cmd->redirs)
+    if (index > 0 && cmd->prev)
     {
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
-        {
-            if (cmd->redirs[i].type == '<')
-            {
-                if (access(cmd->redirs[i].file, F_OK) == -1)
-                {
-                    ft_fprintf(2, "minishell: %s: No such file or directory\n", 
-                             cmd->redirs[i].file);
-                    exit(1);
-                }
-                int in_fd = open(cmd->redirs[i].file, O_RDONLY);
-                if (in_fd == -1)
-                {
-                    ft_fprintf(2, "minishell: %s: Permission denied\n",  cmd->redirs[i].file);
-                    exit(1);
-                }
-                dup2(in_fd, STDIN_FILENO);
-                close(in_fd);
-            }
-            else if (cmd->redirs[i].type == 'H')
-            {
-                if (cmd->redirs[i].heredoc_fd != -1)
-                {
-                    if (dup2(cmd->redirs[i].heredoc_fd, STDIN_FILENO) == -1)
-                    {
-                        perror("dup2 heredoc");
-                        exit(1);
-                    }
-                    close(cmd->redirs[i].heredoc_fd);
-                }
-                else
-                {
-                    // Si heredoc_fd n'est pas initialisé, on le crée maintenant
-                    int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
-                    if (heredoc_fd == -1)
-                    {
-                        ft_fprintf(2, "minishell: heredoc error\n");
-                        exit(1);
-                    }
-                    if (dup2(heredoc_fd, STDIN_FILENO) == -1)
-                    {
-                        perror("dup2 heredoc");
-                        close(heredoc_fd);
-                        exit(1);
-                    }
-                    close(heredoc_fd);
-                }
-            }
-            else if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
-            {
-                // Vérifier les permissions si le fichier existe
-                if (access(cmd->redirs[i].file, F_OK) == 0 &&
-                    access(cmd->redirs[i].file, W_OK) == -1)
-                {
-                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
-                             cmd->redirs[i].file);
-                    exit(1);
-                }
-
-                int flags = O_WRONLY | O_CREAT;
-                flags |= (cmd->redirs[i].type == 'A') ? O_APPEND : O_TRUNC;
-                
-                int out_fd = open(cmd->redirs[i].file, flags, 0644);
-                if (out_fd == -1)
-                {
-                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
-                             cmd->redirs[i].file);
-                    exit(1);
-                }
-                dup2(out_fd, STDOUT_FILENO);
-                close(out_fd);
-            }
-        }
-    }
-
-    // Configurer les pipes uniquement s'il n'y a pas de redirection correspondante
-    if (!has_output_redirection(cmd) && index < num_commands - 1)
-    {
-        if (dup2(pipes[index][1], STDOUT_FILENO) == -1)
-        {
-            perror("dup2");
-            exit(1);
-        }
+        dup2(cmd->prev->pfd[0], STDIN_FILENO);
+        close(cmd->prev->pfd[0]);
+        close(cmd->prev->pfd[1]);
     }
     
-    if (!has_input_redirection(cmd) && index > 0)
+    if (index < cmd_count - 1)
     {
-        if (dup2(pipes[index - 1][0], STDIN_FILENO) == -1)
-        {
-            perror("dup2");
-            exit(1);
-        }
-    }
-
-    // Fermer tous les descripteurs de pipe
-    for (int i = 0; i < num_commands - 1; i++)
-    {
-        close(pipes[i][0]);
-        close(pipes[i][1]);
-    }
-
-    // Exécuter la commande
-    if (is_builtin(cmd->args[0]))
-    {
-        char *builtin_cmd = build_command_line(cmd);
-        if (!builtin_cmd)
-            exit(1);
-            
-        int ret = execute_builtin(builtin_cmd, ctx);
-        free(builtin_cmd);
-        clear_and_exit(NULL ,cmd, ret);
-        // exit(ret);
-    }
-    else
-    {
-        if (prepare_command(cmd, ctx) == -1)
-            exit(1);
-        execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
-        perror("execve");
-        clear_and_exit(NULL ,cmd, 1);
-        // exit(1);
+        close(cmd->pfd[0]);
+        dup2(cmd->pfd[1], STDOUT_FILENO);
+        close(cmd->pfd[1]);
     }
 }
+
+void execute_command_in_child(t_command *cmd, t_ctx *ctx)
+{
+    if (apply_redirections(cmd->redirs, ctx) == -1)
+        exit(1);
+
+    if (is_builtin(cmd->args[0]))
+    {
+        char *cmd_line = tokens_to_string_from_command(cmd);
+        int ret = execute_builtin(cmd_line, ctx);
+        free(cmd_line);
+        exit(ret);
+    }
+
+    char **env = create_env_array(ctx->env_vars);
+    if (prepare_command(cmd, ctx) == -1)
+        exit(1);
+    execve(cmd->path, cmd->args, env);
+    perror("execve");
+    exit(1);
+}
+
+void execute_commands_in_pipeline(t_command *cmd, int cmd_count, t_ctx *ctx)
+{
+    int i = 0;
+    t_command *current = cmd;
+
+    while (current && i < cmd_count)
+    {
+        if (i < cmd_count - 1)
+            pipe(current->pfd);
+
+        current->pid = fork();
+        if (current->pid == 0)
+        {
+            setup_pipe_redirections(current, i, cmd_count);
+            execute_command_in_child(current, ctx);
+            exit(1);
+        }
+        
+        if (i > 0)
+        {
+            close(current->prev->pfd[0]);
+            close(current->prev->pfd[1]);
+        }
+        
+        i++;
+        current = current->next;
+    }
+    wait_for_children(cmd, ctx);
+}
+
+// void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
+// {
+//     // Gérer les redirections en premier
+//     if (cmd->redirs)
+//     {
+//         for (int i = 0; cmd->redirs[i].type != 0; i++)
+//         {
+//             if (cmd->redirs[i].type == '<')
+//             {
+//                 if (access(cmd->redirs[i].file, F_OK) == -1)
+//                 {
+//                     ft_fprintf(2, "minishell: %s: No such file or directory\n", 
+//                              cmd->redirs[i].file);
+//                     exit(1);
+//                 }
+//                 int in_fd = open(cmd->redirs[i].file, O_RDONLY);
+//                 if (in_fd == -1)
+//                 {
+//                     ft_fprintf(2, "minishell: %s: Permission denied\n",  cmd->redirs[i].file);
+//                     exit(1);
+//                 }
+//                 dup2(in_fd, STDIN_FILENO);
+//                 close(in_fd);
+//             }
+//             else if (cmd->redirs[i].type == 'H')
+//             {
+//                 if (cmd->redirs[i].heredoc_fd != -1)
+//                 {
+//                     if (dup2(cmd->redirs[i].heredoc_fd, STDIN_FILENO) == -1)
+//                     {
+//                         perror("dup2 heredoc");
+//                         exit(1);
+//                     }
+//                     close(cmd->redirs[i].heredoc_fd);
+//                 }
+//                 else
+//                 {
+//                     // Si heredoc_fd n'est pas initialisé, on le crée maintenant
+//                     int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
+//                     if (heredoc_fd == -1)
+//                     {
+//                         ft_fprintf(2, "minishell: heredoc error\n");
+//                         exit(1);
+//                     }
+//                     if (dup2(heredoc_fd, STDIN_FILENO) == -1)
+//                     {
+//                         perror("dup2 heredoc");
+//                         close(heredoc_fd);
+//                         exit(1);
+//                     }
+//                     close(heredoc_fd);
+//                 }
+//             }
+//             else if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
+//             {
+//                 // Vérifier les permissions si le fichier existe
+//                 if (access(cmd->redirs[i].file, F_OK) == 0 &&
+//                     access(cmd->redirs[i].file, W_OK) == -1)
+//                 {
+//                     ft_fprintf(2, "minishell: %s: Permission denied\n", 
+//                              cmd->redirs[i].file);
+//                     exit(1);
+//                 }
+
+//                 int flags = O_WRONLY | O_CREAT;
+//                 flags |= (cmd->redirs[i].type == 'A') ? O_APPEND : O_TRUNC;
+                
+//                 int out_fd = open(cmd->redirs[i].file, flags, 0644);
+//                 if (out_fd == -1)
+//                 {
+//                     ft_fprintf(2, "minishell: %s: Permission denied\n", 
+//                              cmd->redirs[i].file);
+//                     exit(1);
+//                 }
+//                 dup2(out_fd, STDOUT_FILENO);
+//                 close(out_fd);
+//             }
+//         }
+//     }
+
+//     // Configurer les pipes uniquement s'il n'y a pas de redirection correspondante
+//     if (!has_output_redirection(cmd) && index < num_commands - 1)
+//     {
+//         if (dup2(pipes[index][1], STDOUT_FILENO) == -1)
+//         {
+//             perror("dup2");
+//             exit(1);
+//         }
+//     }
+    
+//     if (!has_input_redirection(cmd) && index > 0)
+//     {
+//         if (dup2(pipes[index - 1][0], STDIN_FILENO) == -1)
+//         {
+//             perror("dup2");
+//             exit(1);
+//         }
+//     }
+
+//     // Fermer tous les descripteurs de pipe
+//     for (int i = 0; i < num_commands - 1; i++)
+//     {
+//         close(pipes[i][0]);
+//         close(pipes[i][1]);
+//     }
+
+//     // Exécuter la commande
+//     if (is_builtin(cmd->args[0]))
+//     {
+//         char *builtin_cmd = build_command_line(cmd);
+//         if (!builtin_cmd)
+//             exit(1);
+            
+//         int ret = execute_builtin(builtin_cmd, ctx);
+//         free(builtin_cmd);
+//         clear_and_exit(NULL ,cmd, ret);
+//         // exit(ret);
+//     }
+//     else
+//     {
+//         if (prepare_command(cmd, ctx) == -1)
+//             exit(1);
+//         execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
+//         perror("execve");
+//         clear_and_exit(NULL ,cmd, 1);
+//         // exit(1);
+//     }
+// }
 
 void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code)
 {
@@ -628,64 +695,172 @@ int has_heredoc(t_command *cmd)
     return 0;
 }
 
+int execute_single_command(t_command *cmd, t_ctx *ctx)
+{
+    if (apply_redirections(cmd->redirs, ctx) == -1)
+        return -1;
+
+    if (is_builtin(cmd->args[0]))
+    {
+        char *cmd_line = tokens_to_string_from_command(cmd);
+        if (!cmd_line)
+            return -1;
+        ctx->exit_status = execute_builtin(cmd_line, ctx);
+        free(cmd_line);
+    }
+    else
+    {
+        if (prepare_command(cmd, ctx) == -1)
+            return -1;
+        execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
+        perror("execve");
+        return -1;
+    }
+    return 0;
+}
+
 void execute_pipeline(t_command *cmd, t_ctx *ctx)
 {
-    if (!cmd)
-        return;
+    t_command *current;
+    int cmd_count = 0;
+    pid_t last_pid;
 
     // Traiter d'abord tous les heredocs
-    t_command *current = cmd;
+    current = cmd;
     while (current)
     {
-        if (current->redirs)
+        for (int i = 0; current->redirs[i].type != 0; i++)
         {
-            for (int i = 0; current->redirs[i].type != 0; i++)
+            if (current->redirs[i].type == 'H')
             {
-                if (current->redirs[i].type == 'H')
-                {
-                    int heredoc_fd = here_doc(current->redirs[i].file, ctx);
-                    if (heredoc_fd == -1)
-                        return;
-                    current->redirs[i].heredoc_fd = heredoc_fd;
-                }
+                current->redirs[i].heredoc_fd = here_doc(current->redirs[i].file, ctx);
+                if (current->redirs[i].heredoc_fd == -1)
+                    return;
             }
         }
+        cmd_count++;
         current = current->next;
     }
 
-    // Compter le nombre de commandes
-    int num_commands = count_commands(cmd);
-    int **pipes = create_pipeline_pipes(num_commands);
-    pid_t *pids = malloc(sizeof(pid_t) * num_commands);
-
-    // Exécuter chaque commande
     current = cmd;
-    int index = 0;
-    while (current)
+    while (current && cmd_count > 0)
     {
-        pids[index] = fork();
-        if (pids[index] == -1)
+        if (--cmd_count > 0)
+            pipe(current->pfd);
+
+        last_pid = fork();
+        if (last_pid == -1)
+            return;
+        
+        if (last_pid == 0)
         {
-            perror("fork");
-            break;
+            if (current->prev)
+            {
+                dup2(current->prev->pfd[0], STDIN_FILENO);
+                close(current->prev->pfd[0]);
+                close(current->prev->pfd[1]);
+            }
+            
+            if (current->next)
+            {
+                close(current->pfd[0]);
+                dup2(current->pfd[1], STDOUT_FILENO);
+                close(current->pfd[1]);
+            }
+            if (execute_single_command(current, ctx) == -1)
+                clear_and_exit(NULL, current, 1);
+            clear_and_exit(NULL, current, 0);
         }
-        if (pids[index] == 0) // Processus enfant
+        if (current->prev)
         {
-            execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
-        }
-        // Fermer les descripteurs de pipe dans le processus parent
-        if (index > 0)
-        {
-            close(pipes[index - 1][0]);
-            close(pipes[index - 1][1]);
+            close(current->prev->pfd[0]);
+            close(current->prev->pfd[1]);
         }
         current = current->next;
-        index++;
     }
-    close_pipes(pipes, num_commands);
-    wait_for_pipeline(pids, num_commands, ctx);
-    free(pids);
+    // Attendre le dernier processus
+    int status;
+    waitpid(last_pid, &status, 0);
+    ctx->exit_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
 }
+
+
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//     t_command *current = cmd;
+//     int cmd_count = 0;
+
+//     // Compter les commandes et traiter les heredocs
+//     while (current)
+//     {
+//         handle_heredocs(current, ctx);
+//         cmd_count++;
+//         current = current->next;
+//     }
+
+//     // Exécuter le pipeline
+//     execute_commands_in_pipeline(cmd, cmd_count, ctx);
+// }
+
+
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//     if (!cmd)
+//         return;
+
+//     // Traiter d'abord tous les heredocs
+//     t_command *current = cmd;
+//     while (current)
+//     {
+//         if (current->redirs)
+//         {
+//             for (int i = 0; current->redirs[i].type != 0; i++)
+//             {
+//                 if (current->redirs[i].type == 'H')
+//                 {
+//                     int heredoc_fd = here_doc(current->redirs[i].file, ctx);
+//                     if (heredoc_fd == -1)
+//                         return;
+//                     current->redirs[i].heredoc_fd = heredoc_fd;
+//                 }
+//             }
+//         }
+//         current = current->next;
+//     }
+
+//     // Compter le nombre de commandes
+//     int num_commands = count_commands(cmd);
+//     int **pipes = create_pipeline_pipes(num_commands);
+//     pid_t *pids = malloc(sizeof(pid_t) * num_commands);
+
+//     // Exécuter chaque commande
+//     current = cmd;
+//     int index = 0;
+//     while (current)
+//     {
+//         pids[index] = fork();
+//         if (pids[index] == -1)
+//         {
+//             perror("fork");
+//             break;
+//         }
+//         if (pids[index] == 0) // Processus enfant
+//         {
+//             execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
+//         }
+//         // Fermer les descripteurs de pipe dans le processus parent
+//         if (index > 0)
+//         {
+//             close(pipes[index - 1][0]);
+//             close(pipes[index - 1][1]);
+//         }
+//         current = current->next;
+//         index++;
+//     }
+//     close_pipes(pipes, num_commands);
+//     wait_for_pipeline(pids, num_commands, ctx);
+//     free(pids);
+// }
 
 
 
