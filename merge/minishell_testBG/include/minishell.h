@@ -401,6 +401,8 @@ void					initialize_pipe_if_needed(int *pipe_fd,
 // 							t_token *cmd_end, int prev_fd, int *pipe_fd,
 // 							t_ctx *ctx);
 
+void clear(pid_t *pids, t_command *cmds, int exit_code);
+
 void execute_command_in_child(t_command *cmd, t_ctx *ctx);
 void					cleanup_parent_resources(int *prev_fd, int *pipe_fd,
 							t_token **cmd_start, t_token *cmd_end);

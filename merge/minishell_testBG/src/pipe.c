@@ -735,7 +735,10 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
             {
                 current->redirs[i].heredoc_fd = here_doc(current->redirs[i].file, ctx);
                 if (current->redirs[i].heredoc_fd == -1)
+                {
+                    free_command(cmd);  // On libère tout en cas d'erreur
                     return;
+                }
             }
         }
         cmd_count++;
@@ -750,7 +753,10 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
 
         last_pid = fork();
         if (last_pid == -1)
+        {
+            free_command(cmd);
             return;
+        }
         
         if (last_pid == 0)
         {
@@ -767,21 +773,25 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
                 dup2(current->pfd[1], STDOUT_FILENO);
                 close(current->pfd[1]);
             }
+
             if (execute_single_command(current, ctx) == -1)
-                clear_and_exit(NULL, current, 1);
-            clear_and_exit(NULL, current, 0);
+                clear(NULL, current, 1);
+            clear(NULL, current, 0);
         }
+        
         if (current->prev)
         {
             close(current->prev->pfd[0]);
             close(current->prev->pfd[1]);
         }
+        
         current = current->next;
     }
-    // Attendre le dernier processus
+
     int status;
     waitpid(last_pid, &status, 0);
     ctx->exit_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+    free_command(cmd);  // On libère la liste de commandes à la fin
 }
 
 

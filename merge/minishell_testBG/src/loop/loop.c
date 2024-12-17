@@ -1051,7 +1051,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
-    return(free_command(cmd), free(tokens), 0);
+    return(free_tokens(tokens), free_command(cmd), 0);
 }
 
 // int handle_line_for_loop(char *line, t_ctx *ctx)

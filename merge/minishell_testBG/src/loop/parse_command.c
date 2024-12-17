@@ -391,6 +391,16 @@ int quotes_proc(t_token **tokens, char *input, int *i)
 //     return 0;
 // }
 
+void clear(pid_t *pids, t_command *cmds, int exit_code)
+{
+    // Dans un processus enfant, on ne doit pas free la liste complète des commandes
+    // ni le contexte global car ils sont toujours utilisés par le parent
+    (void)pids;
+    if (cmds)
+        free_args(cmds->args);  // On libère juste les args de la commande courante
+    exit(exit_code);
+}
+
 int operators_proc(t_token **tokens, char *input, int *i, int n)
 {
     char type;
@@ -459,7 +469,7 @@ int word_proc(t_token **tokens, char *input, int *i)
     result = add_token(tokens, 'S', value);
     free(value);
     if (result != 0)
-        return (free(value), -1);
+        return (-1);
     if (j > 0 && input[j - 1] && !ft_isspace(input[j - 1]) && !is_token(input[j - 1], UNJOIN))
         get_last_token(*tokens)->had_space = 1;
     return 0;
