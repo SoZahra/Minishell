@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 02:04:21 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 01:16:23 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,27 +94,25 @@ int is_valid_id(const char *var)
     return (1);
 }
 
-static int is_valid_var_char(char c)
-{
-    return (ft_isalnum(c) || c == '_');
-}
+// static int is_valid_var_char(char c)
+// {
+//     return (ft_isalnum(c) || c == '_');
+// }
 
 int is_valid_var_name(const char *name)
 {
-    // Cas spéciaux à rejeter immédiatement
-    if (!name || !*name || *name == '=' || ft_isdigit(*name) || *name == '-')
-        return 0;
+    int i;
 
-    // Le premier caractère doit être une lettre ou _
+    i = 1;
+    if (!name || !*name || ft_isdigit(*name))
+        return 0;
     if (!ft_isalpha(*name) && *name != '_')
         return 0;
-
-    // Vérifier chaque caractère
-    while (*name)
+    while (name[i])
     {
-        if (!is_valid_var_char(*name))
+        if (!ft_isalnum(name[i]) && name[i] != '_')
             return 0;
-        name++;
+        i++;
     }
     return 1;
 }

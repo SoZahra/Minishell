@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 15:55:20 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 01:04:42 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,30 +402,23 @@ void execute_command(t_command *cmd, t_ctx *ctx)
    int stdin_backup = dup(STDIN_FILENO);
    int stdout_backup = dup(STDOUT_FILENO);
 
-    t_command *current = cmd;
-    while (current)
-	{
-        fprintf(stderr, "Debug: Command: '%s', Args: ", current->args[0]);
-        for (int i = 0; i < current->arg_count; i++) {
-            fprintf(stderr, "'%s' ", current->args[i]);
+    if (cmd->redirs)
+    {
+        if (apply_redirections(cmd->redirs, ctx) == -1)
+        {
+            ctx->exit_status = 1;
+            restore_fds(stdin_backup, stdout_backup);
+            return;
         }
-    fprintf(stderr, "\n");
-    current = current->next;
-}
-   // Appliquer toutes les redirections
-   if (apply_redirections(cmd->redirs, ctx) == -1)
-   {
-       restore_fds(stdin_backup, stdout_backup);
-       return;
-   }
+    }
    if (is_builtin(cmd->args[0]))
     {
 		char *cmd_line = tokens_to_string_from_command(cmd);
-		execute_builtin(cmd_line, ctx);
+		ctx->exit_status = execute_builtin(cmd_line, ctx);
 		free(cmd_line);
 	}
    else
-       execute_external_command(cmd, ctx);
+       ctx->exit_status = execute_external_command(cmd, ctx);
    restore_fds(stdin_backup, stdout_backup);
 }
 
@@ -564,6 +557,11 @@ int apply_redirections(t_redirection *redirs, t_ctx *ctx)
     {
         if (current->type == '<')
         {
+            if (access(current->file, F_OK) == -1)
+            {
+                ft_fprintf(2, "minishell: %s: No such file or directory\n", current->file);
+                return -1;
+            }
             if (handle_input_redirection(current) == -1)
                 return -1;
         }
@@ -572,12 +570,15 @@ int apply_redirections(t_redirection *redirs, t_ctx *ctx)
             if (handle_heredoc(current, ctx) == -1)
                 return -1;
         }
-        if (current->type == '>' || current->type == 'A')
+        else if (current->type == '>' || current->type == 'A')
         {
-            // Redirection sortante
+            if (access(current->file, W_OK) == -1 && access(current->file, F_OK) == 0)
+            {
+                ft_fprintf(2, "minishell: %s: Permission denied\n", current->file);
+                return -1;
+            }
             int flags = O_WRONLY | O_CREAT;
             flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
-
             int fd = open(current->file, flags, 0644);
             if (fd == -1)
             {
@@ -663,16 +664,12 @@ int here_doc(char *delimiter, t_ctx *ctx)
             free(line);
             break;
         }
-
-        // Vérifier si le délimiteur est atteint
-        // Vérifier si le délimiteur est atteint
     if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
         (line[ft_strlen(delimiter)] == '\n' || line[ft_strlen(delimiter)] == '\0'))
     {
         free(line);
         break;
     }
-
         // Créer un token pour l'expansion
         t_token *expand_token = create_new_token('S', line);
 
@@ -683,13 +680,9 @@ int here_doc(char *delimiter, t_ctx *ctx)
             free_tokens(expand_token);
             break;
         }
-
         // Écrire la ligne expansée dans le pipe
         write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
         write(pipefd[1], "\n", 1);
-
-        // Libérer la mémoire
-        free(line);
         free_tokens(expand_token);
         line = NULL;
     }
@@ -805,38 +798,93 @@ void execute_builtin_command(t_command *cmd, t_ctx *ctx)
    }
 }
 
-void execute_external_command(t_command *cmd, t_ctx *ctx)
+int execute_external_command(t_command *cmd, t_ctx *ctx)
 {
-   char *cmd_path = find_command_path(cmd->args[0], ctx);
-   if (!cmd_path)
-   {
-       fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
-       return;
-   }
+    if (cmd->args[0] == NULL || cmd->args[0][0] == '\0')
+    {
+        // S'il y a d'autres arguments, déplacer les arguments vers la gauche
+        if (cmd->args[1])
+        {
+            int i = 0;
+            while (cmd->args[i + 1])
+            {
+                cmd->args[i] = cmd->args[i + 1];
+                i++;
+            }
+            cmd->args[i] = NULL;
+            // Récursivement appeler avec les nouveaux arguments
+            return execute_external_command(cmd, ctx);
+        }
+        // Si pas d'autres arguments, retourner simplement 0
+        return 0;
+    }
+    // Vérifier si c'est un chemin direct (commence par ./ ou /)
+    if (cmd->args[0][0] == '/' || 
+        (cmd->args[0][0] == '.' && cmd->args[0][1] == '/'))
+    {
+        // Vérifier si le fichier existe
+        if (access(cmd->args[0], F_OK) == -1)
+        {
+            fprintf(stderr, "MiniBG: %s: No such file or directory\n", cmd->args[0]);
+            return 127;
+        }
+        
+        // Vérifier si c'est un répertoire
+        struct stat path_stat;
+        stat(cmd->args[0], &path_stat);
+        if (S_ISDIR(path_stat.st_mode))
+        {
+            fprintf(stderr, "MiniBG: %s: is a directory\n", cmd->args[0]);
+            return 126;
+        }
+        
+        // Vérifier les permissions d'exécution
+        if (access(cmd->args[0], X_OK) == -1)
+        {
+            fprintf(stderr, "MiniBG: %s: Permission denied\n", cmd->args[0]);
+            return 126;
+        }
+        
+        cmd->path = strdup(cmd->args[0]);
+    }
+    else
+    {
+        cmd->path = find_command_path(cmd->args[0], ctx);
+        if (!cmd->path)
+        {
+            fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
+            return 127;
+        }
+    }
 
-   pid_t pid = fork();
-   if (pid == -1)
-   {
-       perror("fork");
-       free(cmd_path);
-       return;
-   }
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        free(cmd->path);
+        return 1;
+    }
 
-   if (pid == 0)
-   {
-       char **env = create_env_array(ctx->env_vars);
-       execve(cmd_path, cmd->args, env);
-       perror("execve");
-       exit(1);
-   }
-   else
-   {
-       int status;
-       waitpid(pid, &status, 0);
-       if (WIFEXITED(status))
-           ctx->exit_status = WEXITSTATUS(status);
-       free(cmd_path);
-   }
+    if (pid == 0)
+    {
+        char **env = create_env_array(ctx->env_vars);
+        execve(cmd->path, cmd->args, env);
+        perror("execve");
+        exit(126);  // Si execve échoue, c'est probablement un problème de permission
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        free(cmd->path);
+        
+        if (WIFEXITED(status))
+            return WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            return 128 + WTERMSIG(status);
+            
+        return 1;
+    }
 }
 
 void free_command(t_command *cmd)

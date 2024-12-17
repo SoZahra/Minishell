@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:48:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/09 23:58:03 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/16 23:01:06 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,23 +14,20 @@
 
 int is_valid_n(t_token *current)
 {
-    int i = 0;
-	t_token *tmp = current;
-	while (tmp)
-	{
-		while (tmp->value[i])
-		{
-			if (tmp->value[0] != '-')
-				break;
-			if (i != 0 && tmp->value[i] != 'n')
-				break;
-			if (tmp->value[i + 1] == '\0')
-				return (1);
-			i++;
-		}
-		tmp = tmp->next;
-	}
-	return (0);
+    int i;
+
+    i = 0;
+    while (current->value[i])
+    {
+        if (current->value[0] != '-')
+            return (0);
+        if (i != 0 && current->value[i] != 'n')
+            return (0);
+        i++;
+    }
+    if (current->value[0] == '-')
+        return (1);
+    return 0;
 }
 
 void handle_echo(t_token *token_list, t_ctx *ctx)

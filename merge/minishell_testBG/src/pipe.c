@@ -6,7 +6,7 @@
 /*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/15 22:38:12 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 00:59:36 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,32 +25,32 @@ int execute_piped_command(t_command *cmd, t_ctx *ctx)
 {
     if (cmd->prev) {
         close(cmd->prev->pfd[1]);
-        fprintf(stderr, "Debug: Closing write-end of previous pipe: [%d]\n", cmd->prev->pfd[1]);
+        // fprintf(stderr, "Debug: Closing write-end of previous pipe: [%d]\n", cmd->prev->pfd[1]);
         if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1) {
             perror("dup2 prev->pfd[0]");
             return -1;
         }
-        fprintf(stderr, "Debug: Duped previous pipe read-end [%d] to STDIN\n", cmd->prev->pfd[0]);
+        // fprintf(stderr, "Debug: Duped previous pipe read-end [%d] to STDIN\n", cmd->prev->pfd[0]);
         close(cmd->prev->pfd[0]);
     }
 
     if (cmd->next) {
         close(cmd->pfd[0]);
-        fprintf(stderr, "Debug: Closing read-end of current pipe: [%d]\n", cmd->pfd[0]);
+        // fprintf(stderr, "Debug: Closing read-end of current pipe: [%d]\n", cmd->pfd[0]);
         if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1) {
             perror("dup2 pfd[1]");
             return -1;
         }
-        fprintf(stderr, "Debug: Duped current pipe write-end [%d] to STDOUT\n", cmd->pfd[1]);
+        // fprintf(stderr, "Debug: Duped current pipe write-end [%d] to STDOUT\n", cmd->pfd[1]);
         close(cmd->pfd[1]);
     }
 
     if (cmd->redirs) {
-        fprintf(stderr, "Debug: Applying redirections for '%s'\n", cmd->args[0]);
+        // fprintf(stderr, "Debug: Applying redirections for '%s'\n", cmd->args[0]);
         apply_redirections(cmd->redirs, ctx);
     }
 
-    fprintf(stderr, "Debug: Executing command '%s'\n", cmd->args[0]);
+    // fprintf(stderr, "Debug: Executing command '%s'\n", cmd->args[0]);
     if (is_builtin(cmd->args[0])) {
         execute_builtin_command(cmd, ctx);
         exit(ctx->exit_status);
@@ -148,15 +148,15 @@ void wait_for_children(t_command *cmd, t_ctx *ctx)
 
     while (current) {
         if (current->pid > 0) {
-            fprintf(stderr, "Debug: Waiting for PID %d (%s)\n", current->pid, current->args[0]);
+            // fprintf(stderr, "Debug: Waiting for PID %d (%s)\n", current->pid, current->args[0]);
             waitpid(current->pid, &status, 0);
             if (WIFEXITED(status)) {
                 ctx->exit_status = WEXITSTATUS(status);
-                fprintf(stderr, "Debug: PID %d exited with status %d\n", current->pid, ctx->exit_status);
+                // fprintf(stderr, "Debug: PID %d exited with status %d\n", current->pid, ctx->exit_status);
             }
             if (WIFSIGNALED(status)) {
                 ctx->exit_status = WTERMSIG(status) + 128;
-                fprintf(stderr, "Debug: PID %d killed by signal %d\n", current->pid, WTERMSIG(status));
+                // fprintf(stderr, "Debug: PID %d killed by signal %d\n", current->pid, WTERMSIG(status));
             }
         }
         current = current->next;
@@ -186,11 +186,11 @@ void wait_for_children(t_command *cmd, t_ctx *ctx)
 int prepare_command(t_command *cmd, t_ctx *ctx)
 {
     if (is_builtin(cmd->args[0])) {
-        fprintf(stderr, "Debug: '%s' is a builtin command\n", cmd->args[0]);
+        // fprintf(stderr, "Debug: '%s' is a builtin command\n", cmd->args[0]);
         return 0;
     }
     cmd->path = find_command_path(cmd->args[0], ctx);
-    fprintf(stderr, "Debug: Command: '%s', Path: '%s'\n", cmd->args[0], cmd->path ? cmd->path : "NULL");
+    // fprintf(stderr, "Debug: Command: '%s', Path: '%s'\n", cmd->args[0], cmd->path ? cmd->path : "NULL");
     if (!cmd->path) {
         fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
         return -1;
@@ -378,35 +378,186 @@ void close_unused_pipes(int **pipes, int index, int num_commands)
     }
 }
 
-// Exécuter une commande unique dans un pipeline
+char *build_command_line(t_command *cmd)
+{
+    // Calculer la taille nécessaire
+    size_t total_len = 0;
+    for (int i = 0; cmd->args[i]; i++)
+    {
+        total_len += strlen(cmd->args[i]) + 1; // +1 pour l'espace
+    }
+
+    // Allouer la mémoire
+    char *cmd_line = malloc(total_len + 1);
+    if (!cmd_line)
+        return NULL;
+
+    // Construire la ligne de commande
+    cmd_line[0] = '\0';
+    for (int i = 0; cmd->args[i]; i++)
+    {
+        if (i > 0)
+            strcat(cmd_line, " ");
+        strcat(cmd_line, cmd->args[i]);
+    }
+
+    return cmd_line;
+}
+
+int has_input_redirection(t_command *cmd)
+{
+    if (!cmd->redirs)
+        return 0;
+    for (int i = 0; cmd->redirs[i].type != 0; i++)
+    {
+        if (cmd->redirs[i].type == '<')
+            return 1;
+    }
+    return 0;
+}
+int has_output_redirection(t_command *cmd)
+{
+    if (!cmd->redirs)
+        return 0;
+    for (int i = 0; cmd->redirs[i].type != 0; i++)
+    {
+        if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
+            return 1;
+    }
+    return 0;
+}
+
+
 void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
 {
-    // Rediriger l'entrée
-    redirect_input(cmd, pipes, index);
+    // Gérer les redirections en premier
+    if (cmd->redirs)
+    {
+        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        {
+            if (cmd->redirs[i].type == '<')
+            {
+                if (access(cmd->redirs[i].file, F_OK) == -1)
+                {
+                    ft_fprintf(2, "minishell: %s: No such file or directory\n", 
+                             cmd->redirs[i].file);
+                    exit(1);
+                }
+                int in_fd = open(cmd->redirs[i].file, O_RDONLY);
+                if (in_fd == -1)
+                {
+                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
+                             cmd->redirs[i].file);
+                    exit(1);
+                }
+                dup2(in_fd, STDIN_FILENO);
+                close(in_fd);
+            }
+            else if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
+            {
+                // Vérifier les permissions si le fichier existe
+                if (access(cmd->redirs[i].file, F_OK) == 0 &&
+                    access(cmd->redirs[i].file, W_OK) == -1)
+                {
+                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
+                             cmd->redirs[i].file);
+                    exit(1);
+                }
 
-    // Rediriger la sortie
-    redirect_output(pipes, index, num_commands);
+                int flags = O_WRONLY | O_CREAT;
+                flags |= (cmd->redirs[i].type == 'A') ? O_APPEND : O_TRUNC;
+                
+                int out_fd = open(cmd->redirs[i].file, flags, 0644);
+                if (out_fd == -1)
+                {
+                    ft_fprintf(2, "minishell: %s: Permission denied\n", 
+                             cmd->redirs[i].file);
+                    exit(1);
+                }
+                dup2(out_fd, STDOUT_FILENO);
+                close(out_fd);
+            }
+        }
+    }
 
-    // Fermer les descripteurs de pipe non utilisés
-    close_unused_pipes(pipes, index, num_commands);
+    // Configurer les pipes uniquement s'il n'y a pas de redirection correspondante
+    if (!has_output_redirection(cmd) && index < num_commands - 1)
+    {
+        if (dup2(pipes[index][1], STDOUT_FILENO) == -1)
+        {
+            perror("dup2");
+            exit(1);
+        }
+    }
+    
+    if (!has_input_redirection(cmd) && index > 0)
+    {
+        if (dup2(pipes[index - 1][0], STDIN_FILENO) == -1)
+        {
+            perror("dup2");
+            exit(1);
+        }
+    }
 
-    // Préparer et exécuter la commande
-    if (prepare_command(cmd, ctx) == -1)
-        exit(1);
+    // Fermer tous les descripteurs de pipe
+    for (int i = 0; i < num_commands - 1; i++)
+    {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+    }
 
+    // Exécuter la commande
     if (is_builtin(cmd->args[0]))
     {
-        char *cmd_line = tokens_to_string_from_command(cmd);
-        execute_builtin(cmd_line, ctx);
-        free(cmd_line);
-        exit(0);
+        char *builtin_cmd = build_command_line(cmd);
+        if (!builtin_cmd)
+            exit(1);
+            
+        int ret = execute_builtin(builtin_cmd, ctx);
+        free(builtin_cmd);
+        exit(ret);
     }
     else
     {
-        execute_external_command(cmd, ctx);
+        if (prepare_command(cmd, ctx) == -1)
+            exit(1);
+        execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
+        perror("execve");
         exit(1);
     }
 }
+
+
+
+// Exécuter une commande unique dans un pipeline
+// void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
+// {
+//     // Rediriger l'entrée
+//     redirect_input(cmd, pipes, index);
+
+//     // Rediriger la sortie
+//     redirect_output(pipes, index, num_commands);
+
+//     // Fermer les descripteurs de pipe non utilisés
+//     close_unused_pipes(pipes, index, num_commands);
+
+//     // Préparer et exécuter la commande
+//     if (prepare_command(cmd, ctx) == -1)
+//         exit(1);
+
+//     if (is_builtin(cmd->args[0]))
+//     {
+//         char *cmd_line = tokens_to_string_from_command(cmd);
+//         execute_builtin(cmd_line, ctx);
+//         free(cmd_line);
+//         exit(0);
+//     }
+//     else
+//     {
+//         execute_external_command(cmd, ctx);
+//         exit(1);
+//     }
+// }
 
 // Attendre la fin des processus et définir le statut de sortie
 void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx)
@@ -433,7 +584,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
 
     // Créer les pipes
     int **pipes = create_pipeline_pipes(num_commands);
-
+    
     // Tableau pour stocker les PIDs
     pid_t *pids = malloc(sizeof(pid_t) * num_commands);
 
@@ -451,6 +602,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
 
         if (pids[index] == 0)  // Processus enfant
         {
+             
             execute_command_in_pipeline(current, ctx, pipes, index, num_commands);
         }
 
@@ -464,7 +616,6 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
         current = current->next;
         index++;
     }
-
     // Fermer tous les descripteurs de pipe
     close_pipes(pipes, num_commands);
 

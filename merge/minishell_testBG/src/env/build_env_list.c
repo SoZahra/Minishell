@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   build_env_list.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:29:34 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 00:03:55 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,17 +40,14 @@ t_env_var	*create_new_env_var(char *env_str)
 void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
     t_env_var *current;
-    t_env_var *prev = NULL;
+    t_env_var *prev;
 
-    // printf("Debug: Adding var '%s=%s' to list\n", new_var->name, new_var->value);
-
-    // Si la variable existe déjà, on met à jour sa valeur
     current = *head;
+	prev = NULL;
     while (current)
     {
         if (ft_strcmp(current->name, new_var->name) == 0)
         {
-            // printf("Debug: Updating existing var '%s'\n", current->name);
             free(current->value);
             current->value = new_var->value;
             free(new_var->name);
@@ -60,18 +57,10 @@ void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
         prev = current;
         current = current->next;
     }
-
-    // Si on arrive ici, la variable n'existe pas encore
     if (!*head)
-    {
-        // printf("Debug: Adding as first var\n");
         *head = new_var;
-    }
     else
-    {
-        // printf("Debug: Adding at end of list\n");
         prev->next = new_var;
-    }
 }
 
 // void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)

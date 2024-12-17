@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils_parse_2.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:13:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 10:08:43 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 01:22:11 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ char	*find_env_value(const char *name, t_env_var *env_vars)
 {
 	while (env_vars)
 	{
-		if (strcmp(env_vars->name, name) == 0)
+		if (ft_strcmp(env_vars->name, name) == 0)
 			return (env_vars->value);
 		env_vars = env_vars->next;
 	}

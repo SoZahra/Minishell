@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:56:58 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/03 13:58:34 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 23:03:10 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,4 +73,32 @@ char **convert_env_to_array(t_ctx *ctx)
     }
     env_array[count] = NULL;
     return (env_array);
+}
+
+size_t  ft_strspn(const char *str, const char *accept)
+{
+    size_t  count;
+    size_t  i;
+    size_t  j;
+    int     found;
+
+    count = ((i = 0));
+    while (str[i])
+    {
+        found = ((j = 0));
+        while (accept[j])
+        {
+            if (str[i] == accept[j])
+            {
+                found = 1;
+                break;
+            }
+            j++;
+        }
+        if (!found)
+            return (count);
+        count++;
+        i++;
+    }
+    return (count);
 }

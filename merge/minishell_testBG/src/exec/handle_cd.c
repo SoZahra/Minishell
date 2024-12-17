@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_cd.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:33:51 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 01:24:13 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,46 +24,26 @@
 
 int handle_cd_builtin(const char *input, t_ctx *ctx)
 {
-    // Skip "cd " at the beginning
-    const char *args = input + 3;
-    while (*args == ' ')
-        args++;
+    char **arg_array;
 
-    // Cas sans argument ou ~
-    if (!*args || strcmp(args, "~") == 0)
+    while (*input == ' ')
+        input++;
+        
+    if (!*input || strcmp(input, "~") == 0)
         return ft_cd_home(ctx);
-
-    // Cas cd -
-    if (strcmp(args, "-") == 0)
+        
+    if (strcmp(input, "-") == 0)
         return ft_cd_oldpwd(ctx);
-
-    // Split les arguments pour vérifier qu'il n'y en a pas trop
-    char **arg_array = ft_split(args, ' ');
+    arg_array = ft_split(input, ' ');
     if (!arg_array)
         return 1;
-
-    // Vérifier le nombre d'arguments
-    int arg_count = 0;
-    while (arg_array[arg_count])
-        arg_count++;
-
-    if (arg_count > 1)
-    {
-        fprintf(stderr, "cd: too many arguments\n");
-        free_array(arg_array);
-        ctx->exit_status = 1;
-        return 1;
-    }
-
-    // Changer de répertoire
     if (chdir(arg_array[0]) != 0)
     {
-        fprintf(stderr, "cd: %s: No such file or directory\n", arg_array[0]);
+        ft_fprintf(2, "cd: %s: No such file or directory\n", arg_array[0]);
         free_array(arg_array);
         ctx->exit_status = 1;
         return 1;
     }
-
     free_array(arg_array);
     return ft_update_pwd(ctx);
 }

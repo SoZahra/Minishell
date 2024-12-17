@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:55:42 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/17 00:09:49 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,35 +29,27 @@ int	create_and_add_var(t_ctx *ctx, char *var, char *value)
 
 	new_var = malloc(sizeof(t_env_var));
 	if (!new_var)
-	{
-		free(var);
-		free(value);
-		return (1);
-	}
+		return (free(var),free(value), 1);
 	new_var->name = var;
 	new_var->value = value;
 	new_var->next = NULL;
-	// printf("test add var : %s\n", var);
 	add_env_var_to_list(&ctx->env_vars, new_var);
 	return (0);
 }
 
 int handle_pwd_builtin(const char *input, t_ctx *ctx)
 {
-    // Skip "pwd" at the beginning
-    const char *args = input + 3;
-    while (*args == ' ')
-        args++;
+    char *cwd;
 
-    // pwd n'a pas d'options, mais on tolère les arguments supplémentaires
-    char *cwd = getcwd(NULL, 0);
+    while (*input == ' ')
+        input++;
+    cwd = getcwd(NULL, 0);
     if (!cwd)
     {
         perror("pwd");
         ctx->exit_status = 1;
         return 1;
     }
-
     printf("%s\n", cwd);
     free(cwd);
     ctx->exit_status = 0;
@@ -90,75 +82,126 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx)
 // 	print_env(get_ctx());
 // 	return (1);
 // }
+
 void print_env(t_ctx *ctx)
 {
-    // printf("Debug: Starting env print\n");
-    t_env_var *current = ctx->env_vars;
+    t_env_var *current;
+
+    current = ctx->env_vars;
     if (!current)
-		return ;
-        // printf("Debug: env list is empty\n");
-    // int count = 0;
+        return;
     while (current)
     {
-        // printf("Debug: Found var[%d] '%s'='%s'\n", count++, current->name, current->value);
-        if (current->value)
-            printf("%s=%s\n", current->name, current->value);
+        if (current->name)
+        {
+            if (current->value)
+                printf("%s=%s\n", current->name, current->value);
+            else
+                printf("%s=\n", current->name);
+        }
         current = current->next;
     }
 }
 
 int handle_env_builtin(const char *input, t_ctx *ctx)
 {
-    // Skip "env" at the beginning and any spaces
-    const char *args = input + 3;
-    while (*args == ' ')
-        args++;
-    // Check if there are any arguments (env shouldn't have arguments in basic implementation)
-    if (*args != '\0')
+    while (*input == ' ')
+        input++;
+    if (*input != '\0')
     {
-        fprintf(stderr, "env: too many arguments\n");
+        ft_fprintf(2, "env: too many arguments\n");
         ctx->exit_status = 1;
         return 1;
     }
-    // Print environment variables
-    // t_env_var *current = ctx->env_vars;
-    // while (current)
-    // {
-    //     if (current->value)  // Only print if the variable has a value
-    //         printf("%s=%s\n", current->name, current->value);
-    //     current = current->next;
-    // }
 	print_env(get_ctx());
     ctx->exit_status = 0;
     return 0;
 }
 
-int execute_builtin(const char *input, t_ctx *ctx)
+int execute_builtin(const char *cmd_line, t_ctx *ctx)
 {
-    // printf("Debug: Executing builtin with input: '%s'\n", input);
-    int builtin_type = is_builtin(input);
+    char *cmd;
+    char *space;
+    const char *args;
+    int result;
 
-    if (!builtin_type)
+    cmd = ft_strdup(cmd_line);
+    space = ft_strchr(cmd, ' ');
+    if (space)
+        *space = '\0';
+    args = cmd_line + ft_strlen(cmd);
+    while (*args == ' ')
+        args++;
+    result = 0;
+    if (ft_strcmp(cmd, "echo") == 0)
+        result = handle_echo_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "cd") == 0)
+        result = handle_cd_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "pwd") == 0)
+        result = handle_pwd_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "export") == 0)
+        result = handle_export_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "env") == 0)
+        result = handle_env_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "exit") == 0)
+        result = handle_exit_builtin(args, ctx);
+    else if (ft_strcmp(cmd, "unset") == 0)
+        result = handle_unset_builtin(args, ctx);
+    return (free(cmd), result);
+}
+
+int handle_unset_builtin(const char *input, t_ctx *ctx)
+{
+    char **split_args;
+    int i;
+
+    while (*input == ' ')
+        input++;
+    if (!*input)
         return 0;
-
-    switch (builtin_type)
+    split_args = ft_split(input, ' ');
+    if (!split_args)
+        return (perror("ft_split"), 1);
+    i = 0;
+    while(split_args[i])
     {
-        case 1:  // echo
-            return handle_echo_builtin(input, ctx);
-		case 2:
-			return (handle_cd_builtin(input, ctx));
-		case 3:
-			return (handle_pwd_builtin(input, ctx));
-        case 4:  // export - index 3 + 1
-            return handle_export_builtin(input, ctx);
-        case 6:  // env - index 5 + 1
-            return handle_env_builtin(input, ctx);
-		case 7:
-			return (handle_exit_builtin(input, ctx));
-        default:
-            // printf("Debug: Unknown builtin type: %d\n", builtin_type);
-            return 1;
+        if (!is_valid_var_name(split_args[i]))
+        {
+            ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
+            ctx->exit_status = 1;
+            continue;
+        }
+        if (unset_v(&ctx->env_vars, split_args[i]) != 0)
+            ctx->exit_status = 0;
+        i++;
     }
+    return (free_array(split_args), 0);
+}
+
+int unset_v(t_env_var **env_vars, const char *var)
+{
+    t_env_var *current;
+    t_env_var *prev;
+
+    current = *env_vars;
+    prev = NULL;
+    while (current)
+    {
+        if (ft_strcmp(current->name, var) == 0)
+        {
+            if (prev == NULL)
+                *env_vars = current->next;
+            else
+                prev->next = current->next;
+            free(current->name);
+            free(current->value);
+            free(current);
+            return 0;
+        }
+        prev = current;
+        current = current->next;
+    }
+    return 1;
 }
 
 // int execute_builtin(t_ctx *ctx, t_token *tokens)

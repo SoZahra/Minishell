@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/11 14:45:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 23:49:29 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,18 @@
 
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
 {
-    char *result = ft_strdup("");
+    char *result;
     char *temp;
-    int i = 0;
+    char *var_name;
+    char *var_value;
+    int i;
 
+    i = 0;
+    result = ft_strdup("");
     while (str[i])
     {
-        // Si on trouve un $
         if (str[i] == '$')
         {
-            // Cas $?
             if (str[i + 1] == '?')
             {
                 char *exit_str = ft_itoa(ctx->exit_status);
@@ -33,18 +35,14 @@ char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
                 result = temp;
                 i += 2;
             }
-            // Cas variable normale
             else if (str[i + 1] && (ft_isalnum(str[i + 1]) || str[i + 1] == '_'))
             {
                 int j = i + 1;
                 while (str[j] && (ft_isalnum(str[j]) || str[j] == '_'))
                     j++;
-
-                char *var_name = ft_substr(str, i + 1, j - (i + 1));
-                char *var_value = getenv(var_name);
+                var_name = ft_substr(str, i + 1, j - (i + 1));
+                var_value = getenv(var_name);
                 free(var_name);
-
-                // Ajouter la valeur ou rien si la variable n'existe pas
                 if (var_value)
                 {
                     temp = ft_strjoin(result, var_value);
@@ -53,7 +51,6 @@ char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
                 }
                 i = j;
             }
-            // Cas $ seul ou $ suivi d'un caractère spécial
             else
             {
                 if (quote_type != '\'')
@@ -67,7 +64,6 @@ char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
         }
         else
         {
-            // Ajouter le caractère normal
             char c[2] = {str[i], '\0'};
             temp = ft_strjoin(result, c);
             free(result);
@@ -135,15 +131,14 @@ char *expand_variable_(const char *str, char quote_type, t_ctx *ctx)
 // }
 int expand_str(t_token *token, t_ctx *ctx)
 {
-    char *expanded = NULL;
+    char *expanded;
 
+    expanded = NULL;
     if (!token || !token->value)
-        return -1;
-
+        return 1;
     expanded = expand_full_string(token->value, token->type, ctx);
     if (!expanded)
         return -1;
-
     free(token->value);
     token->value = expanded;
     return 0;
@@ -155,11 +150,9 @@ int expand_proc(t_token **tokens, t_ctx *ctx)
 
     if (!tokens || !*tokens)
         return 0;
-
     token = *tokens;
     while (token)
     {
-        // Expansion nécessaire pour les strings simples et doubles quotes contenant $
         if ((token->type == 'S' || token->type == '"') && ft_strchr(token->value, '$'))
         {
             if (expand_str(token, ctx) == -1)
@@ -277,31 +270,29 @@ int join_proc(t_token **tokens, bool limiter)
 
 char *tokens_to_string(t_token *tokens)
 {
-    t_token *current = tokens;
-    char *result = ft_strdup("");
+    if(!tokens)
+        return (NULL);
+    t_token *current;
+    char *result;
     char *temp;
 
+    current = tokens;
+    result = ft_strdup("");
+    if(!result)
+        return (NULL);
     while (current)
     {
-        // Si ce n'est pas le premier token et qu'il n'y a pas de had_space
         if (*result && !current->had_space)
         {
             temp = ft_strjoin(result, " ");
             if (!temp)
-            {
-                free(result);
-                return NULL;
-            }
+                return (free(result),NULL);
             free(result);
             result = temp;
         }
-        // Ajouter la valeur du token
         temp = ft_strjoin(result, current->value);
         if (!temp)
-        {
-            free(result);
-            return NULL;
-        }
+            return (free(result), NULL);
         free(result);
         result = temp;
         current = current->next;
@@ -328,11 +319,9 @@ t_token *get_last_token(t_token *token_list)
 
     if (!token_list)
         return (NULL);
-
     current = token_list;
     while (current->next)
         current = current->next;
-
     return (current);
 }
 
@@ -347,12 +336,12 @@ int quotes_proc(t_token **tokens, char *input, int *i)
     while (input[(*i)] && input[(*i)] != type)
         (*i)++;
     if (input[(*i)++] != type)
-        return printf("error: syntax\n"), -1;
+        return (printf("error: syntax\n"), -1);
     value = ft_substr(input, j, *i - j - 1);
     if (!value)
         return -1;
     add_token(tokens, type, value);
-    if (tokens && !ft_isspace(input[j - 2]) && !is_token(input[j - 2], UNJOIN))
+    if (j > 1 && tokens && !ft_isspace(input[j - 2]) && !is_token(input[j - 2], UNJOIN))
         get_last_token(*tokens)->had_space = 1;
     return 0;
 }
@@ -381,27 +370,24 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
     char type;
     int x;
     int start;
+    char *value;
 
     if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
-        return printf("error: syntax\n"), -1;
-
-    start = *i;  // Sauvegarder la position de début
+        return (printf("error: syntax\n"), -1);
+    start = *i;
     x = 1;
     type = input[(*i)++];
     while (input[*i] && input[*i] == type && x++ < n)
         (*i)++;
-
-    // Créer la valeur avec les caractères réels
-    char *value = ft_substr(input, start, *i - start);
+    value = ft_substr(input, start, *i - start);
     if (!value)
         return -1;
-
     if (type == '<' && x > 1)
         type = 'H';
     else if (type == '>' && x > 1)
         type = 'A';
-
-    add_token(tokens, type, value);
+    if(add_token(tokens, type, value) != 0)
+        return (free(value), 1);
     return 0;
 }
 
@@ -431,16 +417,64 @@ int word_proc(t_token **tokens, char *input, int *i)
 {
     char *value;
     int j;
+    int result;
 
     j = *i;
     while (input[(*i)] && !ft_isspace(input[(*i)]) && !is_token(input[*i], TOKENS))
         (*i)++;
+    if (j == *i)
+        return 0;
     value = ft_substr(input, j, *i - j);
     if (!value)
         return -1;
-    add_token(tokens, 'S', value);
+    result = add_token(tokens, 'S', value);
+    if (result != 0)
+        return (free(value), -1);
     if (j > 0 && input[j - 1] && !ft_isspace(input[j - 1]) && !is_token(input[j - 1], UNJOIN))
         get_last_token(*tokens)->had_space = 1;
+    return 0;
+}
+
+t_token *join_it(t_token *token)
+{
+    char *tmp;
+    t_token *prev;
+    (void)tmp;
+    (void)prev;
+    
+    if (!token)
+        return NULL;
+    if (token->prev && token->prev->prev && token->prev->prev->type == 'H')
+    {
+        tmp = token->prev->value;
+        token->prev->value = ft_strjoin(tmp, token->value);
+        free(tmp);
+        token->prev->next = token->next;
+        if (token->next)
+            token->next->prev = token->prev;
+        free(token->value);
+        prev = token->prev;
+        free(token);
+        return prev;
+    }
+    return NULL;
+}
+
+int _join_limiter(t_token **tokens)
+{
+    t_token *tmp;
+
+    tmp = *tokens;
+    while (tmp)
+    {
+        if (tmp->had_space)
+        {
+            tmp = join_it(tmp);
+            if (!tmp)
+                return -1;
+        }
+        tmp = tmp->next;
+    }
     return 0;
 }
 
@@ -448,6 +482,7 @@ int word_proc(t_token **tokens, char *input, int *i)
 int tokenizer(t_token **tokens, char *input)
 {
     int i;
+    int result;
 
     i = 0;
     *tokens = NULL;
@@ -456,20 +491,20 @@ int tokenizer(t_token **tokens, char *input)
         if (input[i] != ' ' && input[i] != '\t')
         {
             if (is_token(input[i], TOKENS))
-            {
-                if (token_proc(tokens, input, &i))
-                    return -1;
-            }
+                result = token_proc(tokens, input, &i);
             else
+                result = word_proc(tokens, input, &i);
+            if (result != 0)
             {
-                if (word_proc(tokens, input, &i))
-                    return -1;
+                free_tokens(*tokens);
+                *tokens = NULL;
+                return -1;
             }
         }
         else if (input[i])
             i++;
     }
-    // print_tokens(*tokens);
+    _join_limiter(tokens);
     return 0;
 }
 

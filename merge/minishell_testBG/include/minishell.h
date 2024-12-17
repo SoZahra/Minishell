@@ -162,6 +162,7 @@ int handle_multiple_args(const char *args, t_ctx *ctx);
 
 //echo
 int handle_echo_builtin(const char *input, t_ctx *ctx);
+int handle_echo_builtin_n(const char *args, t_ctx *ctx);
 
 //env
 int handle_env_builtin(const char *input, t_ctx *ctx);
@@ -177,6 +178,14 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx);
 int handle_exit_builtin(const char *input, t_ctx *ctx);
 int process_exit_arg(char **args, t_ctx *ctx);
 
+//utils
+
+int unset_v(t_env_var **env_vars, const char *var);
+int handle_unset_builtin(const char *input, t_ctx *ctx);
+
+//utils
+int ft_fprintf(int fd, const char *format, ...);
+size_t  ft_strspn(const char *str, const char *accept);
 
 //exec
 
@@ -197,7 +206,7 @@ void execute_command(t_command *cmd, t_ctx *ctx);
 int apply_redirections(t_redirection *redirs, t_ctx *ctx);
 void restore_fds(int stdin_fd, int stdout_fd);
 void execute_builtin_command(t_command *cmd, t_ctx *ctx);
-void execute_external_command(t_command *cmd, t_ctx *ctx);
+int execute_external_command(t_command *cmd, t_ctx *ctx);
 int add_redirection(t_redirection **redirs, char type, char *file);
 void free_command(t_command *cmd);
 
@@ -269,8 +278,8 @@ int						handle_env_var(char **line, t_token **token_list,
 t_token					*lexer(const char *input);
 t_token					*create_token(t_token_type type, const char *value);
 // int	add_token(t_token **head, t_token_type type, const char *value);
-t_token					*add_token(t_token **token_list, t_token_type type,
-							const char *value);
+// t_token					*add_token(t_token **token_list, t_token_type type,
+// 							const char *value);
 t_token_type			get_token_type(const char *str);
 int						finalize_tokens(int in_quotes, char quote_char,
 							char *buffer, int *i, t_token **token_list);
@@ -487,8 +496,12 @@ void handle_empty_quotes(char **line, int *i, t_token **token_list, char *curren
 
 int count_tokens(t_token *tokens);
 
-t_token *create_new_token(t_token_type type, const char *value);
-t_token *add_token(t_token **token_list, t_token_type type, const char *value);
+// t_token *create_new_token(t_token_type type, const char *value);
+// t_token *add_token(t_token **token_list, t_token_type type, const char *value);
+int add_token(t_token **token_list, t_token_type type, char *value);
+t_token *create_new_token(t_token_type type, char *value);
+
+t_token *tokenize_input(char *line);
 
 t_token *create_token_node(char *arg, t_token_type type);
 int is_valid_n(t_token *current);

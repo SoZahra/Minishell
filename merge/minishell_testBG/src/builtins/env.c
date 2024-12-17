@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:08:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 11:35:24 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/16 23:53:46 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,12 @@
 
 int ft_cd_home(t_ctx *ctx)
 {
-    char *home = find_env_value("HOME", ctx->env_vars);
+    char *home;
+
+    home = find_env_value("HOME", ctx->env_vars);
     if (!home)
     {
-        fprintf(stderr, "cd: HOME not set\n");
+        ft_fprintf(2, "cd: HOME not set\n");
         ctx->exit_status = 1;
         return 1;
     }
@@ -55,7 +57,7 @@ int ft_cd_oldpwd(t_ctx *ctx)
 {
     if (!ctx->oldpwd)
     {
-        fprintf(stderr, "cd: OLDPWD not set\n");
+        ft_fprintf(2, "cd: OLDPWD not set\n");
         ctx->exit_status = 1;
         return 1;
     }
@@ -71,14 +73,15 @@ int ft_cd_oldpwd(t_ctx *ctx)
 
 int ft_update_pwd(t_ctx *ctx)
 {
-    char *cwd = getcwd(NULL, 0);
+    char *cwd;
+
+    cwd = getcwd(NULL, 0);
     if (!cwd)
     {
         perror("getcwd");
         ctx->exit_status = 1;
         return 1;
     }
-
     free(ctx->oldpwd);
     ctx->oldpwd = ctx->pwd;
     ctx->pwd = cwd;
