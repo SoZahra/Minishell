@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_cd.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:55:35 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 01:24:13 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 09:51:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,27 @@
 int handle_cd_builtin(const char *input, t_ctx *ctx)
 {
     char **arg_array;
-
+    int arg_count;
+    
     while (*input == ' ')
         input++;
-        
     if (!*input || strcmp(input, "~") == 0)
         return ft_cd_home(ctx);
-        
     if (strcmp(input, "-") == 0)
         return ft_cd_oldpwd(ctx);
     arg_array = ft_split(input, ' ');
     if (!arg_array)
         return 1;
+    arg_count = 0;
+    while (arg_array[arg_count])
+        arg_count++;
+    if (arg_count > 1)
+    {
+        ft_fprintf(2, "cd: too many arguments\n");
+        free_array(arg_array);
+        ctx->exit_status = 0;
+        return 1;
+    }
     if (chdir(arg_array[0]) != 0)
     {
         ft_fprintf(2, "cd: %s: No such file or directory\n", arg_array[0]);
@@ -47,6 +56,8 @@ int handle_cd_builtin(const char *input, t_ctx *ctx)
     free_array(arg_array);
     return ft_update_pwd(ctx);
 }
+
+
 
 int	handle_special_case(char *arg, t_ctx *ctx)
 {

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   loop.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 23:59:25 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 09:40:52 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -801,7 +801,6 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     if (!final_cmd)
         return(free_tokens(tokens), 1);
     t_command *cmd = parse_pipe_sequence(tokens);
-    // print_command_debug(cmd);
     if (!cmd)
         return(free_tokens(tokens), 1);
     t_command *current = cmd;
@@ -816,7 +815,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         }
         current = current->next;
     }
-    if (cmd->next)  // Si on a des pipes
+    if (cmd->next)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
@@ -879,18 +878,15 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
 //     return 0;
 // }
 
-t_token *prepare_tokens(t_token *tokens, t_ctx *ctx)
-{
-    // Faire l'expansion des variables
-    if (expand_proc(&tokens, ctx) == -1)
-        return NULL;
+// t_token *prepare_tokens(t_token *tokens, t_ctx *ctx)
+// {
+//     if (expand_proc(&tokens, ctx) == -1)
+//         return NULL;
+//     if (join_proc(&tokens, false) == -1)
+//         return NULL;
 
-    // Joindre les tokens avec espace en respectant les flags
-    if (join_proc(&tokens, false) == -1)
-        return NULL;
-
-    return tokens;
-}
+//     return tokens;
+// }
 
 int	loop_with_pipes(t_ctx *ctx)
 {

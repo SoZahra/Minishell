@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 01:04:42 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 10:28:11 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -653,12 +653,9 @@ int here_doc(char *delimiter, t_ctx *ctx)
         perror("pipe");
         return -1;
     }
-
     while (1)
     {
-        printf("> ");  // Prompt pour le heredoc
-
-        // Gérer Ctrl+D (fin de fichier)
+        printf("> ");
         if ((read = getline(&line, &len, stdin)) == -1)
         {
             free(line);
@@ -670,23 +667,20 @@ int here_doc(char *delimiter, t_ctx *ctx)
         free(line);
         break;
     }
-        // Créer un token pour l'expansion
-        t_token *expand_token = create_new_token('S', line);
-
-        // Appliquer l'expansion
-        if (expand_proc(&expand_token, ctx) == -1)
-        {
-            free(line);
-            free_tokens(expand_token);
-            break;
-        }
-        // Écrire la ligne expansée dans le pipe
-        write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
-        write(pipefd[1], "\n", 1);
+    if (read > 0 && line[read - 1] == '\n')
+            line[read - 1] = '\0';
+    t_token *expand_token = create_new_token('S', line);
+    if (expand_proc(&expand_token, ctx) == -1)
+    {
+        free(line);
         free_tokens(expand_token);
-        line = NULL;
+        break;
     }
-
+    write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
+    write(pipefd[1], "\n", 1);
+    free_tokens(expand_token);
+    line = NULL;
+    }
     close(pipefd[1]);
     return pipefd[0];
 }
@@ -834,7 +828,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
         stat(cmd->args[0], &path_stat);
         if (S_ISDIR(path_stat.st_mode))
         {
-            fprintf(stderr, "MiniBG: %s: is a directory\n", cmd->args[0]);
+            fprintf(stderr, "MiniBG: %s: Is a directory\n", cmd->args[0]);
             return 126;
         }
         

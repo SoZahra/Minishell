@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exit.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 00:08:26 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/17 09:16:51 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     {
         ft_fprintf(2, "minishell: exit: %s: numeric argument required\n", cleaned_arg);
         free(cleaned_arg);
-        ctx->exit_status = 255;
+        ctx->exit_status = 2;
         return 1;
     }
     exit_code = ft_atoi(cleaned_arg);

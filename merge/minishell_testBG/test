@@ -1,0 +1,10 @@
+include
+libft
+Makefile
+minishell
+minishell.sup
+minishell_tester
+pipe
+src
+test
+test.txt
