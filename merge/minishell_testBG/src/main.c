@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:31:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 20:38:45 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 	get_ctx()->env_vars = build_env_list(envp);
 	if (!get_ctx()->env_vars)
 	{
-		// free_ctx(get_ctx());
 		cleanup_shell(get_ctx());
 		return (perror("Failed to build env list"), 1);
 	}

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:29:51 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 20:18:22 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,21 +27,53 @@ void	free_env_copy(char **env_copy)
 	free(env_copy);
 }
 
-void	free_env(t_env_var *env_var)
-{
-	t_env_var	*to_free;
+// void	free_env(t_env_var *env_var)
+// {
+// 	t_env_var	*to_free;
 
-	while (env_var)
-	{
-		to_free = env_var;
-		env_var = env_var->next;
-		free(to_free->name);
-		to_free->name = NULL;
-		free(to_free->value);
-		to_free->value = NULL;
-		free(to_free);
-		to_free = NULL;
-	}
+// 	while (env_var)
+// 	{
+// 		to_free = env_var;
+// 		env_var = env_var->next;
+// 		free(to_free->name);
+// 		to_free->name = NULL;
+// 		free(to_free->value);
+// 		to_free->value = NULL;
+// 		free(to_free);
+// 		to_free = NULL;
+// 	}
+// }
+
+void free_env(t_env_var *env_var)
+{
+    t_env_var *current;
+    t_env_var *next;
+    
+    if (!env_var)
+        return;
+    current = env_var;
+    while (current)
+    {
+        // Sauvegarder next avant de free
+        next = current->next;
+        // Free name s'il existe
+        if (current->name)
+        {
+            free(current->name);
+            current->name = NULL;
+        }
+        // Free value s'il existe
+        if (current->value)
+        {
+            free(current->value);
+            current->value = NULL;
+        }
+        // Free la structure elle-même
+        free(current);
+        current = NULL;
+        // Passer au suivant
+        current = next;
+    }
 }
 
 void free_ctx(t_ctx *ctx)

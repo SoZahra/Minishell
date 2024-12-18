@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:33:55 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 21:05:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,31 +129,13 @@ t_token *tokenize_input(char *line)
     if (is_token(tmp->type, REDIRS))
     {
         printf("syntax error\n");
-        free_tokens(tokens);
+        if(tokens)
+            free_tokens(tokens);
         return NULL;
     }
-
     return tokens;  // Ne plus stocker dans get_ctx()
 }
 
-// t_token *tokenize_input(char *line)
-// {
-//     t_token *tokens;
-//     t_token *tmp;
-
-//     tokens = NULL;
-//     if (tokenizer(&tokens, line) < 0)
-//         return (NULL);
-//     tmp = get_last_node(tokens);
-//     if (is_token(tmp->type, REDIRS))
-//     {
-//         printf("syntax error\n");
-//         free_tokens(tokens);
-//         return NULL;
-//     }
-//     get_ctx()->tokens = tokens;
-//     return (tokens);
-// }
 
 void count_tokens_redir(t_token *start, t_token *end, int *arg_count, int *redir_count)
 {
@@ -261,28 +243,33 @@ int fill_command_content(t_command *cmd, t_token *start, t_token *end, int arg_c
 
 t_command *init_command_struct(int arg_count)
 {
-    t_command *cmd = malloc(sizeof(t_command));
+    t_command *cmd = calloc(1, sizeof(t_command)); // Utiliser calloc au lieu de malloc
     if (!cmd)
-        return NULL;
+        return (free_command(cmd), NULL);
 
-    // Initialisation complète à 0
-    *cmd = (t_command){0};
+    // Plus besoin de cette ligne car calloc initialise à 0
+    // *cmd = (t_command){0};
+    
     cmd->pid = -1;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = arg_count;
 
     cmd->args = calloc(arg_count + 1, sizeof(char *));
-    cmd->had_spaces = calloc(arg_count, sizeof(int));
-
-    if (!cmd->args || !cmd->had_spaces)
+    if(!cmd->args)
     {
         free(cmd->args);
+        cmd->args = NULL;
+        free_command(cmd);
+    }
+    cmd->had_spaces = calloc(arg_count, sizeof(int));
+    if (!cmd->had_spaces)
+    {
         free(cmd->had_spaces);
-        free(cmd);
+        cmd->had_spaces = NULL;
+        free_command(cmd);
         return NULL;
     }
-
     return cmd;
 }
 
@@ -297,15 +284,12 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
             arg_count++;
         current = current->next;
     }
-
     t_command *cmd = init_command_struct(arg_count);
     if (!cmd)
-        return NULL;
-
+        return (free_command(cmd), NULL);
     cmd->arg_count = arg_count;
     int i = 0;
     current = start;
-
     while (current && current != end && current->type != '|')
     {
         if (current->type != '>' && current->type != 'A')
@@ -321,66 +305,9 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         current = current->next;
     }
     cmd->args[i] = NULL;
+    cmd->arg_count = i;
     return cmd;
 }
-
-// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
-// {
-//     printf("testttttt========= 2\n");
-//     t_command *cmd = malloc(sizeof(t_command));
-//     // new_token = malloc(sizeof(t_token));
-//     // *new_token = (t_token){0};
-//     *cmd = (t_command){0};
-//     if (!cmd)
-//         return NULL;
-
-//     // cmd->args = NULL;
-//     // cmd->redirs = NULL;
-//     // cmd->path = NULL;
-//     cmd->pid = -1;
-//     // cmd->next = NULL;
-//     // cmd->prev = NULL;
-//     cmd->pfd[0] = -1;
-//     cmd->pfd[1] = -1;
-//     cmd->arg_count = 0;
-//     int arg_count = 0;
-//     t_token *current = start;
-//     while (current && current != end && current->type != '|')
-//     {
-//         if (current->type != '>' && current->type != 'A')
-//             arg_count++;
-//         current = current->next;
-//     }
-//     cmd->args = malloc(sizeof(char *) * (arg_count + 1));
-//     cmd->had_spaces = malloc(sizeof(int) * arg_count);
-//     if (!cmd->args || !cmd->had_spaces)
-//     {
-//         free_command(cmd);
-//         return NULL;
-//     }
-//     cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
-//     int i = 0;
-//     current = start;
-//     while (current && current != end && current->type != '|')
-//     {
-//         if (current->type != '>' && current->type != 'A')
-//         {
-//             cmd->args[i] = ft_strdup(current->value);
-//             if (!cmd->args[i])
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             cmd->had_spaces[i] = current->had_space;
-//             i++;
-//         }
-//         current = current->next;
-//     }
-//     cmd->args[i] = NULL;
-//     // print_command_debug(cmd, "creation");
-//     return cmd;
-// }
-
 
 
 t_token *get_next_pipe_token(t_token *start) 
@@ -400,17 +327,6 @@ void free_command_list(t_command *cmd)
         cmd = next;
     }
 }
-
-// t_command *parse_pipe_sequence(t_token *tokens)
-// {
-//     printf("testttttt=========\n");
-//     t_token *first_cmd_end = tokens;
-//     while (first_cmd_end && first_cmd_end->type != '|')
-//         first_cmd_end = first_cmd_end->next;
-//     t_command *cmd = create_command_from_tokens_range(tokens, first_cmd_end);
-
-//     return cmd;
-// }
 
 t_command *link_commands(t_command *first_cmd, t_command *new_cmd)
 {
@@ -500,31 +416,10 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
-    free_command(cmd);
+    if(cmd)
+        free_command(cmd);
     return ret;
 }
-
-// int handle_line_for_loop(char *line, t_ctx *ctx)
-// {
-//     if (!*line)
-//         return 0;
-
-//     add_history(line);
-//     t_token *tokens = tokenize_input(line);
-//     if (!tokens)
-//         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
-//     if (expand_proc(&tokens, ctx) == -1)
-//         return(1);
-//     t_command *cmd = parse_pipe_sequence(tokens);
-//     if (!cmd)
-//         return(1);
-//     if (cmd->next)
-//         execute_pipeline(cmd, ctx);
-//     else
-//         execute_command(cmd, ctx);
-//     // free_tokens(tokens);
-//     return(free_command(cmd), 0);
-// }
 
 int	loop_with_pipes(t_ctx *ctx)
 {

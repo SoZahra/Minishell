@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:35:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 21:06:43 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,52 +16,16 @@ char **create_command_array(const char *cmd_str)
 {
     // printf("Debug: Creating array for command: '%s'\n", cmd_str);
 
-    // Ignorer les espaces au début
     while (*cmd_str == ' ')
         cmd_str++;
 
     char **cmd_array = ft_split(cmd_str, ' ');
     if (!cmd_array)
         return NULL;
-
-    // Compter le nombre d'arguments pour debug
-    // int i = 0;
-    // while (cmd_array[i])
-    // {
-    //     printf("Debug: arg[%d]: '%s'\n", i, cmd_array[i]);
-    //     i++;
-    // }
-
     return cmd_array;
 }
 
-// static void cleanup_exec_resources(char *cmd_path, char **cmd_array, char **env)
-// {
-//     free(cmd_path);
-//     free_array(cmd_array);
-//     free_array(env);
-// }
 
-// static void handle_command_not_found(const char *cmd, char **cmd_array, t_ctx *ctx)
-// {
-//     fprintf(stderr, "MiniBG: %s: command not found\n", cmd);
-//     free_array(cmd_array);
-//     ctx->exit_status = 127;
-// }
-
-// void execute_child_process(char *cmd_path, char **cmd_array, char **env)
-// {
-//     t_redir *redirs = get_redirections(cmd_array);
-//     if (redirs)
-//     {
-//         if (apply_redirections(redirs) == -1)
-//             exit(1);
-//         free_redirections(redirs);
-//     }
-//     execve(cmd_path, cmd_array, env);
-//     perror("execve");
-//     exit(1);
-// }
 
 void wait_for_child(pid_t pid, t_ctx *ctx)
 {
@@ -71,63 +35,6 @@ void wait_for_child(pid_t pid, t_ctx *ctx)
         ctx->exit_status = WEXITSTATUS(status);
 }
 
-// void execute_external_command(const char *cmd_str, t_ctx *ctx)
-// {
-//     printf("Debug: Executing command: '%s'\n", cmd_str);
-
-//     char **cmd_array = create_command_array(cmd_str);
-//     if (!cmd_array)
-//         return;
-
-//     // Debug: Afficher le tableau initial
-//     printf("Debug: Initial command array:\n");
-//     for (int i = 0; cmd_array[i]; i++)
-//         printf("  arg[%d]: '%s'\n", i, cmd_array[i]);
-
-//     // Extraire les redirections
-//     t_redir *redirs = get_redirections(cmd_array);
-//     print_redirections(redirs);
-
-//     char *cmd_path = find_command_path(cmd_array[0], ctx);
-//     if (!cmd_path)
-//     {
-//         handle_command_not_found(cmd_array[0], cmd_array, ctx);
-//         free_redirections(redirs);
-//         return;
-//     }
-
-//     char **env = create_env_array(ctx->env_vars);
-//     if (!env)
-//     {
-//         cleanup_exec_resources(cmd_path, cmd_array, NULL);
-//         free_redirections(redirs);
-//         return;
-//     }
-
-//     pid_t pid = fork();
-//     if (pid == -1)
-//     {
-//         perror("fork");
-//         cleanup_exec_resources(cmd_path, cmd_array, env);
-//         free_redirections(redirs);
-//         return;
-//     }
-
-//     if (pid == 0)
-//     {
-//         // Dans le processus enfant, appliquer les redirections
-//         if (redirs && apply_redirections(redirs) == -1)
-//             exit(1);
-//         execve(cmd_path, cmd_array, env);
-//         perror("execve");
-//         exit(1);
-//     }
-//     else
-//         wait_for_child(pid, ctx);
-
-//     cleanup_exec_resources(cmd_path, cmd_array, env);
-//     free_redirections(redirs);
-// }
 
 char *get_env_path(t_env_var *env_vars)
 {
@@ -227,46 +134,6 @@ char *find_command_path(const char *command, t_ctx *ctx)
     return NULL;
 }
 
-
-// char *find_command_path(const char *cmd, t_ctx *ctx)
-// {
-//     // Si la commande contient un '/', c'est déjà un chemin
-//     if (ft_strchr(cmd, '/'))
-//         return ft_strdup(cmd);
-
-//     // Récupérer le PATH
-//     char *path = get_env_path(ctx->env_vars);
-//     if (!path)
-//         return NULL;
-
-//     // Diviser le PATH en dossiers
-//     char **directories = ft_split(path, ':');
-//     if (!directories)
-//         return NULL;
-
-//     // Chercher la commande dans chaque dossier
-//     char *cmd_path = NULL;
-//     for (int i = 0; directories[i]; i++)
-//     {
-//         // Construire le chemin complet
-//         cmd_path = ft_strjoin(directories[i], "/");
-//         char *temp = ft_strjoin(cmd_path, cmd);
-//         free(cmd_path);
-//         cmd_path = temp;
-
-//         // Vérifier si le fichier existe et est exécutable
-//         if (access(cmd_path, X_OK) == 0)
-//         {
-//             free_array(directories);
-//             return cmd_path;
-//         }
-//         free(cmd_path);
-//     }
-
-//     free_array(directories);
-//     return NULL;
-// }
-
 char **create_env_array(t_env_var *env_vars)
 {
     // Compter le nombre de variables
@@ -306,37 +173,6 @@ char **create_env_array(t_env_var *env_vars)
     return env;
 }
 
-// void remove_elements(char **array, int start, int count)
-// {
-//     int i = start;
-
-//     // Libérer les éléments à supprimer
-//     for (int j = 0; j < count && array[i + j]; j++)
-//         free(array[i + j]);
-
-//     // Décaler tous les éléments suivants
-//     while (array[i + count])
-//     {
-//         array[i] = array[i + count];
-//         i++;
-//     }
-//     array[i] = NULL;
-// }
-
-// void free_redirections(t_redir *redirs)
-// {
-//     t_redir *current;
-//     t_redir *next;
-
-//     current = redirs;
-//     while (current)
-//     {
-//         next = current->next;
-//         free(current->file);
-//         free(current);
-//         current = next;
-//     }
-// }
 
 // // Fonction auxiliaire pour ajouter une redirection à la liste
 int add_redirection(t_redirection **redirs, char type, char *file)
@@ -403,7 +239,6 @@ char *tokens_to_string_from_command(t_command *cmd)
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
     printf("testttttt=========4\n");
-    // Traiter d'abord les heredocs si présents
     if (cmd->redirs)
     {
         for (int i = 0; cmd->redirs[i].type != 0; i++)
@@ -445,118 +280,6 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
 }
 
-// void execute_command(t_command *cmd, t_ctx *ctx)
-// {
-//    int stdin_backup = dup(STDIN_FILENO);
-//    int stdout_backup = dup(STDOUT_FILENO);
-
-//     if (cmd->redirs)
-//     {
-//         if (apply_redirections(cmd->redirs, ctx) == -1)
-//         {
-//             ctx->exit_status = 1;
-//             restore_fds(stdin_backup, stdout_backup);
-//             return;
-//         }
-//     }
-//    if (is_builtin(cmd->args[0]))
-//     {
-// 		char *cmd_line = tokens_to_string_from_command(cmd);
-// 		ctx->exit_status = execute_builtin(cmd_line, ctx);
-// 		free(cmd_line);
-// 	}
-//    else
-//        ctx->exit_status = execute_external_command(cmd, ctx);
-//    restore_fds(stdin_backup, stdout_backup);
-// }
-
-// void execute_command(t_command *cmd, t_ctx *ctx)
-// {
-//    // Sauvegarder les FD originaux
-//    int stdin_backup = dup(STDIN_FILENO);
-//    int stdout_backup = dup(STDOUT_FILENO);
-
-//    // Créer des tokens à partir des arguments de la commande
-//    t_token *tokens = create_tokens_from_command(cmd);
-
-//    // Expansion des variables
-//    if (expand_proc(&tokens, ctx) == -1)
-//    {
-//        free_tokens(tokens);
-//        restore_fds(stdin_backup, stdout_backup);
-//        return;
-//    }
-
-//    // Mettre à jour les arguments de la commande avec les tokens expandus
-//    update_command_from_tokens(cmd, tokens);
-
-//    // Libérer les tokens temporaires
-//    free_tokens(tokens);
-
-//    // Appliquer toutes les redirections
-//    if (apply_redirections(cmd->redirs) == -1)
-//    {
-//        restore_fds(stdin_backup, stdout_backup);
-//        return;
-//    }
-
-//    // Exécuter la commande
-//    if (is_builtin(cmd->args[0]))
-//        execute_builtin_command(cmd, ctx);
-//    else
-//        execute_external_command(cmd, ctx);
-
-//    // Restaurer les FD originaux
-//    restore_fds(stdin_backup, stdout_backup);
-// }
-
-// // Fonction pour créer des tokens à partir des arguments de la commande
-// t_token *create_tokens_from_command(t_command *cmd)
-// {
-//     t_token *tokens = NULL;
-//     for (int i = 0; i < cmd->arg_count; i++)
-//     {
-//         add_token(&tokens, 'S', cmd->args[i]);
-//     }
-//     return tokens;
-// }
-
-// // Fonction pour mettre à jour la commande avec les tokens expandus
-// void update_command_from_tokens(t_command *cmd, t_token *tokens)
-// {
-//     // Libérer les anciens arguments
-//     for (int i = 0; i < cmd->arg_count; i++)
-//     {
-//         free(cmd->args[i]);
-//     }
-//     free(cmd->args);
-//     free(cmd->had_spaces);
-
-//     // Compter les nouveaux tokens
-//     int new_arg_count = 0;
-//     t_token *current = tokens;
-//     while (current)
-//     {
-//         new_arg_count++;
-//         current = current->next;
-//     }
-
-//     // Allouer de nouveaux tableaux
-//     cmd->args = malloc(sizeof(char *) * (new_arg_count + 1));
-//     cmd->had_spaces = malloc(sizeof(int) * new_arg_count);
-//     cmd->arg_count = new_arg_count;
-
-//     // Copier les nouveaux arguments
-//     current = tokens;
-//     for (int i = 0; current; i++)
-//     {
-//         cmd->args[i] = strdup(current->value);
-//         cmd->had_spaces[i] = current->had_space;
-//         current = current->next;
-//     }
-//     cmd->args[new_arg_count] = NULL;
-// }
-
 int handle_heredoc(t_redirection *redir, t_ctx *ctx)
 {
     (void)ctx;
@@ -574,24 +297,6 @@ int handle_heredoc(t_redirection *redir, t_ctx *ctx)
     return -1;
 }
 
-// int handle_heredoc(t_redirection *redir, t_ctx *ctx)
-// {
-//     int fd = here_doc(redir->file, ctx);
-//     if (fd == -1)
-//     {
-//         perror("here_doc");
-//         return -1;
-//     }
-
-//     if (dup2(fd, STDIN_FILENO) == -1)
-//     {
-//         perror("dup2 heredoc");
-//         close(fd);
-//         return -1;
-//     }
-//     close(fd);
-//     return 0;
-// }
 
 int handle_input_redirection(t_redirection *redir)
 {
@@ -664,48 +369,6 @@ int apply_redirections(t_redirection *redirs, t_ctx *ctx)
 }
 
 
-// int here_doc(char *delimiter)
-// {
-//     int pipefd[2];
-//     char *line = NULL;
-//     size_t len = 0;
-//     ssize_t read;
-
-//     if (pipe(pipefd) == -1)
-//     {
-//         perror("pipe");
-//         return -1;
-//     }
-
-//     while (1)
-//     {
-//         printf("> ");  // Prompt pour le heredoc
-
-//         // Gérer Ctrl+D (fin de fichier)
-//         if ((read = getline(&line, &len, stdin)) == -1)
-//         {
-//             free(line);
-//             break;
-//         }
-
-//         // Vérifier si le délimiteur est atteint
-//         if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
-//             line[ft_strlen(delimiter)] == '\n')
-//         {
-//             free(line);
-//             break;
-//         }
-
-//         // Écrire la ligne dans le pipe
-//         write(pipefd[1], line, read);
-//         free(line);
-//         line = NULL;
-//     }
-
-//     close(pipefd[1]);
-//     return pipefd[0];
-// }
-
 int here_doc(char *delimiter, t_ctx *ctx)
 {
     int pipefd[2];
@@ -750,58 +413,6 @@ int here_doc(char *delimiter, t_ctx *ctx)
     return pipefd[0];
 }
 
-// int apply_redirections(t_redirection *redirs)
-// {
-//     t_redirection *current = redirs;
-//     int last_fd = -1;
-
-//     // D'abord inverser l'ordre de la liste pour traiter la dernière redirection en premier
-//     t_redirection *reversed = NULL;
-//     if(!current)
-//         return -1;
-//     while (current)
-//     {
-//         t_redirection *next = current->next;
-//         current->next = reversed;
-//         reversed = current;
-//         current = next;
-//     }
-
-//     // Maintenant traiter les redirections dans l'ordre inverse
-//     current = reversed;
-//     while (current)
-//     {
-//         if (current->type == '>' || current->type == 'A')
-//         {
-//             // Si on avait déjà ouvert un fichier, le fermer
-//             if (last_fd != -1)
-//                 close(last_fd);
-
-//             // Redirection sortante
-//             int flags = O_WRONLY | O_CREAT;
-//             flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
-
-//             current->fd = open(current->file, flags, 0644);
-//             if (current->fd == -1)
-//             {
-//                 perror("open");
-//                 return -1;
-//             }
-
-//             if (dup2(current->fd, STDOUT_FILENO) == -1)
-//             {
-//                 perror("dup2");
-//                 return -1;
-//             }
-//             close(current->fd);
-
-//             last_fd = current->fd;
-//         }
-//         current = current->next;
-//     }
-
-//     return 0;
-// }
 
 void restore_fds(int stdin_fd, int stdout_fd)
 {
@@ -829,8 +440,6 @@ char *args_to_string(char **args)
         if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
             total_len++;
     }
-
-    // Allouer la mémoire pour la chaîne finale
     char *result = malloc(total_len + 1);
     if (!result)
         return NULL;
@@ -857,6 +466,7 @@ void execute_builtin_command(t_command *cmd, t_ctx *ctx)
    }
 }
 
+//pas encore utilise 
 int execute_external_command(t_command *cmd, t_ctx *ctx)
 {
     if (cmd->args[0] == NULL || cmd->args[0][0] == '\0')
@@ -945,26 +555,68 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
     }
 }
 
+// void free_command(t_command *cmd)
+// {
+//     t_command *next;
+
+//     if (!cmd)
+//         return;
+
+//     next = cmd->next;
+//     if (cmd->args)
+//     {
+//         for (int i = 0; cmd->args[i]; i++)
+//             free(cmd->args[i]);
+//         free(cmd->args);
+//     }
+//     free(cmd->had_spaces);
+//     free(cmd->path);
+//     free(cmd);
+
+//     free_command(next); 
+// }
+
 void free_command(t_command *cmd)
 {
-    t_command *next;
-
     if (!cmd)
         return;
 
-    next = cmd->next;
+    // Sauvegarder next pour une libération récursive
+    t_command *next = cmd->next;
+
+    // Libérer args
     if (cmd->args)
     {
-        for (int i = 0; cmd->args[i]; i++)
+        for (int i = 0; i < cmd->arg_count; i++)
+        {
             free(cmd->args[i]);
+        }
         free(cmd->args);
     }
+
+    // Libérer had_spaces
     free(cmd->had_spaces);
+
+    // Libérer path
     free(cmd->path);
+
+    // Libérer redirs
+    if (cmd->redirs)
+    {
+        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        {
+            free(cmd->redirs[i].file);
+        }
+        free(cmd->redirs);
+    }
+
+    // Libérer la structure elle-même
     free(cmd);
 
+    // Libérer récursivement la suite
     free_command(next);
 }
+
 
 // void free_command(t_command *cmd)
 // {

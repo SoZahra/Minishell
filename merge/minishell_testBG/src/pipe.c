@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:16:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 19:12:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -756,7 +756,6 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
    {
        if (--cmd_count > 0)
            pipe(current->pfd);
-       
        last_pid = fork();
        if (last_pid == 0)
        {
@@ -772,7 +771,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
        ctx->exit_status = WEXITSTATUS(status);
    else 
        ctx->exit_status = 1;
-//    free_command(cmd);
+    // free_command(cmd);
 }
 
 // void execute_pipeline(t_command *cmd, t_ctx *ctx)

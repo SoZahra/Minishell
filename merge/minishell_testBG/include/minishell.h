@@ -126,6 +126,7 @@ typedef struct s_command {
 bool is_token(char c, char *str);
 void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code);
 
+void free_env_list(t_env_var *head);
 // pipe(pfd);
 
 t_token *find_pipe_token(t_token *start);

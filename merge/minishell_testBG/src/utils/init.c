@@ -6,29 +6,49 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 11:03:47 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 20:09:08 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	initialize_ctx(t_ctx *ctx)
+// int	initialize_ctx(t_ctx *ctx)
+// {
+// 	if (!ctx)
+// 	{
+// 		perror("Failed to allocate memory for t_ctx");
+// 		return (1);
+// 	}
+// 	ctx->env_vars = NULL;
+// 	ctx->exit_status = 0;
+// 	ctx->num_pipes = 0;
+// 	ctx->oldpwd = NULL;
+// 	ctx->pwd = getcwd(NULL, 0);
+// 	if (!ctx->pwd)
+// 	{
+// 		perror("Failed to get current working directory");
+// 		free(ctx->pwd);
+// 		return (1);
+// 	}
+// 	return (0);
+// }
+
+int initialize_ctx(t_ctx *ctx)
 {
-	if (!ctx)
-	{
-		perror("Failed to allocate memory for t_ctx");
-		return (1);
-	}
-	ctx->env_vars = NULL;
-	ctx->exit_status = 0;
-	ctx->num_pipes = 0;
-	ctx->oldpwd = NULL;
-	ctx->pwd = getcwd(NULL, 0);
-	if (!ctx->pwd)
-	{
-		perror("Failed to get current working directory");
+    if (!ctx)
+        return 1;
+
+    ctx->env_vars = NULL;
+    ctx->exit_status = 0;
+    ctx->num_pipes = 0;
+    ctx->oldpwd = NULL;
+    ctx->pwd = getcwd(NULL, 0);
+    if (!ctx->pwd)
+    {
+        perror("Failed to allocate pwd");
 		free(ctx->pwd);
-		return (1);
-	}
-	return (0);
+		ctx->pwd = NULL;
+        return 1;
+    }
+    return 0;
 }

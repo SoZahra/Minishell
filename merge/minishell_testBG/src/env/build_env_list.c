@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:27:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 20:41:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,70 @@
 // 	return (new_var);
 // }
 
+// t_env_var *create_new_env_var(char *env_str)
+// {
+//     char *sep;
+//     t_env_var *new_var;
+    
+//     sep = ft_strchr(env_str, '=');
+//     if (!sep)
+//         return NULL;
+//     new_var = malloc(sizeof(t_env_var));
+//     if (!new_var)
+//         return NULL;
+//     new_var->name = NULL;
+//     new_var->value = NULL;
+//     new_var->next = NULL;
+//     new_var->name = ft_strndup(env_str, sep - env_str);
+//     if (!new_var->name)
+//     {
+//         free(new_var);
+//         new_var = NULL;
+//         free(env_str);
+//         env_str = NULL;
+//         return NULL;
+//     }
+//     new_var->value = ft_strdup(sep + 1);
+//     if (!new_var->value)
+//     {
+//         free(new_var->name);
+//         new_var->name = NULL;
+//         free(new_var->value);
+//         new_var->value = NULL;
+//         free(new_var);
+//         new_var = NULL;
+//         free(sep);
+//         sep = NULL;
+//         return NULL;
+//     }
+//     return new_var;
+// }
+
+void free_env_var(t_env_var *var)
+{
+    if (var)
+    {
+        free(var->name);
+        var->name = NULL;
+        free(var->value);
+        var->value = NULL;
+        free(var);
+    }
+}
+
+void free_env_list(t_env_var *head)
+{
+    t_env_var *temp;
+
+    while (head)
+    {
+        temp = head->next; // Sauvegarde du pointeur vers l'élément suivant
+        free_env_var(head); // Libère l'élément actuel
+        head = temp;        // Passe au suivant
+    }
+}
+
+
 t_env_var *create_new_env_var(char *env_str)
 {
     char *sep;
@@ -45,16 +109,16 @@ t_env_var *create_new_env_var(char *env_str)
     sep = ft_strchr(env_str, '=');
     if (!sep)
         return NULL;
-    new_var = malloc(sizeof(t_env_var));
+    new_var = calloc(1, sizeof(t_env_var)); // Utiliser calloc pour init à 0
     if (!new_var)
         return NULL;
-    new_var->name = NULL;
-    new_var->value = NULL;
-    new_var->next = NULL;
     new_var->name = ft_strndup(env_str, sep - env_str);
     if (!new_var->name)
     {
+        free(new_var->name);
+        new_var->name = NULL;
         free(new_var);
+        new_var = NULL;
         return NULL;
     }
     new_var->value = ft_strdup(sep + 1);
@@ -69,6 +133,14 @@ t_env_var *create_new_env_var(char *env_str)
 
 void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
+     if (!head || !new_var)
+        return;
+
+    if (!*head)
+    {
+        *head = new_var;
+        return;
+    }
     t_env_var *current;
     t_env_var *prev;
 
