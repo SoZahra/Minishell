@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 12:20:57 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 13:00:37 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,6 @@ void free_ctx(t_ctx *ctx)
         free(ctx->oldpwd);
         ctx->oldpwd = NULL;
     }
-
     if (ctx->pwd)
     {
         free(ctx->pwd);

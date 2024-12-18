@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 11:32:56 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 14:16:31 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -340,8 +340,15 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
     start = *i;
     x = 1;
     type = input[(*i)++];
-    while (input[*i] && input[*i] == type && x++ < n)
+    // while (input[*i] && input[*i] == type && x++ < n)
+    //     (*i)++;
+    while (input[*i] && input[*i] == type)
+    {
+        x++;
         (*i)++;
+        if (x > n) // Si on dépasse la limite autorisée (1 pour |, 2 pour > et <)
+            return (printf("error: syntax\n"), -1);
+    }
     value = ft_substr(input, start, *i - start);
     if (!value)
         return -1;
@@ -350,7 +357,6 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
     else if (type == '>' && x > 1)
         type = 'A';
     int ret = add_token(tokens, type, value);
-        // return (free(value), 1);
     free(value);
     if(ret != 0)
         return 1;
@@ -468,7 +474,7 @@ int tokenizer(t_token **tokens, char *input)
                 result = word_proc(tokens, input, &i);
             if (result != 0)
             {
-                free_tokens(*tokens);
+                // free_tokens(*tokens);
                 *tokens = NULL;
                 return -1;
             }

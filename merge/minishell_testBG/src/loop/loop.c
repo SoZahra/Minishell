@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 12:57:17 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 15:23:40 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,19 +101,29 @@ t_token *get_last_node(t_token *tokens)
 }
 
 
+int check_syntax_errors(const char *line)
+{
+   if (ft_strlen(line) == 1 && is_token(line[0], REDIRS))
+       return (printf("syntax error\n"), 1);
+   if (ft_strlen(line) == 2 && line[0] == line[1] && 
+       (line[0] == '<' || line[0] == '>' || line[0] == '|'))
+       return (printf("syntax error\n"), 1);
+   return 0;
+}
+
 t_token *tokenize_input(char *line)
 {
-    t_token *tokens;
+    if (!line)
+        return NULL;
+
+    if (check_syntax_errors(line))
+        return NULL;
+
+    t_token *tokens = NULL;
     t_token *tmp;
 
-    if (get_ctx()->tokens)
-    {
-        free_tokens(get_ctx()->tokens);
-        get_ctx()->tokens = NULL;
-    }
-    tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
-        return (NULL);
+        return NULL;
 
     tmp = get_last_node(tokens);
     if (is_token(tmp->type, REDIRS))
@@ -123,8 +133,7 @@ t_token *tokenize_input(char *line)
         return NULL;
     }
 
-    get_ctx()->tokens = tokens;  // Stocker les nouveaux tokens dans le contexte
-    return tokens;
+    return tokens;  // Ne plus stocker dans get_ctx()
 }
 
 // t_token *tokenize_input(char *line)
@@ -373,6 +382,8 @@ t_token *find_pipe_token(t_token *start)
 
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
+    int ret = 0;
+    
     if (!*line)
         return 0;
 
@@ -380,18 +391,49 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     t_token *tokens = tokenize_input(line);
     if (!tokens)
         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
+
     if (expand_proc(&tokens, ctx) == -1)
-        return(1);
+    {
+        free_tokens(tokens);
+        return 1;
+    }
+
     t_command *cmd = parse_pipe_sequence(tokens);
+    free_tokens(tokens);  // Libérer les tokens après création de la commande
+    // tokens = NULL;
     if (!cmd)
-        return(1);
+        return 1;
+
     if (cmd->next)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
-    // free_tokens(tokens);
-    return(free_command(cmd), 0);
+
+    free_command(cmd);
+    return ret;
 }
+
+// int handle_line_for_loop(char *line, t_ctx *ctx)
+// {
+//     if (!*line)
+//         return 0;
+
+//     add_history(line);
+//     t_token *tokens = tokenize_input(line);
+//     if (!tokens)
+//         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
+//     if (expand_proc(&tokens, ctx) == -1)
+//         return(1);
+//     t_command *cmd = parse_pipe_sequence(tokens);
+//     if (!cmd)
+//         return(1);
+//     if (cmd->next)
+//         execute_pipeline(cmd, ctx);
+//     else
+//         execute_command(cmd, ctx);
+//     // free_tokens(tokens);
+//     return(free_command(cmd), 0);
+// }
 
 int	loop_with_pipes(t_ctx *ctx)
 {
