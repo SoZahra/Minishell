@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:19:43 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:33:55 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,20 +264,25 @@ t_command *init_command_struct(int arg_count)
     t_command *cmd = malloc(sizeof(t_command));
     if (!cmd)
         return NULL;
-        
+
+    // Initialisation complète à 0
     *cmd = (t_command){0};
     cmd->pid = -1;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
-    
-    cmd->args = malloc(sizeof(char *) * (arg_count + 1));
-    cmd->had_spaces = malloc(sizeof(int) * arg_count);
-    
+    cmd->arg_count = arg_count;
+
+    cmd->args = calloc(arg_count + 1, sizeof(char *));
+    cmd->had_spaces = calloc(arg_count, sizeof(int));
+
     if (!cmd->args || !cmd->had_spaces)
     {
-        free_command(cmd);
+        free(cmd->args);
+        free(cmd->had_spaces);
+        free(cmd);
         return NULL;
     }
+
     return cmd;
 }
 

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:25:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:29:51 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ void free_ctx(t_ctx *ctx)
                 free(current->value);
                 current->value = NULL;
             }
-            // Ne pas free content car il pointe vers value
             current->content = NULL;
             free(current);
             current = next;
@@ -83,6 +82,10 @@ void free_ctx(t_ctx *ctx)
         free(ctx->pwd);
         ctx->pwd = NULL;
     }
+	if (ctx->save_stdin != STDIN_FILENO)
+        close(ctx->save_stdin);
+    if (ctx->save_stdout != STDOUT_FILENO)
+        close(ctx->save_stdout);
 }
 
 void	*free_tab(char **tab)

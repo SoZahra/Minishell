@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 16:22:05 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:35:17 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -947,35 +947,23 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
 
 void free_command(t_command *cmd)
 {
+    t_command *next;
+
     if (!cmd)
         return;
-    if (cmd->next)
-        free_command(cmd->next);
+
+    next = cmd->next;
     if (cmd->args)
     {
         for (int i = 0; cmd->args[i]; i++)
-        {
             free(cmd->args[i]);
-            cmd->args[i] = NULL;
-        }
         free(cmd->args);
-        cmd->args = NULL;
     }
     free(cmd->had_spaces);
-    cmd->had_spaces = NULL;
     free(cmd->path);
-    cmd->path = NULL;
-    if (cmd->redirs)
-    {
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
-        {
-            free(cmd->redirs[i].file);
-            cmd->redirs[i].file = NULL;
-        }
-        free(cmd->redirs);
-        cmd->redirs = NULL;
-    }
     free(cmd);
+
+    free_command(next);
 }
 
 // void free_command(t_command *cmd)
@@ -983,10 +971,7 @@ void free_command(t_command *cmd)
 //     if (!cmd)
 //         return;
 //     if (cmd->next)
-//     {
 //         free_command(cmd->next);
-//         cmd->next = NULL;  
-//     }
 //     if (cmd->args)
 //     {
 //         for (int i = 0; cmd->args[i]; i++)
@@ -999,21 +984,18 @@ void free_command(t_command *cmd)
 //     }
 //     free(cmd->had_spaces);
 //     cmd->had_spaces = NULL;
+//     free(cmd->path);
+//     cmd->path = NULL;
 //     if (cmd->redirs)
 //     {
 //         for (int i = 0; cmd->redirs[i].type != 0; i++)
 //         {
-//             if (cmd->redirs[i].file)
-//             {
-//                 free(cmd->redirs[i].file);
-//                 cmd->redirs[i].file = NULL;
-//             }
+//             free(cmd->redirs[i].file);
+//             cmd->redirs[i].file = NULL;
 //         }
 //         free(cmd->redirs);
 //         cmd->redirs = NULL;
 //     }
-//     free(cmd->path);
-//     cmd->path = NULL;
 //     free(cmd);
-//     cmd = NULL;
 // }
+
