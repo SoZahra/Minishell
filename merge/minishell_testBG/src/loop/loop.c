@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 15:39:55 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:19:43 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,42 +259,48 @@ int fill_command_content(t_command *cmd, t_token *start, t_token *end, int arg_c
     return 0;
 }
 
-t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+t_command *init_command_struct(int arg_count)
 {
     t_command *cmd = malloc(sizeof(t_command));
-    // new_token = malloc(sizeof(t_token));
-    // *new_token = (t_token){0};
-    *cmd = (t_command){0};
     if (!cmd)
         return NULL;
-
-    // cmd->args = NULL;
-    // cmd->redirs = NULL;
-    // cmd->path = NULL;
+        
+    *cmd = (t_command){0};
     cmd->pid = -1;
-    // cmd->next = NULL;
-    // cmd->prev = NULL;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
-    cmd->arg_count = 0;
+    
+    cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+    cmd->had_spaces = malloc(sizeof(int) * arg_count);
+    
+    if (!cmd->args || !cmd->had_spaces)
+    {
+        free_command(cmd);
+        return NULL;
+    }
+    return cmd;
+}
+
+t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+{
     int arg_count = 0;
     t_token *current = start;
+
     while (current && current != end && current->type != '|')
     {
         if (current->type != '>' && current->type != 'A')
             arg_count++;
         current = current->next;
     }
-    cmd->args = malloc(sizeof(char *) * (arg_count + 1));
-    cmd->had_spaces = malloc(sizeof(int) * arg_count);
-    if (!cmd->args || !cmd->had_spaces)
-    {
-        free_command(cmd);
+
+    t_command *cmd = init_command_struct(arg_count);
+    if (!cmd)
         return NULL;
-    }
-    cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
+
+    cmd->arg_count = arg_count;
     int i = 0;
     current = start;
+
     while (current && current != end && current->type != '|')
     {
         if (current->type != '>' && current->type != 'A')
@@ -305,15 +311,70 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
                 free_command(cmd);
                 return NULL;
             }
-            cmd->had_spaces[i] = current->had_space;
-            i++;
+            cmd->had_spaces[i++] = current->had_space;
         }
         current = current->next;
     }
     cmd->args[i] = NULL;
-    // print_command_debug(cmd, "creation");
     return cmd;
 }
+
+// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+// {
+//     printf("testttttt========= 2\n");
+//     t_command *cmd = malloc(sizeof(t_command));
+//     // new_token = malloc(sizeof(t_token));
+//     // *new_token = (t_token){0};
+//     *cmd = (t_command){0};
+//     if (!cmd)
+//         return NULL;
+
+//     // cmd->args = NULL;
+//     // cmd->redirs = NULL;
+//     // cmd->path = NULL;
+//     cmd->pid = -1;
+//     // cmd->next = NULL;
+//     // cmd->prev = NULL;
+//     cmd->pfd[0] = -1;
+//     cmd->pfd[1] = -1;
+//     cmd->arg_count = 0;
+//     int arg_count = 0;
+//     t_token *current = start;
+//     while (current && current != end && current->type != '|')
+//     {
+//         if (current->type != '>' && current->type != 'A')
+//             arg_count++;
+//         current = current->next;
+//     }
+//     cmd->args = malloc(sizeof(char *) * (arg_count + 1));
+//     cmd->had_spaces = malloc(sizeof(int) * arg_count);
+//     if (!cmd->args || !cmd->had_spaces)
+//     {
+//         free_command(cmd);
+//         return NULL;
+//     }
+//     cmd->arg_count = arg_count;  // Ajouter ce champ dans la structure
+//     int i = 0;
+//     current = start;
+//     while (current && current != end && current->type != '|')
+//     {
+//         if (current->type != '>' && current->type != 'A')
+//         {
+//             cmd->args[i] = ft_strdup(current->value);
+//             if (!cmd->args[i])
+//             {
+//                 free_command(cmd);
+//                 return NULL;
+//             }
+//             cmd->had_spaces[i] = current->had_space;
+//             i++;
+//         }
+//         current = current->next;
+//     }
+//     cmd->args[i] = NULL;
+//     // print_command_debug(cmd, "creation");
+//     return cmd;
+// }
 
 
 
@@ -335,28 +396,59 @@ void free_command_list(t_command *cmd)
     }
 }
 
+// t_command *parse_pipe_sequence(t_token *tokens)
+// {
+//     printf("testttttt=========\n");
+//     t_token *first_cmd_end = tokens;
+//     while (first_cmd_end && first_cmd_end->type != '|')
+//         first_cmd_end = first_cmd_end->next;
+//     t_command *cmd = create_command_from_tokens_range(tokens, first_cmd_end);
+
+//     return cmd;
+// }
+
+t_command *link_commands(t_command *first_cmd, t_command *new_cmd)
+{
+    t_command *last_cmd = first_cmd;
+
+    if (!first_cmd)
+        return new_cmd;
+
+    while (last_cmd->next)
+        last_cmd = last_cmd->next;
+
+    last_cmd->next = new_cmd;
+    new_cmd->prev = last_cmd;
+    return first_cmd;
+}
+
+t_token *find_next_command(t_token *current)
+{
+    while (current && current->type != '|')
+        current = current->next;
+    return (current ? current->next : NULL);
+}
+
 t_command *parse_pipe_sequence(t_token *tokens)
 {
-    t_token *first_cmd_end = tokens;
-    while (first_cmd_end && first_cmd_end->type != '|')
-        first_cmd_end = first_cmd_end->next;
-    t_command *cmd = create_command_from_tokens_range(tokens, first_cmd_end);
+    t_token *current = tokens;
+    t_command *first_cmd = NULL;
+    t_token *cmd_end;
 
-    return cmd;
-}
-
-
-void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd)
-{
-    if (!*first_cmd)
-        *first_cmd = new_cmd;
-    else
+    while (current)
     {
-        (*current_cmd)->next = new_cmd;
-        new_cmd->prev = *current_cmd;
+        cmd_end = current;
+        while (cmd_end && cmd_end->type != '|')
+            cmd_end = cmd_end->next;
+        t_command *new_cmd = create_command_from_tokens_range(current, cmd_end);
+        if (!new_cmd)
+            return (free_command(first_cmd), NULL);
+        first_cmd = link_commands(first_cmd, new_cmd);
+        current = find_next_command(current);
     }
-    *current_cmd = new_cmd;
+    return first_cmd;
 }
+
 
 t_command *allocate_command(int arg_count, int redir_count)
 {

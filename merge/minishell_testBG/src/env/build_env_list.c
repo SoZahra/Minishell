@@ -3,38 +3,68 @@
 /*                                                        :::      ::::::::   */
 /*   build_env_list.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 00:03:55 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/18 16:27:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
 
-t_env_var	*create_new_env_var(char *env_str)
-{
-	char		*sep;
-	t_env_var	*new_var;
+// t_env_var	*create_new_env_var(char *env_str)
+// {
+// 	char		*sep;
+// 	t_env_var	*new_var;
 
-	sep = ft_strchr(env_str, '=');
-	new_var = malloc(sizeof(t_env_var));
-	if (!sep)
-		return (NULL);
-	if (!new_var)
-		return (perror("malloc failed"), NULL);
-	new_var->name = ft_strndup(env_str, sep - env_str);
-	new_var->value = ft_strdup(sep + 1);
-	new_var->next = NULL;
-	if (!new_var->name || !new_var->value)
-	{
-		free(new_var->name);
-		free(new_var->value);
-		free(new_var);
-		return (perror("malloc failed"), NULL);
-	}
-	return (new_var);
+// 	sep = ft_strchr(env_str, '=');
+// 	if (!sep)
+// 		return (NULL);
+// 	new_var = malloc(sizeof(t_env_var));
+// 	if (!new_var)
+// 		return (perror("malloc failed"), NULL);
+// 	new_var->name = ft_strndup(env_str, sep - env_str);
+// 	new_var->value = ft_strdup(sep + 1);
+// 	new_var->next = NULL;
+// 	if (!new_var->name || !new_var->value)
+// 	{
+// 		free(new_var->name);
+// 		free(new_var->value);
+// 		free(new_var);
+// 		return (perror("malloc failed"), NULL);
+// 	}
+// 	return (new_var);
+// }
+
+t_env_var *create_new_env_var(char *env_str)
+{
+    char *sep;
+    t_env_var *new_var;
+    
+    sep = ft_strchr(env_str, '=');
+    if (!sep)
+        return NULL;
+    new_var = malloc(sizeof(t_env_var));
+    if (!new_var)
+        return NULL;
+    new_var->name = NULL;
+    new_var->value = NULL;
+    new_var->next = NULL;
+    new_var->name = ft_strndup(env_str, sep - env_str);
+    if (!new_var->name)
+    {
+        free(new_var);
+        return NULL;
+    }
+    new_var->value = ft_strdup(sep + 1);
+    if (!new_var->value)
+    {
+        free(new_var->name);
+        free(new_var);
+        return NULL;
+    }
+    return new_var;
 }
 
 void add_env_var_to_list(t_env_var **head, t_env_var *new_var)

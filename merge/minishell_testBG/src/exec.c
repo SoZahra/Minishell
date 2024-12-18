@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 11:42:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:22:05 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,6 +402,7 @@ char *tokens_to_string_from_command(t_command *cmd)
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
+    printf("testttttt=========4\n");
     // Traiter d'abord les heredocs si présents
     if (cmd->redirs)
     {
@@ -426,6 +427,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     {
         if (apply_redirections(cmd->redirs, ctx) == -1)
         {
+            printf("testttttt=========5\n");
             ctx->exit_status = 1;
             restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
             return;
@@ -433,6 +435,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     }
     if (is_builtin(cmd->args[0]))
     {
+        printf("testttttt=========6\n");
         char *cmd_line = tokens_to_string_from_command(cmd);
         ctx->exit_status = execute_builtin(cmd_line, ctx);
         free(cmd_line);
@@ -937,8 +940,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
         if (WIFEXITED(status))
             return WEXITSTATUS(status);
         else if (WIFSIGNALED(status))
-            return 128 + WTERMSIG(status);
-            
+            return 128 + WTERMSIG(status); 
         return 1;
     }
 }
@@ -948,10 +950,7 @@ void free_command(t_command *cmd)
     if (!cmd)
         return;
     if (cmd->next)
-    {
         free_command(cmd->next);
-        cmd->next = NULL;  
-    }
     if (cmd->args)
     {
         for (int i = 0; cmd->args[i]; i++)
@@ -964,21 +963,57 @@ void free_command(t_command *cmd)
     }
     free(cmd->had_spaces);
     cmd->had_spaces = NULL;
+    free(cmd->path);
+    cmd->path = NULL;
     if (cmd->redirs)
     {
         for (int i = 0; cmd->redirs[i].type != 0; i++)
         {
-            if (cmd->redirs[i].file)
-            {
-                free(cmd->redirs[i].file);
-                cmd->redirs[i].file = NULL;
-            }
+            free(cmd->redirs[i].file);
+            cmd->redirs[i].file = NULL;
         }
         free(cmd->redirs);
         cmd->redirs = NULL;
     }
-    free(cmd->path);
-    cmd->path = NULL;
     free(cmd);
-    cmd = NULL;
 }
+
+// void free_command(t_command *cmd)
+// {
+//     if (!cmd)
+//         return;
+//     if (cmd->next)
+//     {
+//         free_command(cmd->next);
+//         cmd->next = NULL;  
+//     }
+//     if (cmd->args)
+//     {
+//         for (int i = 0; cmd->args[i]; i++)
+//         {
+//             free(cmd->args[i]);
+//             cmd->args[i] = NULL;
+//         }
+//         free(cmd->args);
+//         cmd->args = NULL;
+//     }
+//     free(cmd->had_spaces);
+//     cmd->had_spaces = NULL;
+//     if (cmd->redirs)
+//     {
+//         for (int i = 0; cmd->redirs[i].type != 0; i++)
+//         {
+//             if (cmd->redirs[i].file)
+//             {
+//                 free(cmd->redirs[i].file);
+//                 cmd->redirs[i].file = NULL;
+//             }
+//         }
+//         free(cmd->redirs);
+//         cmd->redirs = NULL;
+//     }
+//     free(cmd->path);
+//     cmd->path = NULL;
+//     free(cmd);
+//     cmd = NULL;
+// }

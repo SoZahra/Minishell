@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 15:29:50 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:25:40 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,25 +43,6 @@ void	free_env(t_env_var *env_var)
 		to_free = NULL;
 	}
 }
-
-// void free_ctx(t_ctx *ctx)
-// {
-//     if (ctx)
-//     {
-// 		if (ctx->tokens)
-//         {
-//             free_tokens(ctx->tokens);
-//             ctx->tokens = NULL;
-//         }
-//         free_env(ctx->env_vars);
-// 		ctx->env_vars = NULL;
-//         free(ctx->oldpwd);
-// 		ctx->oldpwd = NULL;
-//         free(ctx->pwd);
-// 		ctx->pwd = NULL;
-//     }
-// }
-
 
 void free_ctx(t_ctx *ctx)
 {

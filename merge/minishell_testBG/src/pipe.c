@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 11:39:35 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 16:16:39 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -719,80 +719,137 @@ int execute_single_command(t_command *cmd, t_ctx *ctx)
     return 0;
 }
 
+
+void setup_pipe_child(t_command *cmd)
+{
+    if (cmd->prev)
+    {
+        dup2(cmd->prev->pfd[0], STDIN_FILENO);
+        close(cmd->prev->pfd[0]);
+        close(cmd->prev->pfd[1]);
+    }
+    if (cmd->next)
+    {
+        close(cmd->pfd[0]);
+        dup2(cmd->pfd[1], STDOUT_FILENO);
+        close(cmd->pfd[1]);
+    }
+}
+
+void close_parent_pipes(t_command *cmd)
+{
+    if (cmd->prev)
+    {
+        close(cmd->prev->pfd[0]);
+        close(cmd->prev->pfd[1]);
+    }
+}
+
 void execute_pipeline(t_command *cmd, t_ctx *ctx)
 {
-    t_command *current;
-    int cmd_count = 0;
-    pid_t last_pid;
+   t_command *current = cmd;
+   int cmd_count = count_commands(cmd);
+   pid_t last_pid;
+   int status;
 
-    // Traiter d'abord tous les heredocs
-    current = cmd;
-    while (current)
-    {
-        for (int i = 0; current->redirs[i].type != 0; i++)
-        {
-            if (current->redirs[i].type == 'H')
-            {
-                current->redirs[i].heredoc_fd = here_doc(current->redirs[i].file, ctx);
-                if (current->redirs[i].heredoc_fd == -1)
-                {
-                    free_command(cmd);  // On libère tout en cas d'erreur
-                    return;
-                }
-            }
-        }
-        cmd_count++;
-        current = current->next;
-    }
-
-    current = cmd;
-    while (current && cmd_count > 0)
-    {
-        if (--cmd_count > 0)
-            pipe(current->pfd);
-
-        last_pid = fork();
-        if (last_pid == -1)
-        {
-            free_command(cmd);
-            return;
-        }
-        
-        if (last_pid == 0)
-        {
-            if (current->prev)
-            {
-                dup2(current->prev->pfd[0], STDIN_FILENO);
-                close(current->prev->pfd[0]);
-                close(current->prev->pfd[1]);
-            }
-            
-            if (current->next)
-            {
-                close(current->pfd[0]);
-                dup2(current->pfd[1], STDOUT_FILENO);
-                close(current->pfd[1]);
-            }
-
-            if (execute_single_command(current, ctx) == -1)
-                clear(NULL, current, 1);
-            clear(NULL, current, 0);
-        }
-        
-        if (current->prev)
-        {
-            close(current->prev->pfd[0]);
-            close(current->prev->pfd[1]);
-        }
-        
-        current = current->next;
-    }
-
-    int status;
-    waitpid(last_pid, &status, 0);
-    ctx->exit_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
-    free_command(cmd);  // On libère la liste de commandes à la fin
+   while (cmd_count > 0)
+   {
+       if (--cmd_count > 0)
+           pipe(current->pfd);
+       
+       last_pid = fork();
+       if (last_pid == 0)
+       {
+           setup_pipe_child(current);
+           execute_single_command(current, ctx);
+           clear(NULL, current, 0);
+       }
+       close_parent_pipes(current);
+       current = current->next;
+   }
+   waitpid(last_pid, &status, 0);
+   if (WIFEXITED(status))
+       ctx->exit_status = WEXITSTATUS(status);
+   else 
+       ctx->exit_status = 1;
+//    free_command(cmd);
 }
+
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//     printf("testttttt=========3\n");
+//     t_command *current;
+//     int cmd_count = 0;
+//     pid_t last_pid;
+
+//     // Traiter d'abord tous les heredocs
+//     current = cmd;
+//     while (current)
+//     {
+//         for (int i = 0; current->redirs[i].type != 0; i++)
+//         {
+//             if (current->redirs[i].type == 'H')
+//             {
+//                 current->redirs[i].heredoc_fd = here_doc(current->redirs[i].file, ctx);
+//                 if (current->redirs[i].heredoc_fd == -1)
+//                 {
+//                     free_command(cmd);  // On libère tout en cas d'erreur
+//                     return;
+//                 }
+//             }
+//         }
+//         cmd_count++;
+//         current = current->next;
+//     }
+
+//     current = cmd;
+//     while (current && cmd_count > 0)
+//     {
+//         if (--cmd_count > 0)
+//             pipe(current->pfd);
+
+//         last_pid = fork();
+//         if (last_pid == -1)
+//         {
+//             free_command(cmd);
+//             return;
+//         }
+        
+//         if (last_pid == 0)
+//         {
+//             if (current->prev)
+//             {
+//                 dup2(current->prev->pfd[0], STDIN_FILENO);
+//                 close(current->prev->pfd[0]);
+//                 close(current->prev->pfd[1]);
+//             }
+            
+//             if (current->next)
+//             {
+//                 close(current->pfd[0]);
+//                 dup2(current->pfd[1], STDOUT_FILENO);
+//                 close(current->pfd[1]);
+//             }
+
+//             if (execute_single_command(current, ctx) == -1)
+//                 clear(NULL, current, 1);
+//             clear(NULL, current, 0);
+//         }
+        
+//         if (current->prev)
+//         {
+//             close(current->prev->pfd[0]);
+//             close(current->prev->pfd[1]);
+//         }
+        
+//         current = current->next;
+//     }
+
+//     int status;
+//     waitpid(last_pid, &status, 0);
+//     ctx->exit_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+//     free_command(cmd);  // On libère la liste de commandes à la fin
+// }
 
 
 // void execute_pipeline(t_command *cmd, t_ctx *ctx)

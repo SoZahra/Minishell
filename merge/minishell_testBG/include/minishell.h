@@ -162,7 +162,7 @@ t_token *create_tokens_from_command(t_command *cmd);
 
 void count_tokens_redir(t_token *start, t_token *end, int *arg_count, int *redir_count);
 void fill_command_tokens(t_token *token, t_command *new_cmd);
-void link_commands(t_command **first_cmd, t_command **current_cmd, t_command *new_cmd);
+t_command *link_commands(t_command *first_cmd, t_command *new_cmd);
 t_command *allocate_command(int arg_count, int redir_count);
 
 int handle_heredoc(t_redirection *redir, t_ctx *ctx);
