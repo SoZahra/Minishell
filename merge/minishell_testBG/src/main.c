@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 15:51:08 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 12:16:27 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,14 @@ int	set_term_attr(void)
 	return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
 }
 
+void cleanup_shell(t_ctx *ctx)
+{
+	if (!ctx)
+        return;
+    rl_clear_history();
+    free_ctx(ctx);
+}
+
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		char **envp)
 {
@@ -47,6 +55,6 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		return (perror("Failed to build env list"), 1);
 	}
 	final_status = loop_with_pipes(get_ctx());
-	free_ctx(get_ctx());
+	cleanup_shell(get_ctx());
 	return (final_status);
 }

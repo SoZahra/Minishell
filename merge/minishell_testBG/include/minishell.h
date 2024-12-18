@@ -67,7 +67,7 @@ typedef struct s_token
 
 typedef struct s_ctx
 {
-	t_token *tokens;
+	t_token 			*tokens;
 	t_env_var 			*env_vars; // Liste des variables d'environnement
 	unsigned char		exit_status;
 	int					num_pipes;

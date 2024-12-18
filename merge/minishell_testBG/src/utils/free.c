@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 17:44:48 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 12:20:57 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,16 +44,64 @@ void	free_env(t_env_var *env_var)
 	}
 }
 
+// void free_ctx(t_ctx *ctx)
+// {
+//     if (ctx)
+//     {
+// 		if (ctx->tokens)
+//         {
+//             free_tokens(ctx->tokens);
+//             ctx->tokens = NULL;
+//         }
+//         free_env(ctx->env_vars);
+// 		ctx->env_vars = NULL;
+//         free(ctx->oldpwd);
+// 		ctx->oldpwd = NULL;
+//         free(ctx->pwd);
+// 		ctx->pwd = NULL;
+//     }
+// }
+
+
 void free_ctx(t_ctx *ctx)
 {
-    if (ctx)
+    if (!ctx)
+        return;
+    if (ctx->env_vars)
     {
         free_env(ctx->env_vars);
-		ctx->env_vars = NULL;
+        ctx->env_vars = NULL;
+    }
+    if (ctx->tokens)
+    {
+        t_token *current = ctx->tokens;
+        t_token *next;
+
+        while (current)
+        {
+            next = current->next;
+            if (current->value)
+            {
+                free(current->value);
+                current->value = NULL;
+            }
+            // Ne pas free content car il pointe vers value
+            current->content = NULL;
+            free(current);
+            current = next;
+        }
+        ctx->tokens = NULL;
+    }
+    if (ctx->oldpwd)
+    {
         free(ctx->oldpwd);
-		ctx->pwd = NULL;
+        ctx->oldpwd = NULL;
+    }
+
+    if (ctx->pwd)
+    {
         free(ctx->pwd);
-		ctx->pwd = NULL;
+        ctx->pwd = NULL;
     }
 }
 
@@ -72,21 +120,49 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-void	free_tokens(t_token *tokens)
-{
-	t_token	*tmp;
+// void	free_tokens(t_token *tokens)
+// {
+// 	t_token	*tmp;
 
-	while (tokens)
-	{
-		tmp = tokens;
-		free(tmp->value);
-		tmp->value = NULL;
-		free(tmp->content);
-		tmp->content = NULL;
-		free(tmp);
-		tmp = NULL;
-		tokens = tokens->next;
-	}
+// 	while (tokens)
+// 	{
+// 		tmp = tokens;
+// 		free(tmp->value);
+// 		tmp->value = NULL;
+// 		free(tmp->content);
+// 		tmp->content = NULL;
+// 		free(tmp);
+// 		tmp = NULL;
+// 		tokens = tokens->next;
+// 	}
+// }
+
+void free_tokens(t_token *tokens)
+{
+    t_token *current;
+    t_token *next;
+
+    if (!tokens)
+        return;
+
+    current = tokens;
+    while (current)
+    {
+        next = current->next;
+        if (current->value)
+        {
+            free(current->value);
+            current->value = NULL;
+        }
+        // Ne pas free content s'il pointe vers value
+        if (current->content && current->content != current->value)
+        {
+            free(current->content);
+            current->content = NULL;
+        }
+        free(current);
+        current = next;
+    }
 }
 
 void	free_args(char **args)

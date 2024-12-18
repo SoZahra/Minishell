@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_builtin.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:40:47 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/15 17:53:59 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/18 10:11:15 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,21 +62,21 @@ void	process_redirections(t_token *current)
 	}
 }
 
-void	apply_redirect_and_execute(t_pipeline *pl, t_ctx *ctx, int saved_stdin,
-		int saved_stdout)
-{
-	process_redirections(pl->cmd_start);
-	execute_builtin(pl->cmd_line, ctx);
-	if (!save_and_restore_fds(&saved_stdin, &saved_stdout, 1))
-		exit(EXIT_FAILURE);
-}
+// void	apply_redirect_and_execute(t_pipeline *pl, t_ctx *ctx, int saved_stdin,
+// 		int saved_stdout)
+// {
+// 	process_redirections(pl->cmd_start);
+// 	execute_builtin(pl->cmd_line, ctx);
+// 	if (!save_and_restore_fds(&saved_stdin, &saved_stdout, 1))
+// 		exit(EXIT_FAILURE);
+// }
 
-void	setup_redirects_single_builtin(t_pipeline *pl, t_ctx *ctx)
-{
-	int	saved_stdin;
-	int	saved_stdout;
+// void	setup_redirects_single_builtin(t_pipeline *pl, t_ctx *ctx)
+// {
+// 	int	saved_stdin;
+// 	int	saved_stdout;
 
-	if (!save_and_restore_fds(&saved_stdin, &saved_stdout, 0))
-		exit(EXIT_FAILURE);
-	apply_redirect_and_execute(pl, ctx, saved_stdin, saved_stdout);
-}
+// 	if (!save_and_restore_fds(&saved_stdin, &saved_stdout, 0))
+// 		exit(EXIT_FAILURE);
+// 	apply_redirect_and_execute(pl, ctx, saved_stdin, saved_stdout);
+// }

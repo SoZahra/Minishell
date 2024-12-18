@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 19:10:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 11:42:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,22 +373,26 @@ char *tokens_to_string_from_command(t_command *cmd)
     char *result = ft_strdup(cmd->args[0]);
     if (!result)
         return NULL;
-
-    // Ajouter les arguments suivants
     for (int i = 1; i < cmd->arg_count; i++)
     {
         char *temp;
-
-        // Ajouter un espace si nécessaire
         if (!cmd->had_spaces[i])
         {
             temp = ft_strjoin(result, " ");
+             if (!temp)
+            {
+                free(result);
+                return NULL;
+            }
             free(result);
             result = temp;
         }
-
-        // Ajouter l'argument
         temp = ft_strjoin(result, cmd->args[i]);
+        if (!temp)
+        {
+            free(result);
+            return NULL;
+        }
         free(result);
         result = temp;
     }
@@ -415,8 +419,6 @@ void execute_command(t_command *cmd, t_ctx *ctx)
             }
         }
     }
-
-    // Sauvegarder les FD originaux
     get_ctx()->save_stdin = dup(STDIN_FILENO);
     get_ctx()->save_stdout = dup(STDOUT_FILENO);
 
@@ -429,7 +431,6 @@ void execute_command(t_command *cmd, t_ctx *ctx)
             return;
         }
     }
-
     if (is_builtin(cmd->args[0]))
     {
         char *cmd_line = tokens_to_string_from_command(cmd);
@@ -899,8 +900,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
             fprintf(stderr, "MiniBG: %s: Permission denied\n", cmd->args[0]);
             return 126;
         }
-        
-        cmd->path = strdup(cmd->args[0]);
+        cmd->path = ft_strdup(cmd->args[0]);
     }
     else
     {
@@ -911,7 +911,6 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
             return 127;
         }
     }
-
     pid_t pid = fork();
     if (pid == -1)
     {
@@ -926,6 +925,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
         close(get_ctx()->save_stdout);
         char **env = create_env_array(ctx->env_vars);
         execve(cmd->path, cmd->args, env);
+        free_args(env);
         perror("execve");
         exit(126);  // Si execve échoue, c'est probablement un problème de permission
     }

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 15:50:45 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 11:03:47 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ int	initialize_ctx(t_ctx *ctx)
 	if (!ctx->pwd)
 	{
 		perror("Failed to get current working directory");
+		free(ctx->pwd);
 		return (1);
 	}
 	return (0);
