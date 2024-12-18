@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:00:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 12:54:55 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 15:37:03 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ t_token *create_new_token(t_token_type type, char *value)
         free(new_token);
         return NULL;
     }
-    new_token->content = new_token->value;  // Même adresse
+    new_token->content = NULL;
+    // new_token->content = new_token->value;  // Même adresse
     new_token->type = type;
     return new_token;
 }
@@ -64,13 +65,11 @@ int add_token(t_token **tokens, t_token_type type, char *value)
     new_token = create_new_token(type, value);
     if (!new_token)
         return -1;
-
     if (!*tokens)
     {
         *tokens = new_token;
         return 0;
     }
-
     last = *tokens;
     while (last->next)
         last = last->next;

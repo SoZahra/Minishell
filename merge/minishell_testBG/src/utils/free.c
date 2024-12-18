@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 13:00:37 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 15:29:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,21 +119,32 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-// void	free_tokens(t_token *tokens)
+// void free_tokens(t_token *tokens)
 // {
-// 	t_token	*tmp;
+//     t_token *current;
+//     t_token *next;
 
-// 	while (tokens)
-// 	{
-// 		tmp = tokens;
-// 		free(tmp->value);
-// 		tmp->value = NULL;
-// 		free(tmp->content);
-// 		tmp->content = NULL;
-// 		free(tmp);
-// 		tmp = NULL;
-// 		tokens = tokens->next;
-// 	}
+//     if (!tokens)
+//         return;
+
+//     current = tokens;
+//     while (current)
+//     {
+//         next = current->next;
+//         if (current->value)
+//         {
+//             free(current->value);
+//             current->value = NULL;
+//         }
+//         // Ne pas free content s'il pointe vers value
+//         if (current->content && current->content != current->value)
+//         {
+//             free(current->content);
+//             current->content = NULL;
+//         }
+//         free(current);
+//         current = next;
+//     }
 // }
 
 void free_tokens(t_token *tokens)
@@ -153,12 +164,7 @@ void free_tokens(t_token *tokens)
             free(current->value);
             current->value = NULL;
         }
-        // Ne pas free content s'il pointe vers value
-        if (current->content && current->content != current->value)
-        {
-            free(current->content);
-            current->content = NULL;
-        }
+        // Ne pas gérer content du tout car il ne devrait pas être alloué
         free(current);
         current = next;
     }

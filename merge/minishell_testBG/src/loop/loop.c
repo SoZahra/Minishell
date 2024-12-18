@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 15:23:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 15:39:55 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,15 +262,18 @@ int fill_command_content(t_command *cmd, t_token *start, t_token *end, int arg_c
 t_command *create_command_from_tokens_range(t_token *start, t_token *end)
 {
     t_command *cmd = malloc(sizeof(t_command));
+    // new_token = malloc(sizeof(t_token));
+    // *new_token = (t_token){0};
+    *cmd = (t_command){0};
     if (!cmd)
         return NULL;
 
-    cmd->args = NULL;
-    cmd->redirs = NULL;
-    cmd->path = NULL;
+    // cmd->args = NULL;
+    // cmd->redirs = NULL;
+    // cmd->path = NULL;
     cmd->pid = -1;
-    cmd->next = NULL;
-    cmd->prev = NULL;
+    // cmd->next = NULL;
+    // cmd->prev = NULL;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = 0;
@@ -282,7 +285,6 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
             arg_count++;
         current = current->next;
     }
-
     cmd->args = malloc(sizeof(char *) * (arg_count + 1));
     cmd->had_spaces = malloc(sizeof(int) * arg_count);
     if (!cmd->args || !cmd->had_spaces)
@@ -336,8 +338,6 @@ void free_command_list(t_command *cmd)
 t_command *parse_pipe_sequence(t_token *tokens)
 {
     t_token *first_cmd_end = tokens;
-
-    // Trouver la fin de la première commande (avant un éventuel pipe)
     while (first_cmd_end && first_cmd_end->type != '|')
         first_cmd_end = first_cmd_end->next;
     t_command *cmd = create_command_from_tokens_range(tokens, first_cmd_end);
@@ -386,29 +386,23 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     
     if (!*line)
         return 0;
-
     add_history(line);
     t_token *tokens = tokenize_input(line);
     if (!tokens)
         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
-
     if (expand_proc(&tokens, ctx) == -1)
     {
         free_tokens(tokens);
         return 1;
     }
-
     t_command *cmd = parse_pipe_sequence(tokens);
-    free_tokens(tokens);  // Libérer les tokens après création de la commande
-    // tokens = NULL;
+    free_tokens(tokens);
     if (!cmd)
         return 1;
-
     if (cmd->next)
         execute_pipeline(cmd, ctx);
     else
         execute_command(cmd, ctx);
-
     free_command(cmd);
     return ret;
 }

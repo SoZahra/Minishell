@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 14:16:31 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 15:40:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,20 +126,15 @@ int join_str(t_token *token, bool limiter)
 
     if (!token || !token->prev)
         return 0;
-
     prev = token->prev;
-
-    // Si c'est un limiteur, vérifier les conditions spéciales
     if (limiter)
     {
         if (!prev->prev || prev->prev->type != 'H')
             return 0;
         prev = prev->prev;
     }
-    // Joindre les tokens
     if (join_tokens(prev, token) == -1)
         return -1;
-    // Supprimer le token actuel
     token_del(token);
     return 0;
 }
