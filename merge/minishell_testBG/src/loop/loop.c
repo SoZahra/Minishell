@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 12:11:38 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/18 12:57:17 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,12 +106,11 @@ t_token *tokenize_input(char *line)
     t_token *tokens;
     t_token *tmp;
 
-    // Libérer les anciens tokens s'ils existent
-    // if (get_ctx()->tokens)
-    // {
-    //     free_tokens(get_ctx()->tokens);
-    //     get_ctx()->tokens = NULL;
-    // }
+    if (get_ctx()->tokens)
+    {
+        free_tokens(get_ctx()->tokens);
+        get_ctx()->tokens = NULL;
+    }
     tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
         return (NULL);
