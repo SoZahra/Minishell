@@ -3,13 +3,10 @@
 void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
-	(void)exit_code;
-	ft_fprintf(2, " went iIIIIIIIIIIIIIIIIIIIIn \n");
 	free_args(env_v);
 	free_command(cmd);
 	cleanup_shell(ctx);
-	// exit(exit_code);
-	return;
+	exit(exit_code);
 }
 
 int	set_pfd(t_command *cmd)
@@ -66,7 +63,7 @@ int	open_in(t_command *cmd, t_redirection *redir)
 	if (access(redir->file, F_OK))
 	{
 		get_ctx()->exit_status = 1;
-		return (printf("bash: %s: No such file or directory\n", redir->file),
+		return (printf("bash: %s: No such file or directoryyy\n", redir->file),
 			1);
 	}
 	if (access(redir->file, R_OK))
@@ -131,7 +128,6 @@ int	set_redirs(t_command *cmd)
 
 int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 {
-	printf("test==============2\n");
 	char	*cmd_line;
 
 	cmd_line = tokens_to_string_from_command(cmd);
@@ -139,15 +135,12 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	free(cmd_line);
-	// cleanup_shell(ctx);
-	// cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
+	cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
 
 void	exec_parent(t_command *cmd)
 {
-	if (!cmd)
-		return ;
 	if (cmd->prev)
 	{
 		close(cmd->prev->pfd[0]);
@@ -160,8 +153,8 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 	char	**env_v;
 
 	env_v = NULL;
-	if (cmd->next && pipe(cmd->pfd))
-		return (1);
+	if (cmd->next)
+		pipe(cmd->pfd);
 	cmd->pid = fork();
 	if (cmd->pid == -1)
 		return (1);
@@ -172,11 +165,16 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 		if (is_builtin(cmd->args[0]))
 			set_and_exec_builtin(ctx, cmd);
 		cmd->path = find_command_path(cmd->args[0], ctx);
+		if (!cmd->path)
+		{
+			cmd->path = ft_strdup(cmd->args[0]);
+			if (!cmd->path)
+        		cmd_clean_and_exit(ctx, cmd, env_v, 127);
+		}
 		env_v = create_env_array(ctx->env_vars);
 		execve(cmd->path, cmd->args, env_v);
-		cleanup_shell(ctx);
-		free_args(env_v);
-		// cmd_clean_and_exit(ctx, cmd, env_v, 127);
+		ft_fprintf(2, "bash: %s: command not found\n", cmd->args[0]);
+		cmd_clean_and_exit(ctx, cmd, env_v, 127);
 	}
 	if (cmd->pid)
 		exec_parent(cmd);
@@ -207,9 +205,10 @@ int restore_std(t_ctx *ctx)
 
 int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 {
-	printf("test==============1\n");
 	char	*cmd_line;
 
+	if (!cmd)
+		return (1);
 	cmd_line = tokens_to_string_from_command(cmd);
 	if (!cmd_line)
 		return (1);
@@ -221,7 +220,7 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	if (restore_std(ctx))
 		return (1);
 	free(cmd_line);
-	// cleanup_shell(ctx);
+	// free_command(cmd);
 	return (0);
 }
 
@@ -230,8 +229,8 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
     t_command *tmp;
 	int status;
 
-	fprintf(stderr, "test\n\n");
 	tmp = cmd;
+	status = 0;
     while (tmp)
     {
         waitpid(tmp->pid, &status, 0);
@@ -250,27 +249,26 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
 int	exec_loop(t_ctx *ctx, t_command *cmd)
 {
 	t_command	*tmp;
-	int			flag;
+	int has_child = 0;
 
-	flag = 0;
 	tmp = cmd;
 	while (tmp)
 	{
+		printf("n_args: %d\n", tmp->arg_count);
 		if (!tmp->prev && !tmp->next && is_builtin(tmp->args[0]))
 		{
 			if (exec_builtin_once(ctx, tmp))
 				return (1);
-			flag = 0;
 		}
 		else
 		{
-			if (exec_child(ctx, tmp))
-				return (1);
-			flag = 1;
+			if(exec_child(ctx, tmp))
+				return(1);
+			has_child = 1;
 		}
 		tmp = tmp->next;
 	}
-	if (flag)
-		wait_loop(ctx, tmp);
+	if(has_child)
+		wait_loop(ctx, cmd);
 	return (0);
 }

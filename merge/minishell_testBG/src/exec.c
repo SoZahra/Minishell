@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 13:45:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 19:09:19 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,56 +80,38 @@ int is_executable(const char *path)
 char *find_command_path(const char *command, t_ctx *ctx)
 {
     (void)ctx;
-    // Vérifier si la commande est déjà un chemin absolu ou relatif
     if (strchr(command, '/'))
     {
         if (is_executable(command))
-        {
-            // fprintf(stderr, "Debug: Command '%s' is directly executable.\n", command);
             return strdup(command);
-        }
-        // fprintf(stderr, "Debug: Command '%s' is not executable or does not exist.\n", command);
         return NULL;
     }
-
-    // Récupérer la variable PATH
     char *path_env = getenv("PATH");
     if (!path_env)
-    {
-        // fprintf(stderr, "Debug: PATH environment variable is not set.\n");
         return NULL;
-    }
-
-    // Séparer les chemins dans PATH
     char *path_copy = strdup(path_env);
     if (!path_copy)
     {
         perror("strdup");
         return NULL;
     }
-
     char *token = strtok(path_copy, ":");
     while (token)
     {
         char *full_path = join_path(token, command);
         if (!full_path)
         {
-            free(path_copy);
-            return NULL;
+            
+            return (NULL);
         }
-        // fprintf(stderr, "Debug: Checking path: %s\n", full_path);
         if (is_executable(full_path))
         {
-            // fprintf(stderr, "Debug: Found command '%s' at %s\n", command, full_path);
             free(path_copy);
             return full_path;
         }
-
         free(full_path);
         token = strtok(NULL, ":");
     }
-
-    // fprintf(stderr, "Debug: Command '%s' not found in PATH.\n", command);
     free(path_copy);
     return NULL;
 }
@@ -595,14 +577,10 @@ void free_command(t_command *cmd)
         }
         free(cmd->args);
     }
-
-    // Libérer had_spaces
     free(cmd->had_spaces);
-
-    // Libérer path
+    cmd->had_spaces = NULL;
     free(cmd->path);
-
-    // Libérer redirs
+    cmd->path = NULL;
     if (cmd->redirs)
     {
         for (int i = 0; cmd->redirs[i].type != 0; i++)
@@ -611,11 +589,16 @@ void free_command(t_command *cmd)
         }
         free(cmd->redirs);
     }
+    // t_redirection *tmp_redir;
+    // tmp_redir = cmd->redirs;
+    // while (tmp_redir)
+    // {
+    //     free(tmp_redir->file);
+    //     tmp_redir = tmp_redir->next;
+    // }
 
     // Libérer la structure elle-même
     free(cmd);
-
-    // Libérer récursivement la suite
     free_command(next);
 }
 

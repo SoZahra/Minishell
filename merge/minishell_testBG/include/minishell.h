@@ -102,6 +102,7 @@ typedef struct s_command {
 //-----------------------------
 
 int	exec_loop(t_ctx *ctx, t_command *cmd);
+void print_command_debug(t_command *cmd);
 
 //-----------------------------
 
