@@ -3,6 +3,7 @@
 void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
+	ft_fprintf(2, " went iIIIIIIIIIIIIIIIIIIIIn \n");
 	free_args(env_v);
 	free_command(cmd);
 	cleanup_shell(ctx);
@@ -222,6 +223,7 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
     t_command *tmp;
 	int status;
 
+	fprintf(stderr, "test\n\n");
 	tmp = cmd;
     while (tmp)
     {
@@ -241,7 +243,9 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
 int	exec_loop(t_ctx *ctx, t_command *cmd)
 {
 	t_command	*tmp;
+	int			flag;
 
+	flag = 0;
 	tmp = cmd;
 	while (tmp)
 	{
@@ -249,14 +253,17 @@ int	exec_loop(t_ctx *ctx, t_command *cmd)
 		{
 			if (exec_builtin_once(ctx, cmd))
 				return (1);
+			flag = 0;
 		}
 		else
 		{
 			if (exec_child(ctx, cmd))
 				return (1);
+			flag = 1;
 		}
 		tmp = tmp->next;
 	}
-	wait_loop(ctx, cmd);
+	if (flag)
+		wait_loop(ctx, cmd);
 	return (0);
 }

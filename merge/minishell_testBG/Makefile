@@ -27,7 +27,7 @@ SRCS_FILES	=	main.c exec.c pipe.c\
 SRCS		=	$(addprefix $(SRC_PATH), $(SRCS_FILES))
 
 VMINI    = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes \
-         --suppressions=/mnt/nfs/homes/fzayani/Documents/Minishell/merge/minishell_testBG/minishell.sup \
+         --suppressions=/mnt/nfs/homes/llarrey/Documents/miniBG/merge/minishell_testBG/minishell.sup \
          --track-fds=yes ./minishell
 
 # Fichiers objets générés dans le dossier .objs/
