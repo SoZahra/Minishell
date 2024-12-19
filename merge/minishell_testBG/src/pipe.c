@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 19:12:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 11:12:40 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,42 +23,40 @@
 
 int execute_piped_command(t_command *cmd, t_ctx *ctx)
 {
-    if (cmd->prev) {
+    if (cmd->prev) 
+    {
         close(cmd->prev->pfd[1]);
-        // fprintf(stderr, "Debug: Closing write-end of previous pipe: [%d]\n", cmd->prev->pfd[1]);
         if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1) {
             perror("dup2 prev->pfd[0]");
             return -1;
         }
-        // fprintf(stderr, "Debug: Duped previous pipe read-end [%d] to STDIN\n", cmd->prev->pfd[0]);
         close(cmd->prev->pfd[0]);
     }
-
-    if (cmd->next) {
+    if (cmd->next) 
+    {
         close(cmd->pfd[0]);
-        // fprintf(stderr, "Debug: Closing read-end of current pipe: [%d]\n", cmd->pfd[0]);
         if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1) {
             perror("dup2 pfd[1]");
             return -1;
         }
-        // fprintf(stderr, "Debug: Duped current pipe write-end [%d] to STDOUT\n", cmd->pfd[1]);
         close(cmd->pfd[1]);
     }
-
-    if (cmd->redirs) {
-        // fprintf(stderr, "Debug: Applying redirections for '%s'\n", cmd->args[0]);
+    if (cmd->redirs)
         apply_redirections(cmd->redirs, ctx);
-    }
-
-    // fprintf(stderr, "Debug: Executing command '%s'\n", cmd->args[0]);
-    if (is_builtin(cmd->args[0])) {
+    if (is_builtin(cmd->args[0])) 
+    {
         execute_builtin_command(cmd, ctx);
+        free_command(cmd);
+        cleanup_shell(ctx);
         exit(ctx->exit_status);
-    } else if (cmd->path) {
+    } else if (cmd->path) 
+    {
         char **env = create_env_array(ctx->env_vars);
         execve(cmd->path, cmd->args, env);
         perror("execve");
         free_array(env);
+        free_command(cmd);
+        cleanup_shell(ctx);
     }
     exit(127);
 }
@@ -462,6 +460,8 @@ void execute_command_in_child(t_command *cmd, t_ctx *ctx)
         exit(1);
     execve(cmd->path, cmd->args, env);
     perror("execve");
+    free_command(cmd);
+    cleanup_shell(ctx);
     exit(1);
 }
 
@@ -707,14 +707,19 @@ int execute_single_command(t_command *cmd, t_ctx *ctx)
             return -1;
         ctx->exit_status = execute_builtin(cmd_line, ctx);
         free(cmd_line);
+        free_command(cmd);
+        cleanup_shell(ctx);
+        exit(ctx->exit_status);
     }
     else
     {
         if (prepare_command(cmd, ctx) == -1)
             return -1;
         execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
-        perror("execve");
-        return -1;
+        // printf("MiniBG: %s command not found\n", cmd->args[0]);
+        free_command(cmd);
+        cleanup_shell(ctx);
+        exit(127);
     }
     return 0;
 }

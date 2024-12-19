@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 20:38:45 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 11:22:29 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,17 +40,9 @@ void cleanup_shell(t_ctx *ctx)
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		char **envp)
 {
-	int	final_status;
-
 	if (initialize_ctx(get_ctx()))
 		return (1);
 	get_term_attr();
-	if (!get_ctx())
-		// return (perror("Failed to initialize context"), 1);
-	{
-    	cleanup_shell(get_ctx());
-        return 1;
-    }
 	init_sig();
 	get_ctx()->env_vars = build_env_list(envp);
 	if (!get_ctx()->env_vars)
@@ -58,7 +50,7 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 		cleanup_shell(get_ctx());
 		return (perror("Failed to build env list"), 1);
 	}
-	final_status = loop_with_pipes(get_ctx());
+	get_ctx()->exit_status = process(get_ctx());
 	cleanup_shell(get_ctx());
-	return (final_status);
+	return (get_ctx()->exit_status);
 }

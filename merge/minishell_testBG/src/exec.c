@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 21:06:43 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 13:45:14 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ char *tokens_to_string_from_command(t_command *cmd)
 
 void execute_command(t_command *cmd, t_ctx *ctx)
 {
-    printf("testttttt=========4\n");
+    // printf("testttttt=========4\n");
     if (cmd->redirs)
     {
         for (int i = 0; cmd->redirs[i].type != 0; i++)
@@ -262,7 +262,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     {
         if (apply_redirections(cmd->redirs, ctx) == -1)
         {
-            printf("testttttt=========5\n");
+            // printf("testttttt=========5\n");
             ctx->exit_status = 1;
             restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
             return;
@@ -270,7 +270,7 @@ void execute_command(t_command *cmd, t_ctx *ctx)
     }
     if (is_builtin(cmd->args[0]))
     {
-        printf("testttttt=========6\n");
+        // printf("testttttt=========6\n");
         char *cmd_line = tokens_to_string_from_command(cmd);
         ctx->exit_status = execute_builtin(cmd_line, ctx);
         free(cmd_line);
@@ -540,6 +540,8 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
         execve(cmd->path, cmd->args, env);
         free_args(env);
         perror("execve");
+        free_command(cmd);
+        cleanup_shell(ctx);
         exit(126);  // Si execve échoue, c'est probablement un problème de permission
     }
     else

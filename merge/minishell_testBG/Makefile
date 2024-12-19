@@ -14,7 +14,7 @@ PIPE_DIR	=	$(SRC_PATH)pipe
 SRCS_FILES	=	main.c exec.c pipe.c\
 				builtins/echo_utils.c builtins/echo.c builtins/env.c builtins/exit.c builtins/gestion_builtins.c builtins/utils_env.c\
 				env/build_env_list.c \
-				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c exec/handle_export.c exec/handle_cd.c\
+				exec/exec_builtins.c exec/exec_simple.c exec/utils_parse_command.c exec/handle_export.c exec/handle_cd.c exec/generic_exec.c\
 				expand/expand_variables.c expand/utils_expand.c\
 				loop/loop.c loop/parse_command.c loop/utils_parse_2.c loop/utils_parse_command.c \
 				signaux/handle_signal.c \

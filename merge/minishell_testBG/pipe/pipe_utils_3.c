@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 17:02:24 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/17 16:30:55 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 11:06:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,12 @@ void	execute_command(char **args, char *path, t_ctx *ctx)
 	env = ctx_to_env_array(ctx);
 	if (execve(path, args, env) == -1)
 	{
-		ctx->exit_status = ;
+		ctx->exit_status = 127;
 		perror("exec command");
 		free_tab(args);
 		free_tab(env);
+        free_command(cmd);
+        cleanup_shell(ctx);
 		exit(EXIT_FAILURE);
 	}
 	free_tab(env);

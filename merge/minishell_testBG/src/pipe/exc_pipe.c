@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exc_pipe.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 15:02:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/08 16:55:54 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/19 13:47:06 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,6 +136,9 @@ int	exc_pipe(t_token *tokens)
 		{
 			char *args[] = {"/bin/grep", grep_args, NULL};
 			execve(args[0], args, NULL);
+			perror("execve");
+			// free_command(cmd);
+			// cleanup_shell(ctx);
 		}
 		perror("execve failed");
 		exit(EXIT_FAILURE);

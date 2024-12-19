@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 21:05:49 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 15:04:18 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -395,10 +395,8 @@ t_token *find_pipe_token(t_token *start)
 
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
-    int ret = 0;
-    
     if (!*line)
-        return 0;
+        return 1;
     add_history(line);
     t_token *tokens = tokenize_input(line);
     if (!tokens)
@@ -406,22 +404,27 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     if (expand_proc(&tokens, ctx) == -1)
     {
         free_tokens(tokens);
+        free(get_ctx()->pwd);
         return 1;
     }
     t_command *cmd = parse_pipe_sequence(tokens);
     free_tokens(tokens);
     if (!cmd)
         return 1;
-    if (cmd->next)
-        execute_pipeline(cmd, ctx);
-    else
-        execute_command(cmd, ctx);
-    if(cmd)
-        free_command(cmd);
-    return ret;
+
+    if (exec_loop(ctx, cmd))
+        return (1);
+
+    // if (cmd->next)
+    //     execute_pipeline(cmd, ctx);
+    // else
+    //     execute_command(cmd, ctx);
+    // if(cmd)
+    //     free_command(cmd);
+    return 0;
 }
 
-int	loop_with_pipes(t_ctx *ctx)
+int	process(t_ctx *ctx)
 {
 	char	*line;
 
