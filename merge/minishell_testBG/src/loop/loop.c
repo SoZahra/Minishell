@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 16:09:30 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 17:36:42 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -366,8 +366,6 @@ t_command *parse_pipe_sequence(t_token *tokens)
         first_cmd = link_commands(first_cmd, new_cmd);
         current = find_next_command(current);
     }
-    // free(current);
-    // free_command(new_cmd);
     return first_cmd;
 }
 
@@ -405,7 +403,6 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     if (expand_proc(&tokens, ctx) == -1)
     {
         free_tokens(tokens);
-        free(get_ctx()->pwd);
         return 1;
     }
     t_command *cmd = parse_pipe_sequence(tokens);
@@ -414,9 +411,8 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
         return 1;
     if (exec_loop(ctx, cmd))
         return (1);
-    free_ctx(ctx);
     free_command(cmd);
-    // cleanup_shell(ctx);
+    cleanup_shell(ctx);
     // if (cmd->next)
     //     execute_pipeline(cmd, ctx);
     // else
@@ -443,9 +439,7 @@ int	process(t_ctx *ctx)
 		}
 		handle_line_for_loop(line, ctx);
         free(line);
-        cleanup_shell(ctx);
+        // cleanup_shell(ctx);
 	}
-    // free(line);
-    // cleanup_shell(ctx);
 	return (ctx->exit_status);
 }

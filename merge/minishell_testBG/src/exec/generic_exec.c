@@ -131,6 +131,7 @@ int	set_redirs(t_command *cmd)
 
 int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 {
+	printf("test==============2\n");
 	char	*cmd_line;
 
 	cmd_line = tokens_to_string_from_command(cmd);
@@ -138,7 +139,7 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	free(cmd_line);
-	cleanup_shell(ctx);
+	// cleanup_shell(ctx);
 	// cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
@@ -206,6 +207,7 @@ int restore_std(t_ctx *ctx)
 
 int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 {
+	printf("test==============1\n");
 	char	*cmd_line;
 
 	cmd_line = tokens_to_string_from_command(cmd);
@@ -219,7 +221,7 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	if (restore_std(ctx))
 		return (1);
 	free(cmd_line);
-	cleanup_shell(ctx);
+	// cleanup_shell(ctx);
 	return (0);
 }
 
@@ -254,21 +256,21 @@ int	exec_loop(t_ctx *ctx, t_command *cmd)
 	tmp = cmd;
 	while (tmp)
 	{
-		if (!cmd->prev && !cmd->next && is_builtin(cmd->args[0]))
+		if (!tmp->prev && !tmp->next && is_builtin(tmp->args[0]))
 		{
-			if (exec_builtin_once(ctx, cmd))
+			if (exec_builtin_once(ctx, tmp))
 				return (1);
 			flag = 0;
 		}
 		else
 		{
-			if (exec_child(ctx, cmd))
+			if (exec_child(ctx, tmp))
 				return (1);
 			flag = 1;
 		}
 		tmp = tmp->next;
 	}
 	if (flag)
-		wait_loop(ctx, cmd);
+		wait_loop(ctx, tmp);
 	return (0);
 }

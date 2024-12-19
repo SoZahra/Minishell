@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 18:18:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 17:08:08 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ void print_env(t_ctx *ctx)
 
 int handle_env_builtin(const char *input, t_ctx *ctx)
 {
+    printf("testtt=====3\n");
     while (*input == ' ')
         input++;
     if (*input != '\0')
