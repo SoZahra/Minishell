@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 15:04:18 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 15:23:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -411,10 +411,11 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     free_tokens(tokens);
     if (!cmd)
         return 1;
-
     if (exec_loop(ctx, cmd))
         return (1);
-
+    free_ctx(ctx);
+    free_command(cmd);
+    // cleanup_shell(ctx);
     // if (cmd->next)
     //     execute_pipeline(cmd, ctx);
     // else
@@ -440,7 +441,8 @@ int	process(t_ctx *ctx)
 			return(ctx->exit_status);
 		}
 		handle_line_for_loop(line, ctx);
-		free(line);
+	// 	free(line);
+    //     free_ctx(ctx);
 	}
 	return (ctx->exit_status);
 }

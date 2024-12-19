@@ -134,6 +134,7 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 	if (!cmd_line)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
+	free(cmd_line);
 	cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
@@ -211,6 +212,8 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	if (restore_std(ctx))
 		return (1);
+	free(cmd_line);
+	// free_ctx(ctx);
 	return (0);
 }
 
