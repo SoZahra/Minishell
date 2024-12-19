@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 15:23:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 16:09:30 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,20 +247,18 @@ t_command *init_command_struct(int arg_count)
     if (!cmd)
         return (free_command(cmd), NULL);
 
-    // Plus besoin de cette ligne car calloc initialise à 0
     // *cmd = (t_command){0};
-    
     cmd->pid = -1;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = arg_count;
-
     cmd->args = calloc(arg_count + 1, sizeof(char *));
     if(!cmd->args)
     {
         free(cmd->args);
         cmd->args = NULL;
         free_command(cmd);
+        return (NULL);
     }
     cmd->had_spaces = calloc(arg_count, sizeof(int));
     if (!cmd->had_spaces)
@@ -355,18 +353,21 @@ t_command *parse_pipe_sequence(t_token *tokens)
     t_token *current = tokens;
     t_command *first_cmd = NULL;
     t_token *cmd_end;
+    t_command *new_cmd;
 
     while (current)
     {
         cmd_end = current;
         while (cmd_end && cmd_end->type != '|')
             cmd_end = cmd_end->next;
-        t_command *new_cmd = create_command_from_tokens_range(current, cmd_end);
+        new_cmd = create_command_from_tokens_range(current, cmd_end);
         if (!new_cmd)
             return (free_command(first_cmd), NULL);
         first_cmd = link_commands(first_cmd, new_cmd);
         current = find_next_command(current);
     }
+    // free(current);
+    // free_command(new_cmd);
     return first_cmd;
 }
 
@@ -441,8 +442,10 @@ int	process(t_ctx *ctx)
 			return(ctx->exit_status);
 		}
 		handle_line_for_loop(line, ctx);
-	// 	free(line);
-    //     free_ctx(ctx);
+        free(line);
+        cleanup_shell(ctx);
 	}
+    // free(line);
+    // cleanup_shell(ctx);
 	return (ctx->exit_status);
 }

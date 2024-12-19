@@ -3,11 +3,13 @@
 void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
+	(void)exit_code;
 	ft_fprintf(2, " went iIIIIIIIIIIIIIIIIIIIIn \n");
 	free_args(env_v);
 	free_command(cmd);
 	cleanup_shell(ctx);
-	exit(exit_code);
+	// exit(exit_code);
+	return;
 }
 
 int	set_pfd(t_command *cmd)
@@ -136,7 +138,8 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	free(cmd_line);
-	cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
+	cleanup_shell(ctx);
+	// cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
 
@@ -170,7 +173,9 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 		cmd->path = find_command_path(cmd->args[0], ctx);
 		env_v = create_env_array(ctx->env_vars);
 		execve(cmd->path, cmd->args, env_v);
-		cmd_clean_and_exit(ctx, cmd, env_v, 127);
+		cleanup_shell(ctx);
+		free_args(env_v);
+		// cmd_clean_and_exit(ctx, cmd, env_v, 127);
 	}
 	if (cmd->pid)
 		exec_parent(cmd);
@@ -214,7 +219,7 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	if (restore_std(ctx))
 		return (1);
 	free(cmd_line);
-	// free_ctx(ctx);
+	cleanup_shell(ctx);
 	return (0);
 }
 

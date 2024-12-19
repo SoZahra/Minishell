@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 11:22:29 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/19 16:08:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ void cleanup_shell(t_ctx *ctx)
 {
 	if (!ctx)
         return;
-    rl_clear_history();
     free_ctx(ctx);
 }
 
