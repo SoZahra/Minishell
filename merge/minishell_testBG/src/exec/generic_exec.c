@@ -4,8 +4,7 @@ void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
 	free_args(env_v);
-	// free_command(cmd);
-	while (cmd && cmd->prev)  // Remonter au début de la liste
+	while (cmd && cmd->prev)
         cmd = cmd->prev;
 	free_command_list(cmd);
 	cleanup_shell(ctx);
@@ -134,24 +133,92 @@ int	open_in(t_command *cmd, t_redirection *redir)
 	return (0);
 }
 
-int	open_outfiles(t_command *cmd)
+int create_files_first(t_command *cmd)
 {
-	t_redirection	*redir;
+    t_redirection *redir;
 
-	redir = cmd->redirs;
-	while (redir)
-	{
-		if (redir->type == 'A' && open_outa(cmd, redir))
-			return (1);
-		else if (redir->type == '>' && open_outt(cmd, redir))
-			return (1);
-		else if ((redir->type == '<' || redir->type == 'H') && open_in(cmd,
-				redir))
-			return (1);
-		redir = redir->next;
-	}
-	return (0);
+    redir = cmd->redirs;
+    while (redir)
+    {
+        if (redir->type == '>' || redir->type == 'A')
+        {
+            int tmp_fd = open(redir->file, O_WRONLY | O_CREAT, 0644);
+            if (tmp_fd == -1)
+                return (1);
+            close(tmp_fd);
+        }
+        redir = redir->next;
+    }
+    return (0);
 }
+
+static t_redirection *find_last_output(t_redirection *redir)
+{
+    t_redirection *last_out;
+
+    last_out = NULL;
+    while (redir)
+    {
+        if (redir->type == '>' || redir->type == 'A')
+            last_out = redir;
+        redir = redir->next;
+    }
+    return (last_out);
+}
+
+static int handle_output_redir(t_command *cmd, t_redirection *redir)
+{
+    if (redir->type == 'A')
+        return (open_outa(cmd, redir));
+    return (open_outt(cmd, redir));
+}
+
+static int open_redirections(t_command *cmd, t_redirection *redir, t_redirection *last_out)
+{
+    while (redir)
+    {
+        if ((redir->type == '>' || redir->type == 'A') && redir == last_out)
+        {
+            if (handle_output_redir(cmd, redir))
+                return (1);
+        }
+        else if ((redir->type == '<' || redir->type == 'H') && open_in(cmd, redir))
+            return (1);
+        redir = redir->next;
+    }
+    return (0);
+}
+
+int open_outfiles(t_command *cmd)
+{
+    t_redirection *last_out;
+
+    if (create_files_first(cmd))
+        return (1);
+    last_out = find_last_output(cmd->redirs);
+    return (open_redirections(cmd, cmd->redirs, last_out));
+}
+
+// int	open_outfiles(t_command *cmd)
+// {
+// 	t_redirection	*redir;
+
+// 	if (create_files_first(cmd))
+//         return (1);
+// 	redir = cmd->redirs;
+// 	while (redir)
+// 	{
+// 		if (redir->type == 'A' && open_outa(cmd, redir))
+// 			return (1);
+// 		else if (redir->type == '>' && open_outt(cmd, redir))
+// 			return (1);
+// 		else if ((redir->type == '<' || redir->type == 'H') && open_in(cmd,
+// 				redir))
+// 			return (1);
+// 		redir = redir->next;
+// 	}
+// 	return (0);
+// }
 
 int	set_fds(t_command *cmd)
 {
@@ -190,6 +257,7 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	free(cmd_line);
+	cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
 
@@ -232,7 +300,7 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 	if (!cmd->pid)
 	{
 		if (set_redirs(cmd))
-			return (1);
+			cmd_clean_and_exit(ctx, cmd, env_v, 127);
 		if (is_builtin(cmd->args[0]))
 			set_and_exec_builtin(ctx, cmd);
 		cmd->path = find_command_path(cmd->args[0], ctx);
