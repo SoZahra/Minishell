@@ -198,6 +198,7 @@ int handle_pwd_builtin(const char *input, t_ctx *ctx);
 
 int unset_v(t_env_var **env_vars, const char *var);
 int handle_unset_builtin(const char *input, t_ctx *ctx);
+void free_command_list(t_command *cmd);
 
 //utils
 int ft_fprintf(int fd, const char *format, ...);

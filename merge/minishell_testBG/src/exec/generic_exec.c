@@ -4,8 +4,12 @@ void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
 	free_args(env_v);
-	free_command(cmd);
+	// free_command(cmd);
+	while (cmd && cmd->prev)  // Remonter au début de la liste
+        cmd = cmd->prev;
+	free_command_list(cmd);
 	cleanup_shell(ctx);
+	free_env(ctx->env_vars);
 	exit(exit_code);
 }
 
@@ -43,20 +47,81 @@ int	open_outa(t_command *cmd, t_redirection *redir)
 	return (0);
 }
 
-int	open_outt(t_command *cmd, t_redirection *redir)
+static int check_existing_file(const char *file)
 {
-	if (access(redir->file, W_OK) == -1)
-	{
-		ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
-		return (1);
-	}
-	if (cmd->out_fd > 0)
-		close(cmd->out_fd);
-	cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (cmd->out_fd == -1)
-		return (perror("MiniBG"), 1);
-	return (0);
+    if (access(file, W_OK) == -1)
+    {
+        ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
+        return (1);
+    }
+    return (0);
 }
+
+static int check_parent_dir(const char *file)
+{
+    char *parent_dir;
+    char *last_slash;
+    int ret;
+
+    parent_dir = ft_strdup(file);
+    if (!parent_dir)
+        return (1);
+    last_slash = ft_strrchr(parent_dir, '/');
+    if (last_slash)
+    {
+        *last_slash = '\0';
+        if (access(parent_dir, W_OK) == -1)
+            ret = 1;
+        else
+            ret = 0;
+    }
+    else
+        ret = 0;
+    free(parent_dir);
+    if (ret)
+        ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
+    return (ret);
+}
+
+static int open_output_file(t_command *cmd, t_redirection *redir)
+{
+    cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (cmd->out_fd == -1)
+    {
+        ft_fprintf(2, "MiniBG: %s: Cannot create file\n", redir->file);
+        return (1);
+    }
+    return (0);
+}
+
+int open_outt(t_command *cmd, t_redirection *redir)
+{
+    if (cmd->out_fd > 0)
+        close(cmd->out_fd);
+    if (access(redir->file, F_OK) == 0)
+    {
+        if (check_existing_file(redir->file))
+            return (1);
+    }
+    else if (check_parent_dir(redir->file))
+        return (1);
+    return (open_output_file(cmd, redir));
+}
+
+// int	open_outt(t_command *cmd, t_redirection *redir)
+// {
+// 	if (access(redir->file, W_OK) == -1)
+// 	{
+// 		ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
+// 		return (1);
+// 	}
+// 	if (cmd->out_fd > 0)
+// 		close(cmd->out_fd);
+// 	cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+// 	if (cmd->out_fd == -1)
+// 		return (perror("MiniBG"), 1);
+// 	return (0);
+// }
 
 int	open_in(t_command *cmd, t_redirection *redir)
 {
@@ -135,7 +200,6 @@ int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 		return (1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	free(cmd_line);
-	cmd_clean_and_exit(ctx, cmd, NULL, ctx->exit_status);
 	return (0);
 }
 
@@ -148,13 +212,30 @@ void	exec_parent(t_command *cmd)
 	}
 }
 
+void cleanup_pipes(t_command *cmd)
+{
+    if (cmd->prev)
+    {
+        if (cmd->prev->pfd[0] > 2)
+            close(cmd->prev->pfd[0]);
+        if (cmd->prev->pfd[1] > 2)
+            close(cmd->prev->pfd[1]);
+    }
+    if (cmd->pfd[0] > 2)
+        close(cmd->pfd[0]);
+    if (cmd->pfd[1] > 2)
+        close(cmd->pfd[1]);
+}
+
 int	exec_child(t_ctx *ctx, t_command *cmd)
 {
+	if(!cmd)
+		return 1;
 	char	**env_v;
 
 	env_v = NULL;
-	if (cmd->next)
-		pipe(cmd->pfd);
+	if (cmd->next && pipe(cmd->pfd) == -1)
+        return (1);
 	cmd->pid = fork();
 	if (cmd->pid == -1)
 		return (1);
@@ -211,16 +292,15 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 		return (1);
 	cmd_line = tokens_to_string_from_command(cmd);
 	if (!cmd_line)
-		return (1);
+		return ( 1);
 	if (save_std(ctx))
-		return (1);
+		return (free(cmd_line),1);
 	if (set_redirs(cmd))
-		return (1);
+		return (free(cmd_line),1);
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
 	if (restore_std(ctx))
 		return (1);
 	free(cmd_line);
-	// free_command(cmd);
 	return (0);
 }
 
@@ -233,42 +313,47 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
 	status = 0;
     while (tmp)
     {
-        waitpid(tmp->pid, &status, 0);
-		set_term_attr();
-        if (WIFEXITED(status)) {
-            status = WEXITSTATUS(status);
-        }
-        if (WIFSIGNALED(status)) {
-            status = WTERMSIG(status) + 128;
-        }
-		ctx->exit_status = status;
-        tmp = tmp->next;
+		if (tmp->pid > 0)  // Vérifier que le processus a été créé
+        {
+			waitpid(tmp->pid, &status, 0);
+			set_term_attr();
+			if (WIFEXITED(status)) {
+				status = WEXITSTATUS(status);
+			}
+			if (WIFSIGNALED(status)) {
+				status = WTERMSIG(status) + 128;
+			}
+			ctx->exit_status = status;
+		}
+		tmp = tmp->next;
     }
 }
 
 int	exec_loop(t_ctx *ctx, t_command *cmd)
 {
 	t_command	*tmp;
-	int has_child = 0;
+	int has_child;
+	int ret;
 
 	tmp = cmd;
+	has_child = 0;
+	ret = 0;
 	while (tmp)
 	{
-		printf("n_args: %d\n", tmp->arg_count);
 		if (!tmp->prev && !tmp->next && is_builtin(tmp->args[0]))
 		{
 			if (exec_builtin_once(ctx, tmp))
-				return (1);
+				ret = 1;
 		}
 		else
 		{
 			if(exec_child(ctx, tmp))
-				return(1);
+				ret = 1;
 			has_child = 1;
 		}
 		tmp = tmp->next;
 	}
 	if(has_child)
 		wait_loop(ctx, cmd);
-	return (0);
+	return (ret);
 }

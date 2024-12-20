@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 10:38:27 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/20 16:08:46 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,23 +26,6 @@ void	free_env_copy(char **env_copy)
 	}
 	free(env_copy);
 }
-
-// void	free_env(t_env_var *env_var)
-// {
-// 	t_env_var	*to_free;
-
-// 	while (env_var)
-// 	{
-// 		to_free = env_var;
-// 		env_var = env_var->next;
-// 		free(to_free->name);
-// 		to_free->name = NULL;
-// 		free(to_free->value);
-// 		to_free->value = NULL;
-// 		free(to_free);
-// 		to_free = NULL;
-// 	}
-// }
 
 void free_env(t_env_var *env_var)
 {
@@ -135,33 +118,124 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-// void free_tokens(t_token *tokens)
+// void free_command(t_command *cmd)
 // {
-//     t_token *current;
-//     t_token *next;
-
-//     if (!tokens)
+//     if (!cmd)
 //         return;
 
-//     current = tokens;
-//     while (current)
+//     t_command *next = cmd->next;
+//     if (cmd->args)
 //     {
-//         next = current->next;
-//         if (current->value)
+//         for (int i = 0; i < cmd->arg_count; i++)
 //         {
-//             free(current->value);
-//             current->value = NULL;
+//             if (cmd->args[i])
+//                 free(cmd->args[i]);
 //         }
-//         // Ne pas free content s'il pointe vers value
-//         if (current->content && current->content != current->value)
-//         {
-//             free(current->content);
-//             current->content = NULL;
-//         }
-//         free(current);
-//         current = next;
+//         free(cmd->args);
+//         cmd->args = NULL;
 //     }
+//     if (cmd->had_spaces)
+//     {
+//         free(cmd->had_spaces);
+//         cmd->had_spaces = NULL;
+//     }
+//     if (cmd->path)
+//     {
+//         free(cmd->path);
+//         cmd->path = NULL;
+//     }
+//     if (cmd->redirs)
+//     {
+//         t_redirection *current = cmd->redirs;
+//         t_redirection *next;
+//         while (current && current->type != 0)
+//         {
+//             next = current->next;
+//             if (current->file)
+//                 free(current->file);
+//             if (current->heredoc_fd > 2)
+//                 close(current->heredoc_fd);
+//             current = next;
+//         }
+//         free(cmd->redirs);
+//         cmd->redirs = NULL;
+//     }
+//     if (cmd->in_fd > 2)
+//         close(cmd->in_fd);
+//     if (cmd->out_fd > 2)
+//         close(cmd->out_fd);
+//     if (cmd->pfd[0] > 2)
+//         close(cmd->pfd[0]);
+//     if (cmd->pfd[1] > 2)
+//         close(cmd->pfd[1]);
+//     free(cmd);
+//     if (next)
+//         free_command(next);
 // }
+
+void free_command_list(t_command *cmd)
+{
+    t_command *current;
+    t_command *next;
+
+    current = cmd;
+    while (current)
+    {
+        next = current->next;
+        free_command(current);
+        current = next;
+    }
+}
+
+void free_command(t_command *cmd)
+{
+    if (!cmd)
+        return;
+    if (cmd->args)
+    {
+        for (int i = 0; i < cmd->arg_count; i++)
+        {
+            free(cmd->args[i]);
+            cmd->args[i] = NULL;
+        }
+        free(cmd->args);
+        cmd->args = NULL;
+    }
+    if (cmd->path)
+    {
+        free(cmd->path);
+        cmd->path = NULL;
+    }
+    if (cmd->had_spaces)
+    {
+        free(cmd->had_spaces);
+        cmd->had_spaces = NULL;
+    }
+    if (cmd->redirs)
+    {
+        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        {
+            if (cmd->redirs[i].file)
+                free(cmd->redirs[i].file);
+            cmd->redirs[i].file = NULL;
+        }
+        free(cmd->redirs);
+        cmd->redirs = NULL;
+    }
+    if (cmd->in_fd > 2)
+        close(cmd->in_fd);
+    if (cmd->out_fd > 2)
+        close(cmd->out_fd);
+    if (cmd->pfd[0] > 2)
+        close(cmd->pfd[0]);
+    if (cmd->pfd[1] > 2)
+        close(cmd->pfd[1]);
+    free(cmd);
+}
+
+
+
+
 
 void free_tokens(t_token *tokens)
 {

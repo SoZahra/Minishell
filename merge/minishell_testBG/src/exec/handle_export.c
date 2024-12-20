@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 17:06:23 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/20 11:54:05 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,6 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
 
 int handle_export_builtin(const char *input, t_ctx *ctx)
 {
-    printf("testtt=====4\n");
     char **split_args;
 
     while (*input == ' ')

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 19:09:19 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/20 13:59:18 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,40 +157,38 @@ char **create_env_array(t_env_var *env_vars)
 
 
 // // Fonction auxiliaire pour ajouter une redirection à la liste
-int add_redirection(t_redirection **redirs, char type, char *file)
-{
-    t_redirection *new = malloc(sizeof(t_redirection));
-    if (!new)
-        return 0;
+// int add_redirection(t_redirection **redirs, char type, char *file)
+// {
+//     t_redirection *new = malloc(sizeof(t_redirection));
+//     if (!new)
+//         return 0;
 
-    new->type = type;
-    new->file = ft_strdup(file);
-    new->fd = -1;
-    new->next = NULL;
+//     new->type = type;
+//     new->file = ft_strdup(file);
+//     new->fd = -1;
+//     new->next = NULL;
 
-    if (!new->file)
-    {
-        free(new);
-        return 0;
-    }
+//     if (!new->file)
+//     {
+//         free(new);
+//         return 0;
+//     }
 
-    // Ajouter au début de la liste
-    new->next = *redirs;
-    *redirs = new;
+//     // Ajouter au début de la liste
+//     new->next = *redirs;
+//     *redirs = new;
 
-    return 1;
-}
+//     return 1;
+// }
 
 char *tokens_to_string_from_command(t_command *cmd)
 {
-    // Si aucun argument, retourner une chaîne vide
     if (!cmd->args || cmd->arg_count == 0)
-        return ft_strdup("");
+        return ft_strdup("\0");
 
-    // Commencer par le premier argument
     char *result = ft_strdup(cmd->args[0]);
     if (!result)
-        return NULL;
+        return (free_command(cmd), NULL);
     for (int i = 1; i < cmd->arg_count; i++)
     {
         char *temp;
@@ -199,7 +197,7 @@ char *tokens_to_string_from_command(t_command *cmd)
             temp = ft_strjoin(result, " ");
              if (!temp)
             {
-                free(result);
+                free_command(cmd);
                 return NULL;
             }
             free(result);
@@ -208,7 +206,7 @@ char *tokens_to_string_from_command(t_command *cmd)
         temp = ft_strjoin(result, cmd->args[i]);
         if (!temp)
         {
-            free(result);
+            free_command(cmd);
             return NULL;
         }
         free(result);
@@ -218,49 +216,49 @@ char *tokens_to_string_from_command(t_command *cmd)
     return result;
 }
 
-void execute_command(t_command *cmd, t_ctx *ctx)
-{
-    // printf("testttttt=========4\n");
-    if (cmd->redirs)
-    {
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
-        {
-            if (cmd->redirs[i].type == 'H')
-            {
-                int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
-                if (heredoc_fd == -1)
-                {
-                    ctx->exit_status = 1;
-                    return;
-                }
-                cmd->redirs[i].heredoc_fd = heredoc_fd;
-            }
-        }
-    }
-    get_ctx()->save_stdin = dup(STDIN_FILENO);
-    get_ctx()->save_stdout = dup(STDOUT_FILENO);
+// void execute_command(t_command *cmd, t_ctx *ctx)
+// {
+//     // printf("testttttt=========4\n");
+//     if (cmd->redirs)
+//     {
+//         for (int i = 0; cmd->redirs[i].type != 0; i++)
+//         {
+//             if (cmd->redirs[i].type == 'H')
+//             {
+//                 int heredoc_fd = here_doc(cmd->redirs[i].file, ctx);
+//                 if (heredoc_fd == -1)
+//                 {
+//                     ctx->exit_status = 1;
+//                     return;
+//                 }
+//                 cmd->redirs[i].heredoc_fd = heredoc_fd;
+//             }
+//         }
+//     }
+//     get_ctx()->save_stdin = dup(STDIN_FILENO);
+//     get_ctx()->save_stdout = dup(STDOUT_FILENO);
 
-    if (cmd->redirs)
-    {
-        if (apply_redirections(cmd->redirs, ctx) == -1)
-        {
-            // printf("testttttt=========5\n");
-            ctx->exit_status = 1;
-            restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
-            return;
-        }
-    }
-    if (is_builtin(cmd->args[0]))
-    {
-        // printf("testttttt=========6\n");
-        char *cmd_line = tokens_to_string_from_command(cmd);
-        ctx->exit_status = execute_builtin(cmd_line, ctx);
-        free(cmd_line);
-    }
-    else
-        ctx->exit_status = execute_external_command(cmd, ctx);
-    restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
-}
+//     if (cmd->redirs)
+//     {
+//         if (apply_redirections(cmd->redirs, ctx) == -1)
+//         {
+//             // printf("testttttt=========5\n");
+//             ctx->exit_status = 1;
+//             restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
+//             return;
+//         }
+//     }
+//     if (is_builtin(cmd->args[0]))
+//     {
+//         // printf("testttttt=========6\n");
+//         char *cmd_line = tokens_to_string_from_command(cmd);
+//         ctx->exit_status = execute_builtin(cmd_line, ctx);
+//         free(cmd_line);
+//     }
+//     else
+//         ctx->exit_status = execute_external_command(cmd, ctx);
+//     restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
+// }
 
 int handle_heredoc(t_redirection *redir, t_ctx *ctx)
 {
@@ -448,96 +446,97 @@ void execute_builtin_command(t_command *cmd, t_ctx *ctx)
    }
 }
 
-//pas encore utilise 
-int execute_external_command(t_command *cmd, t_ctx *ctx)
-{
-    if (cmd->args[0] == NULL || cmd->args[0][0] == '\0')
-    {
-        // S'il y a d'autres arguments, déplacer les arguments vers la gauche
-        if (cmd->args[1])
-        {
-            int i = 0;
-            while (cmd->args[i + 1])
-            {
-                cmd->args[i] = cmd->args[i + 1];
-                i++;
-            }
-            cmd->args[i] = NULL;
-            // Récursivement appeler avec les nouveaux arguments
-            return execute_external_command(cmd, ctx);
-        }
-        // Si pas d'autres arguments, retourner simplement 0
-        return 0;
-    }
-    // Vérifier si c'est un chemin direct (commence par ./ ou /)
-    if (cmd->args[0][0] == '/' || 
-        (cmd->args[0][0] == '.' && cmd->args[0][1] == '/'))
-    {
-        // Vérifier si le fichier existe
-        if (access(cmd->args[0], F_OK) == -1)
-        {
-            fprintf(stderr, "MiniBG: %s: No such file or directory\n", cmd->args[0]);
-            return 127;
-        }
+// //pas encore utilise 
+// int execute_external_command(t_command *cmd, t_ctx *ctx)
+// {
+//     if (cmd->args[0] == NULL || cmd->args[0][0] == '\0')
+//     {
+//         // S'il y a d'autres arguments, déplacer les arguments vers la gauche
+//         if (cmd->args[1])
+//         {
+//             int i = 0;
+//             while (cmd->args[i + 1])
+//             {
+//                 cmd->args[i] = cmd->args[i + 1];
+//                 i++;
+//             }
+//             cmd->args[i] = NULL;
+//             // Récursivement appeler avec les nouveaux arguments
+//             return execute_external_command(cmd, ctx);
+//         }
+//         // Si pas d'autres arguments, retourner simplement 0
+//         return 0;
+//     }
+//     // Vérifier si c'est un chemin direct (commence par ./ ou /)
+//     if (cmd->args[0][0] == '/' || 
+//         (cmd->args[0][0] == '.' && cmd->args[0][1] == '/'))
+//     {
+//         // Vérifier si le fichier existe
+//         if (access(cmd->args[0], F_OK) == -1)
+//         {
+//             fprintf(stderr, "MiniBG: %s: No such file or directory\n", cmd->args[0]);
+//             return 127;
+//         }
         
-        // Vérifier si c'est un répertoire
-        struct stat path_stat;
-        stat(cmd->args[0], &path_stat);
-        if (S_ISDIR(path_stat.st_mode))
-        {
-            fprintf(stderr, "MiniBG: %s: Is a directory\n", cmd->args[0]);
-            return 126;
-        }
+//         // Vérifier si c'est un répertoire
+//         struct stat path_stat;
+//         stat(cmd->args[0], &path_stat);
+//         if (S_ISDIR(path_stat.st_mode))
+//         {
+//             fprintf(stderr, "MiniBG: %s: Is a directory\n", cmd->args[0]);
+//             return 126;
+//         }
         
-        // Vérifier les permissions d'exécution
-        if (access(cmd->args[0], X_OK) == -1)
-        {
-            fprintf(stderr, "MiniBG: %s: Permission denied\n", cmd->args[0]);
-            return 126;
-        }
-        cmd->path = ft_strdup(cmd->args[0]);
-    }
-    else
-    {
-        cmd->path = find_command_path(cmd->args[0], ctx);
-        if (!cmd->path)
-        {
-            fprintf(stderr, "MiniBG: %s: command not found\n", cmd->args[0]);
-            return 127;
-        }
-    }
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        perror("fork");
-        free(cmd->path);
-        return 1;
-    }
+//         // Vérifier les permissions d'exécution
+//         if (access(cmd->args[0], X_OK) == -1)
+//         {
+//             fprintf(stderr, "MiniBG: %s: Permission denied\n", cmd->args[0]);
+//             return 126;
+//         }
+//         cmd->path = ft_strdup(cmd->args[0]);
+//     }
+//     else
+//     {
+//         cmd->path = find_command_path(cmd->args[0], ctx);
+//         if (!cmd->path)
+//         {
+//             ft_fprintf(2, "MiniBG: %s: command not found\n", cmd->args[0]);
+//             free(cmd->path);
+//             return 127;
+//         }
+//     }
+//     pid_t pid = fork();
+//     if (pid == -1)
+//     {
+//         perror("fork");
+//         free(cmd->path);
+//         return 1;
+//     }
 
-    if (pid == 0)
-    {
-        close(get_ctx()->save_stdin);
-        close(get_ctx()->save_stdout);
-        char **env = create_env_array(ctx->env_vars);
-        execve(cmd->path, cmd->args, env);
-        free_args(env);
-        perror("execve");
-        free_command(cmd);
-        cleanup_shell(ctx);
-        exit(126);  // Si execve échoue, c'est probablement un problème de permission
-    }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-        // free(cmd->path);
-        if (WIFEXITED(status))
-            return WEXITSTATUS(status);
-        else if (WIFSIGNALED(status))
-            return 128 + WTERMSIG(status); 
-        return 1;
-    }
-}
+//     if (pid == 0)
+//     {
+//         close(get_ctx()->save_stdin);
+//         close(get_ctx()->save_stdout);
+//         char **env = create_env_array(ctx->env_vars);
+//         execve(cmd->path, cmd->args, env);
+//         free_args(env);
+//         perror("execve");
+//         free_command(cmd);
+//         cleanup_shell(ctx);
+//         exit(126);  // Si execve échoue, c'est probablement un problème de permission
+//     }
+//     else
+//     {
+//         int status;
+//         waitpid(pid, &status, 0);
+//         // free(cmd->path);
+//         if (WIFEXITED(status))
+//             return WEXITSTATUS(status);
+//         else if (WIFSIGNALED(status))
+//             return 128 + WTERMSIG(status); 
+//         return 1;
+//     }
+// }
 
 // void free_command(t_command *cmd)
 // {
@@ -560,47 +559,7 @@ int execute_external_command(t_command *cmd, t_ctx *ctx)
 //     free_command(next); 
 // }
 
-void free_command(t_command *cmd)
-{
-    if (!cmd)
-        return;
 
-    // Sauvegarder next pour une libération récursive
-    t_command *next = cmd->next;
-
-    // Libérer args
-    if (cmd->args)
-    {
-        for (int i = 0; i < cmd->arg_count; i++)
-        {
-            free(cmd->args[i]);
-        }
-        free(cmd->args);
-    }
-    free(cmd->had_spaces);
-    cmd->had_spaces = NULL;
-    free(cmd->path);
-    cmd->path = NULL;
-    if (cmd->redirs)
-    {
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
-        {
-            free(cmd->redirs[i].file);
-        }
-        free(cmd->redirs);
-    }
-    // t_redirection *tmp_redir;
-    // tmp_redir = cmd->redirs;
-    // while (tmp_redir)
-    // {
-    //     free(tmp_redir->file);
-    //     tmp_redir = tmp_redir->next;
-    // }
-
-    // Libérer la structure elle-même
-    free(cmd);
-    free_command(next);
-}
 
 
 // void free_command(t_command *cmd)
