@@ -13,50 +13,6 @@ void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 	exit(exit_code);
 }
 
-int	set_pfd(t_command *cmd)
-{
-	if (cmd->prev)
-	{
-		close(cmd->prev->pfd[1]);
-		if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1)
-			return (1);
-		close(cmd->prev->pfd[0]);
-	}
-	if (cmd->next)
-	{
-		close(cmd->pfd[0]);
-		if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1)
-			return (1);
-		close(cmd->pfd[1]);
-	}
-	return (0);
-}
-
-int	open_outa(t_command *cmd, t_redirection *redir)
-{
-	if (access(redir->file, W_OK) == -1)
-	{
-		ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
-		return (1);
-	}
-	if (cmd->out_fd > 0)
-		close(cmd->out_fd);
-	cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-	if (cmd->out_fd == -1)
-		return (perror("MiniBG"), 1);
-	return (0);
-}
-
-static int check_existing_file(const char *file)
-{
-    if (access(file, W_OK) == -1)
-    {
-        ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
-        return (1);
-    }
-    return (0);
-}
-
 static int check_parent_dir(const char *file)
 {
     char *parent_dir;
@@ -82,6 +38,55 @@ static int check_parent_dir(const char *file)
         ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
     return (ret);
 }
+int	set_pfd(t_command *cmd)
+{
+	if (cmd->prev)
+	{
+		close(cmd->prev->pfd[1]);
+		if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1)
+			return (1);
+		close(cmd->prev->pfd[0]);
+	}
+	if (cmd->next)
+	{
+		close(cmd->pfd[0]);
+		if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1)
+			return (1);
+		close(cmd->pfd[1]);
+	}
+	return (0);
+}
+
+int	open_outa(t_command *cmd, t_redirection *redir)
+{
+	if (access(redir->file, F_OK) == 0)
+    {
+        if (access(redir->file, W_OK) == -1)
+        {
+            ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
+            return (1);
+        }
+    }
+	 else if (check_parent_dir(redir->file))
+        return (1);
+	if (cmd->out_fd > 0)
+		close(cmd->out_fd);
+	cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (cmd->out_fd == -1)
+		return (perror("MiniBG"), 1);
+	return (0);
+}
+
+static int check_existing_file(const char *file)
+{
+    if (access(file, W_OK) == -1)
+    {
+        ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
+        return (1);
+    }
+    return (0);
+}
+
 
 static int open_output_file(t_command *cmd, t_redirection *redir)
 {
@@ -107,21 +112,6 @@ int open_outt(t_command *cmd, t_redirection *redir)
         return (1);
     return (open_output_file(cmd, redir));
 }
-
-// int	open_outt(t_command *cmd, t_redirection *redir)
-// {
-// 	if (access(redir->file, W_OK) == -1)
-// 	{
-// 		ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
-// 		return (1);
-// 	}
-// 	if (cmd->out_fd > 0)
-// 		close(cmd->out_fd);
-// 	cmd->out_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-// 	if (cmd->out_fd == -1)
-// 		return (perror("MiniBG"), 1);
-// 	return (0);
-// }
 
 int	open_in(t_command *cmd, t_redirection *redir)
 {
