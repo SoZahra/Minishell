@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 15:40:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 19:01:32 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,18 +72,6 @@ char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
         }
     }
     return result;
-}
-
-char *expand_variable_(const char *str, char quote_type, t_ctx *ctx)
-{
-    if (!str)
-        return NULL;
-    // Si c'est entre single quotes, pas d'expansion
-    if (quote_type == '\'')
-        return ft_strdup(str);
-    if (quote_type == '"' || ft_strchr(str, '$'))    // Si c'est entre double quotes ou sans quotes, expansion complète
-        return expand_full_string(str, quote_type, ctx);
-    return ft_strdup(str);    // Sinon, retourner tel quel
 }
 
 int expand_str(t_token *token, t_ctx *ctx)

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:04:03 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/10 10:35:14 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 19:25:50 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,8 +119,8 @@ int validate_args(char **args, t_ctx *ctx)
 // 	return (ret);
 // }
 
-void	print_command_not_found(const char *cmd, t_ctx *ctx)
-{
-	fprintf(stderr, "miniBG: %s: command not found\n", cmd);
-	ctx->exit_status = 127;
-}
+// void	print_command_not_found(const char *cmd, t_ctx *ctx)
+// {
+// 	fprintf(stderr, "miniBG: %s: command not found\n", cmd);
+// 	ctx->exit_status = 127;
+// }

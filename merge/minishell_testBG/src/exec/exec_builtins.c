@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 11:54:19 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 18:59:10 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,14 +118,17 @@ int handle_env_builtin(const char *input, t_ctx *ctx)
     return 0;
 }
 
-int execute_builtin(const char *cmd_line, t_ctx *ctx)
+int execute_builtin(char *cmd_line, t_ctx *ctx)
 {
     char *cmd;
     char *space;
     const char *args;
     int result;
+    char *args_dup = NULL;
 
     cmd = ft_strdup(cmd_line);
+    if(!cmd)
+        return (1);
     space = ft_strchr(cmd, ' ');
     if (space)
         *space = '\0';
@@ -133,6 +136,18 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
     while (*args == ' ')
         args++;
     result = 0;
+    if (ft_strcmp(cmd, "exit") == 0)
+    {
+        args_dup = ft_strdup(args);
+        if (!args_dup)
+        {
+            free(cmd);
+            return (1);
+        }
+        free(cmd);
+        free(cmd_line);
+        return (handle_exit_builtin(args_dup, ctx));
+    }
     if (ft_strcmp(cmd, "echo") == 0)
         result = handle_echo_builtin(args, ctx);
     else if (ft_strcmp(cmd, "cd") == 0)
@@ -143,8 +158,8 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
         result = handle_export_builtin(args, ctx);
     else if (ft_strcmp(cmd, "env") == 0)
         result = handle_env_builtin(args, ctx);
-    else if (ft_strcmp(cmd, "exit") == 0)
-        result = handle_exit_builtin(args, ctx);
+    // else if (ft_strcmp(cmd, "exit") == 0)
+    //     result = handle_exit_builtin(args, ctx);
     else if (ft_strcmp(cmd, "unset") == 0)
         result = handle_unset_builtin(args, ctx);
     return (free(cmd), result);

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 15:32:31 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 18:20:47 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,21 +282,21 @@ t_command *init_command_struct(int arg_count, int redir_count)
     cmd->args = calloc(arg_count + 1, sizeof(char *));
     if (!cmd->args)
     {
-        free_command(cmd);
+        free_command_list(cmd);
         return NULL;
     }
 
     cmd->redirs = calloc(redir_count + 1, sizeof(t_redirection));
     if (!cmd->redirs)
     {
-        free_command(cmd);
+        free_command_list(cmd);
         return NULL;
     }
 
     cmd->had_spaces = calloc(arg_count, sizeof(int));
     if (!cmd->had_spaces)
     {
-        free_command(cmd);
+        free_command_list(cmd);
         return NULL;
     }
 
@@ -324,7 +324,6 @@ int add_redir(t_command *cmd, t_token *token, int *redir_i)
         cmd->redirs[*redir_i].file = ft_strdup(token->next->value);
         if (!cmd->redirs[*redir_i].file)
             return (1);
-        // cmd->redirs[*redir_i].next = NULL;
     }
     (*redir_i)++;
     return (0);
@@ -352,7 +351,6 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     int redir_i;
     t_token *current;
 
-    // Premier passage pour compter
     current = start;
     arg_count = ((redir_count = arg_i = redir_i = 0));
     while (current && current != end && current->type != '|')
@@ -368,99 +366,31 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         if (current)
             current = current->next;
     }
-    t_command *cmd = init_command_struct(arg_count, redir_count); // Ajouter redir_count ici
+    t_command *cmd = init_command_struct(arg_count, redir_count);
     if (!cmd)
-        return NULL;
+        return (NULL);
     current = start; 
     while (current && current != end && current->type != '|')
     {
         if (is_redirection(current->type))
         {
             if (add_redir(cmd, current, &redir_i))
-            {
-                free_command(cmd);
-                return NULL;
-            }
+                return (free_command_list(cmd) ,NULL);
             if (current->next)
                 current = current->next;
         }
         else if (is_argument(current->type))
         {
             if (add_argument(cmd, current, &arg_i))
-            {
-                free_command(cmd);
-                return NULL;
-            }
+                return (free_command_list(cmd), NULL);
         }
         current = current->next;
     }
     cmd->args[arg_i] = NULL;
     cmd->redirs[redir_i].type = 0;
     cmd->arg_count = arg_i;
-
     return cmd;
 }
-
-// void count_elements(t_token *start, t_token *end, int *arg_count, int *redir_count)
-// {
-//     t_token *current;
-    
-//     *arg_count = 0;
-//     *redir_count = 0;
-//     current = start;
-//     while (current && current != end && current->type != '|')
-//     {
-//         if (current->type == '>' || current->type == '<' || 
-//             current->type == 'A' || current->type == 'H') 
-//         {
-//             (*redir_count)++;
-//             current = current->next;  // Skip le fichier
-//         }
-//         else if (current->type == 'S' || current->type == '"' || current->type == '\'')
-//             (*arg_count)++;
-//         current = current->next;
-//     }
-// }
-
-
-// t_command *create_command_from_tokens_range(t_token *start, t_token *end)
-// {
-//     int arg_count = 0;
-//     t_token *current = start;
-
-//     while (current && current != end && current->type != '|')
-//     {
-//         if (current->type != '>' && current->type != 'A')
-//             arg_count++;
-//         current = current->next;
-//     }
-//     t_command *cmd = init_command_struct(arg_count);
-//     if (!cmd)
-//         return (free_command(cmd), NULL);
-//     cmd->arg_count = arg_count;
-//     int i = 0;
-//     current = start;
-//     while (current && current != end && current->type != '|')
-//     {
-//         if (current->type != '>' && current->type != 'A')
-//         {
-//             cmd->args[i] = ft_strdup(current->value);
-//             if (!cmd->args[i])
-//             {
-//                 free_command(cmd);
-//                 return NULL;
-//             }
-//             cmd->had_spaces[i++] = current->had_space;
-//         }
-//         current = current->next;
-//     }
-//     cmd->args[i] = NULL;
-//     cmd->arg_count = i;
-//     return cmd;
-// }
-
-
-
 
 t_token *get_next_pipe_token(t_token *start) 
 {
@@ -504,12 +434,12 @@ t_command *parse_pipe_sequence(t_token *tokens)
         new_cmd = create_command_from_tokens_range(current, cmd_end);
         if (!new_cmd)
         {
-            free_command(first_cmd);
+            free_command_list(first_cmd);
             return (NULL);
         }
         first_cmd = link_commands(first_cmd, new_cmd);
         if(!first_cmd)
-            return (free_command(new_cmd), NULL);
+            return (free_command_list(new_cmd), NULL);
         current = find_next_command(current);
     }
     return first_cmd;

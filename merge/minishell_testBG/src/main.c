@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 16:08:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 18:23:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,10 @@ void cleanup_shell(t_ctx *ctx)
 {
 	if (!ctx)
         return;
+	if (ctx->save_stdin > 2)
+        close(ctx->save_stdin);
+    if (ctx->save_stdout > 2)
+        close(ctx->save_stdout);
     free_ctx(ctx);
 }
 

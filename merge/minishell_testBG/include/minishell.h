@@ -51,32 +51,6 @@ typedef enum token_type
 	SINGLE_QUOTE = '\'',
 }						t_token_type;
 
-typedef struct s_token
-{
-	char				*value;
-	t_token_type		type;
-	struct s_token		*next;
-	struct s_token		*prev;
-	char				*content;
-	int					quoted;
-	int					had_space;
-}						t_token;
-
-typedef struct s_ctx
-{
-	t_token 			*tokens;
-	t_env_var 			*env_vars;
-	unsigned char		exit_status;
-	int					num_pipes;
-	char				*oldpwd;
-	char				*pwd;
-	struct termios		term;
-	struct sigaction	s_sigint;
-	struct sigaction	s_sigquit;
-	int save_stdin;
-	int save_stdout;
-}						t_ctx;
-
 typedef struct s_redirection {
     char type;              // '>' pour >, 'A' pour >>, '<' pour <, 'H' pour
     char *file;            // Nom du fichier ou délimiteur
@@ -99,7 +73,38 @@ typedef struct s_command {
 	int *had_spaces;
 } t_command;
 
+typedef struct s_token
+{
+	char				*value;
+	t_token_type		type;
+	struct s_token		*next;
+	struct s_token		*prev;
+	char				*content;
+	int					quoted;
+	int					had_space;
+}						t_token;
+
+typedef struct s_ctx
+{
+	t_token 			*tokens;
+	t_env_var 			*env_vars;
+	unsigned char		exit_status;
+	int					num_pipes;
+	char				*oldpwd;
+	char				*pwd;
+	struct termios		term;
+	struct sigaction	s_sigint;
+	struct sigaction	s_sigquit;
+	t_command 	*current_command; 
+	int save_stdin;
+	int save_stdout;
+}						t_ctx;
+
+
 //-----------------------------
+
+void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
+		int exit_code);
 
 int	exec_loop(t_ctx *ctx, t_command *cmd);
 void print_command_debug(t_command *cmd);
@@ -126,7 +131,7 @@ char *tokens_to_string_from_command(t_command *cmd);
 // -------------------------------------------------------------
 
 int tokenizer(t_token **tokens, char *input);
-int execute_builtin(const char *input, t_ctx *ctx);
+int execute_builtin(char *input, t_ctx *ctx);
 int is_builtin(const char *cmd);
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx);
 

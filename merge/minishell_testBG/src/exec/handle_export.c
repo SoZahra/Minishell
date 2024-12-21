@@ -6,33 +6,20 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 11:54:05 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 19:13:36 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// int handle_exit_builtin(char **args, t_ctx *ctx)
-// {
-//     process_exit_arg(args, ctx);
-//     write(1, "exit\n", 5);
-//     exit(ctx->exit_status);
-//     return (1); // Ne sera jamais atteint
-// }
-
-// int handle_echo_builtin(char **args, t_ctx *ctx)
-// {
-//     t_token *token_list;
-
-//     token_list = create_token_list(args + 1);
-//     if (!token_list)
-//     {
-//         ctx->exit_status = 1;
-//         return (1);
-//     }
-//     handle_echo(token_list, ctx);
-//     return (1);
-// }
+int clear_exit(t_ctx *ctx)
+{
+    write(1, "exit\n", 5);
+    cleanup_shell(ctx);
+    rl_clear_history();
+    free_command_list(get_ctx()->current_command);
+    return(0);
+}
 
 int handle_exit_builtin(const char *input, t_ctx *ctx)
 {
@@ -45,18 +32,20 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     if (!arg_array)
     {
         ctx->exit_status = 1;
-        write(1, "exit\n", 5);
+        clear_exit(ctx);
+        free((void*)input);
         exit(1);
     }
     process_exit_arg(arg_array, ctx);
     i = 0;
     while (arg_array[i])
-        free(arg_array[i++]);
+    free(arg_array[i++]);
     free(arg_array);
-    write(1, "exit\n", 5);
+    clear_exit(ctx);
+    free((void*)input);
     exit(ctx->exit_status);
-    return 1;
-} 
+    return (1);
+}
 
 int handle_echo_builtin(const char *args, t_ctx *ctx)
 {
@@ -239,14 +228,14 @@ int handle_export_builtin(const char *input, t_ctx *ctx)
     {
         if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
         {
-            ft_fprintf(2, "minishell: export: `%s': not a valid identifier\n", 
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
                       split_args[i]);
             ctx->exit_status = 1;
             continue;
         }
         if (ft_strchr(split_args[i], '-'))
         {
-            ft_fprintf(2, "minishell: export: `%s': not a valid identifier\n", 
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
                       split_args[i]);
             ctx->exit_status = 1;
             continue;

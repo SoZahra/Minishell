@@ -1,0 +1,9 @@
+include
+libft
+ls.txt
+Makefile
+minishell
+minishell.sup
+minishell_tester
+pipe
+src

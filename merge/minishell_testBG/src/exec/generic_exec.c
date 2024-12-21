@@ -3,6 +3,10 @@
 void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
 		int exit_code)
 {
+	if (ctx->save_stdin > 2)
+        close(ctx->save_stdin);
+	if (ctx->save_stdout > 2)
+        close(ctx->save_stdout);
 	free_args(env_v);
 	while (cmd && cmd->prev)
         cmd = cmd->prev;
@@ -37,6 +41,7 @@ static int check_parent_dir(const char *file)
         ft_fprintf(2, "MiniBG: %s: Permission denied\n", file);
     return (ret);
 }
+
 int	set_pfd(t_command *cmd)
 {
 	if (cmd->prev)
@@ -132,17 +137,26 @@ int	open_in(t_command *cmd, t_redirection *redir)
 		return (1);
 	return (0);
 }
-
 int create_files_first(t_command *cmd)
 {
     t_redirection *redir;
+    t_redirection *last_out;
+    int tmp_fd;
 
     redir = cmd->redirs;
+    last_out = NULL;
     while (redir)
     {
         if (redir->type == '>' || redir->type == 'A')
+            last_out = redir;
+        redir = redir->next;
+    }
+    redir = cmd->redirs;
+    while (redir)
+    {
+        if ((redir->type == '>' || redir->type == 'A') && redir != last_out)
         {
-            int tmp_fd = open(redir->file, O_WRONLY | O_CREAT, 0644);
+            tmp_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (tmp_fd == -1)
                 return (1);
             close(tmp_fd);
@@ -152,73 +166,62 @@ int create_files_first(t_command *cmd)
     return (0);
 }
 
-static t_redirection *find_last_output(t_redirection *redir)
+static int create_output_file(t_redirection *redir)
 {
-    t_redirection *last_out;
-
-    last_out = NULL;
-    while (redir)
+    int tmp_fd;
+    
+    if (access(redir->file, F_OK) == 0)
     {
-        if (redir->type == '>' || redir->type == 'A')
-            last_out = redir;
-        redir = redir->next;
+        if (access(redir->file, W_OK) == -1)
+        {
+            ft_fprintf(2, "MiniBG: %s: Permission denied\n", redir->file);
+            return (1);
+        }
     }
-    return (last_out);
+    else if (check_parent_dir(redir->file))
+        return (1);
+    tmp_fd = open(redir->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (tmp_fd == -1)
+        return (1);
+    close(tmp_fd);
+    return (0);
 }
 
-static int handle_output_redir(t_command *cmd, t_redirection *redir)
+static int handle_redirection(t_command *cmd, t_redirection *redir)
 {
+    if (redir->type == '>')
+        return (open_outt(cmd, redir));
     if (redir->type == 'A')
         return (open_outa(cmd, redir));
-    return (open_outt(cmd, redir));
-}
-
-static int open_redirections(t_command *cmd, t_redirection *redir, t_redirection *last_out)
-{
-    while (redir)
-    {
-        if ((redir->type == '>' || redir->type == 'A') && redir == last_out)
-        {
-            if (handle_output_redir(cmd, redir))
-                return (1);
-        }
-        else if ((redir->type == '<' || redir->type == 'H') && open_in(cmd, redir))
-            return (1);
-        redir = redir->next;
-    }
+    if (redir->type == '<' || redir->type == 'H')
+        return (open_in(cmd, redir));
     return (0);
 }
 
 int open_outfiles(t_command *cmd)
 {
-    t_redirection *last_out;
+    t_redirection *curr;
+    int i;
 
-    if (create_files_first(cmd))
-        return (1);
-    last_out = find_last_output(cmd->redirs);
-    return (open_redirections(cmd, cmd->redirs, last_out));
+    if (!cmd || !cmd->redirs)
+        return (0);
+    curr = cmd->redirs;
+    i = 0;
+    while (curr[i].type)
+    {
+        if ((curr[i].type == '>') && create_output_file(&curr[i]))
+            return (1);
+        i++;
+    }
+    i = 0;
+    while (curr[i].type)
+    {
+        if (handle_redirection(cmd, &curr[i]))
+            return (1);
+        i++;
+    }
+    return (0);
 }
-
-// int	open_outfiles(t_command *cmd)
-// {
-// 	t_redirection	*redir;
-
-// 	if (create_files_first(cmd))
-//         return (1);
-// 	redir = cmd->redirs;
-// 	while (redir)
-// 	{
-// 		if (redir->type == 'A' && open_outa(cmd, redir))
-// 			return (1);
-// 		else if (redir->type == '>' && open_outt(cmd, redir))
-// 			return (1);
-// 		else if ((redir->type == '<' || redir->type == 'H') && open_in(cmd,
-// 				redir))
-// 			return (1);
-// 		redir = redir->next;
-// 	}
-// 	return (0);
-// }
 
 int	set_fds(t_command *cmd)
 {
@@ -300,7 +303,7 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 	if (!cmd->pid)
 	{
 		if (set_redirs(cmd))
-			cmd_clean_and_exit(ctx, cmd, env_v, 127);
+			cmd_clean_and_exit(ctx, cmd, env_v, 1);
 		if (is_builtin(cmd->args[0]))
 			set_and_exec_builtin(ctx, cmd);
 		cmd->path = find_command_path(cmd->args[0], ctx);
@@ -320,46 +323,97 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 	return (0);
 }
 
+// int save_std(t_ctx *ctx)
+// {
+// 	ctx->save_stdin = dup(STDIN_FILENO);
+// 	if (ctx->save_stdin == -1)
+// 		return (1);
+// 	ctx->save_stdout = dup(STDOUT_FILENO);
+// 	if (ctx->save_stdout == -1)
+// 		return (1);
+// 	return (0);
+// }
+
 int save_std(t_ctx *ctx)
 {
-	ctx->save_stdin = dup(STDIN_FILENO);
-	if (ctx->save_stdin == -1)
-		return (1);
-	ctx->save_stdout = dup(STDOUT_FILENO);
-	if (ctx->save_stdout == -1)
-		return (1);
-	return (0);
+    ctx->save_stdin = dup(STDIN_FILENO);
+    if (ctx->save_stdin == -1)
+        return (1);
+    ctx->save_stdout = dup(STDOUT_FILENO);
+    if (ctx->save_stdout == -1)
+    {
+        close(ctx->save_stdin);
+        return (1);
+    }
+    return (0);
 }
 
 int restore_std(t_ctx *ctx)
 {
-	if (dup2(ctx->save_stdin, STDIN_FILENO) == -1)
-		return (1);
-	close(ctx->save_stdin);
-	if (dup2(ctx->save_stdout, STDOUT_FILENO) == -1)
-		return (1);
-	close(ctx->save_stdout);
-	return (0);
+    int ret;
+
+    ret = 0;
+    if (dup2(ctx->save_stdin, STDIN_FILENO) == -1)
+        ret = 1;
+    close(ctx->save_stdin);
+    if (dup2(ctx->save_stdout, STDOUT_FILENO) == -1)
+        ret = 1;
+    close(ctx->save_stdout);
+    return (ret);
 }
 
-int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
-{
-	char	*cmd_line;
+// int restore_std(t_ctx *ctx)
+// {
+// 	if (dup2(ctx->save_stdin, STDIN_FILENO) == -1)
+// 		return (1);
+// 	close(ctx->save_stdin);
+// 	if (dup2(ctx->save_stdout, STDOUT_FILENO) == -1)
+// 		return (1);
+// 	close(ctx->save_stdout);
+// 	return (0);
+// }
 
-	if (!cmd)
-		return (1);
-	cmd_line = tokens_to_string_from_command(cmd);
-	if (!cmd_line)
-		return ( 1);
-	if (save_std(ctx))
-		return (free(cmd_line),1);
-	if (set_redirs(cmd))
-		return (free(cmd_line),1);
-	ctx->exit_status = execute_builtin(cmd_line, ctx);
-	if (restore_std(ctx))
-		return (1);
-	free(cmd_line);
-	return (0);
+// int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
+// {
+// 	char	*cmd_line;
+
+// 	if (!cmd)
+// 		return (1);
+// 	cmd_line = tokens_to_string_from_command(cmd);
+// 	if (!cmd_line)
+// 		return (1);
+// 	if (save_std(ctx))
+// 		return (free(cmd_line),1);
+// 	if (set_redirs(cmd))
+// 		return (free(cmd_line),1);
+// 	ctx->exit_status = execute_builtin(cmd_line, ctx);
+// 	if (restore_std(ctx))
+// 		return (1);
+// 	free(cmd_line);
+// 	return (0);
+// }
+
+int exec_builtin_once(t_ctx *ctx, t_command *cmd)
+{
+    char *cmd_line;
+    int ret;
+
+    if (!cmd)
+        return (1);
+    cmd_line = tokens_to_string_from_command(cmd);
+    if (!cmd_line)
+        return (1);
+    if (save_std(ctx))
+        return (free(cmd_line), 1);
+    if (set_redirs(cmd))
+    {
+        restore_std(ctx);
+        return (free(cmd_line), 1);
+    }
+    ctx->exit_status = execute_builtin(cmd_line, ctx);
+    ret = restore_std(ctx);
+    free(cmd_line);
+    return (ret);
 }
 
 void wait_loop(t_ctx *ctx, t_command *cmd)
@@ -371,7 +425,7 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
 	status = 0;
     while (tmp)
     {
-		if (tmp->pid > 0)  // Vérifier que le processus a été créé
+		if (tmp->pid > 0)
         {
 			waitpid(tmp->pid, &status, 0);
 			set_term_attr();
@@ -394,8 +448,8 @@ int	exec_loop(t_ctx *ctx, t_command *cmd)
 	int ret;
 
 	tmp = cmd;
-	has_child = 0;
-	ret = 0;
+	has_child = ((ret = 0));
+	ctx->current_command = cmd;
 	while (tmp)
 	{
 		if (!tmp->prev && !tmp->next && is_builtin(tmp->args[0]))

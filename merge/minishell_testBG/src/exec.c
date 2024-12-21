@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 13:59:18 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 15:30:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,7 +188,7 @@ char *tokens_to_string_from_command(t_command *cmd)
 
     char *result = ft_strdup(cmd->args[0]);
     if (!result)
-        return (free_command(cmd), NULL);
+        return (NULL);
     for (int i = 1; i < cmd->arg_count; i++)
     {
         char *temp;
@@ -197,7 +197,7 @@ char *tokens_to_string_from_command(t_command *cmd)
             temp = ft_strjoin(result, " ");
              if (!temp)
             {
-                free_command(cmd);
+                free_command_list(cmd);
                 return NULL;
             }
             free(result);
@@ -206,13 +206,12 @@ char *tokens_to_string_from_command(t_command *cmd)
         temp = ft_strjoin(result, cmd->args[i]);
         if (!temp)
         {
-            free_command(cmd);
+            free_command_list(cmd);
             return NULL;
         }
         free(result);
         result = temp;
     }
-
     return result;
 }
 

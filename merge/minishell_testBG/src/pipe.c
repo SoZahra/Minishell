@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 11:12:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/21 19:27:53 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,45 +21,45 @@
 //     // cmds
 // }
 
-int execute_piped_command(t_command *cmd, t_ctx *ctx)
-{
-    if (cmd->prev) 
-    {
-        close(cmd->prev->pfd[1]);
-        if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1) {
-            perror("dup2 prev->pfd[0]");
-            return -1;
-        }
-        close(cmd->prev->pfd[0]);
-    }
-    if (cmd->next) 
-    {
-        close(cmd->pfd[0]);
-        if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1) {
-            perror("dup2 pfd[1]");
-            return -1;
-        }
-        close(cmd->pfd[1]);
-    }
-    if (cmd->redirs)
-        apply_redirections(cmd->redirs, ctx);
-    if (is_builtin(cmd->args[0])) 
-    {
-        execute_builtin_command(cmd, ctx);
-        free_command(cmd);
-        cleanup_shell(ctx);
-        exit(ctx->exit_status);
-    } else if (cmd->path) 
-    {
-        char **env = create_env_array(ctx->env_vars);
-        execve(cmd->path, cmd->args, env);
-        perror("execve");
-        free_array(env);
-        free_command(cmd);
-        cleanup_shell(ctx);
-    }
-    exit(127);
-}
+// int execute_piped_command(t_command *cmd, t_ctx *ctx)
+// {
+//     if (cmd->prev) 
+//     {
+//         close(cmd->prev->pfd[1]);
+//         if (dup2(cmd->prev->pfd[0], STDIN_FILENO) == -1) {
+//             perror("dup2 prev->pfd[0]");
+//             return -1;
+//         }
+//         close(cmd->prev->pfd[0]);
+//     }
+//     if (cmd->next) 
+//     {
+//         close(cmd->pfd[0]);
+//         if (dup2(cmd->pfd[1], STDOUT_FILENO) == -1) {
+//             perror("dup2 pfd[1]");
+//             return -1;
+//         }
+//         close(cmd->pfd[1]);
+//     }
+//     if (cmd->redirs)
+//         apply_redirections(cmd->redirs, ctx);
+//     if (is_builtin(cmd->args[0])) 
+//     {
+//         execute_builtin_command(cmd, ctx);
+//         free_command(cmd);
+//         cleanup_shell(ctx);
+//         exit(ctx->exit_status);
+//     } else if (cmd->path) 
+//     {
+//         char **env = create_env_array(ctx->env_vars);
+//         execve(cmd->path, cmd->args, env);
+//         perror("execve");
+//         free_array(env);
+//         free_command(cmd);
+//         cleanup_shell(ctx);
+//     }
+//     exit(127);
+// }
 
 
 // int execute_piped_command(t_command *cmd, t_ctx *ctx)
@@ -669,19 +669,19 @@ void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code)
 // }
 
 // Attendre la fin des processus et définir le statut de sortie
-void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx)
-{
-    for (int i = 0; i < num_commands; i++)
-    {
-        int status;
-        waitpid(pids[i], &status, 0);
+// void wait_for_pipeline(pid_t *pids, int num_commands, t_ctx *ctx)
+// {
+//     for (int i = 0; i < num_commands; i++)
+//     {
+//         int status;
+//         waitpid(pids[i], &status, 0);
 
-        if (WIFEXITED(status))
-            ctx->exit_status = WEXITSTATUS(status);
-        else if (WIFSIGNALED(status))
-            ctx->exit_status = WTERMSIG(status) + 128;
-    }
-}
+//         if (WIFEXITED(status))
+//             ctx->exit_status = WEXITSTATUS(status);
+//         else if (WIFSIGNALED(status))
+//             ctx->exit_status = WTERMSIG(status) + 128;
+//     }
+// }
 
 int has_heredoc(t_command *cmd)
 {
@@ -695,89 +695,89 @@ int has_heredoc(t_command *cmd)
     return 0;
 }
 
-int execute_single_command(t_command *cmd, t_ctx *ctx)
-{
-    if (apply_redirections(cmd->redirs, ctx) == -1)
-        return -1;
+// int execute_single_command(t_command *cmd, t_ctx *ctx)
+// {
+//     if (apply_redirections(cmd->redirs, ctx) == -1)
+//         return -1;
 
-    if (is_builtin(cmd->args[0]))
-    {
-        char *cmd_line = tokens_to_string_from_command(cmd);
-        if (!cmd_line)
-            return -1;
-        ctx->exit_status = execute_builtin(cmd_line, ctx);
-        free(cmd_line);
-        free_command(cmd);
-        cleanup_shell(ctx);
-        exit(ctx->exit_status);
-    }
-    else
-    {
-        if (prepare_command(cmd, ctx) == -1)
-            return -1;
-        execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
-        // printf("MiniBG: %s command not found\n", cmd->args[0]);
-        free_command(cmd);
-        cleanup_shell(ctx);
-        exit(127);
-    }
-    return 0;
-}
+//     if (is_builtin(cmd->args[0]))
+//     {
+//         char *cmd_line = tokens_to_string_from_command(cmd);
+//         if (!cmd_line)
+//             return -1;
+//         ctx->exit_status = execute_builtin(cmd_line, ctx);
+//         free(cmd_line);
+//         free_command(cmd);
+//         cleanup_shell(ctx);
+//         exit(ctx->exit_status);
+//     }
+//     else
+//     {
+//         if (prepare_command(cmd, ctx) == -1)
+//             return -1;
+//         execve(cmd->path, cmd->args, create_env_array(ctx->env_vars));
+//         // printf("MiniBG: %s command not found\n", cmd->args[0]);
+//         free_command(cmd);
+//         cleanup_shell(ctx);
+//         exit(127);
+//     }
+//     return 0;
+// }
 
 
-void setup_pipe_child(t_command *cmd)
-{
-    if (cmd->prev)
-    {
-        dup2(cmd->prev->pfd[0], STDIN_FILENO);
-        close(cmd->prev->pfd[0]);
-        close(cmd->prev->pfd[1]);
-    }
-    if (cmd->next)
-    {
-        close(cmd->pfd[0]);
-        dup2(cmd->pfd[1], STDOUT_FILENO);
-        close(cmd->pfd[1]);
-    }
-}
+// void setup_pipe_child(t_command *cmd)
+// {
+//     if (cmd->prev)
+//     {
+//         dup2(cmd->prev->pfd[0], STDIN_FILENO);
+//         close(cmd->prev->pfd[0]);
+//         close(cmd->prev->pfd[1]);
+//     }
+//     if (cmd->next)
+//     {
+//         close(cmd->pfd[0]);
+//         dup2(cmd->pfd[1], STDOUT_FILENO);
+//         close(cmd->pfd[1]);
+//     }
+// }
 
-void close_parent_pipes(t_command *cmd)
-{
-    if (cmd->prev)
-    {
-        close(cmd->prev->pfd[0]);
-        close(cmd->prev->pfd[1]);
-    }
-}
+// void close_parent_pipes(t_command *cmd)
+// {
+//     if (cmd->prev)
+//     {
+//         close(cmd->prev->pfd[0]);
+//         close(cmd->prev->pfd[1]);
+//     }
+// }
 
-void execute_pipeline(t_command *cmd, t_ctx *ctx)
-{
-   t_command *current = cmd;
-   int cmd_count = count_commands(cmd);
-   pid_t last_pid;
-   int status;
+// void execute_pipeline(t_command *cmd, t_ctx *ctx)
+// {
+//    t_command *current = cmd;
+//    int cmd_count = count_commands(cmd);
+//    pid_t last_pid;
+//    int status;
 
-   while (cmd_count > 0)
-   {
-       if (--cmd_count > 0)
-           pipe(current->pfd);
-       last_pid = fork();
-       if (last_pid == 0)
-       {
-           setup_pipe_child(current);
-           execute_single_command(current, ctx);
-           clear(NULL, current, 0);
-       }
-       close_parent_pipes(current);
-       current = current->next;
-   }
-   waitpid(last_pid, &status, 0);
-   if (WIFEXITED(status))
-       ctx->exit_status = WEXITSTATUS(status);
-   else 
-       ctx->exit_status = 1;
-    // free_command(cmd);
-}
+//    while (cmd_count > 0)
+//    {
+//        if (--cmd_count > 0)
+//            pipe(current->pfd);
+//        last_pid = fork();
+//        if (last_pid == 0)
+//        {
+//            setup_pipe_child(current);
+//            execute_single_command(current, ctx);
+//            clear(NULL, current, 0);
+//        }
+//        close_parent_pipes(current);
+//        current = current->next;
+//    }
+//    waitpid(last_pid, &status, 0);
+//    if (WIFEXITED(status))
+//        ctx->exit_status = WEXITSTATUS(status);
+//    else 
+//        ctx->exit_status = 1;
+//     // free_command(cmd);
+// }
 
 // void execute_pipeline(t_command *cmd, t_ctx *ctx)
 // {
