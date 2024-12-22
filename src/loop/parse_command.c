@@ -108,6 +108,7 @@ int	expand_proc(t_token **tokens, t_ctx *ctx)
 	if (!tokens || !*tokens)
 		return (0);
 	token = *tokens;
+	jokeroverride(tokens, ctx);
 	while (token)
 	{
 		if ((token->type == 'S' || token->type == '"')

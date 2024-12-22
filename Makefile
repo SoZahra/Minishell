@@ -6,7 +6,7 @@
 #    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/11/13 18:59:30 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/22 13:54:05 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,6 +52,7 @@ SRCS =	./src/builtins/echo.c				\
 		./src/loop/parse_command.c			\
 		./src/loop/utils_parse_2.c			\
 		./src/loop/utils_parse_command.c	\
+		./src/loop/token_utils.c			\
 		\
 		./src/pipe/exc_pipe.c				\
 		./src/pipe/exec_struct_utils.c		\
@@ -61,6 +62,12 @@ SRCS =	./src/builtins/echo.c				\
 		\
 		./src/expand/expand_variables.c		\
 		./src/expand/utils_expand.c			\
+		\
+		./src/jokers/ft_split_quotes.c		\
+		./src/jokers/ft_split_quotes2.c		\
+		./src/jokers/jokeroverride.c		\
+		./src/jokers/jokeroverride2.c		\
+		./src/jokers/jokeroverride3.c		\
 		\
 		./src/signaux/handle_signal.c		\
 		\

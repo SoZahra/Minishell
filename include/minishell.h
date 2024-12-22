@@ -56,7 +56,7 @@ typedef enum token_type
     CMD = 'C',
 	DOUBLEQUOTE = '"',
 	SINGLE_QUOTE = '\'',
-}						t_token_type;
+}	t_token_type;
 
 typedef struct s_token
 {
@@ -127,6 +127,12 @@ typedef struct s_command {
 
 int	exec_loop(t_ctx *ctx, t_command *cmd);
 void print_command_debug(t_command *cmd);
+void	token_insert(t_token **at, t_token *insertion);
+char	**ft_split_quotes(const char *s, t_ctx *data);
+BOOL	is_sep_joker(char c);
+void	check_quote_status(char c, char *opened_status);
+t_token	*get_last_node(t_token *tokens);
+void	jokeroverride(t_token **root, t_ctx *data);
 
 //-----------------------------
 
@@ -297,7 +303,7 @@ void					handle_token(t_token **head, t_token **tail, char **ptr,
 int						handle_env_var(char **line, t_token **token_list,
 							t_ctx *ctx);
 t_token					*lexer(const char *input);
-t_token					*create_token(t_token_type type, const char *value);
+t_token					*token_create(char *value);
 t_token_type			get_token_type(const char *str);
 int						finalize_tokens(int in_quotes, char quote_char,
 							char *buffer, int *i, t_token **token_list);

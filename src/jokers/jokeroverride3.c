@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   jokeroverride3.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/13 18:48:58 by bama              #+#    #+#             */
-/*   Updated: 2024/08/14 13:18:57 by bama             ###   ########.fr       */
+/*   Updated: 2024/12/22 12:21:09 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 void	add_joker_to_token(char *file, t_token **current, t_token **newtok);
+void	inspect_all_files(t_ctx *data, char *dir, t_token **newtok, t_joker joker);
 
 DIR	*joker_opendir(char	*dir, t_joker *joker)
 {
@@ -27,8 +28,8 @@ DIR	*joker_opendir(char	*dir, t_joker *joker)
 			free(joker->dir);
 			joker->dir = NULL;
 		}
-		joker->dir = strljoin(joker->dir, dir);
-		joker->dir = strljoin(joker->dir, "/");
+		joker->dir = ft_strfjoin(joker->dir, dir);
+		joker->dir = ft_strfjoin(joker->dir, "/");
 	}
 	return (opendir(joker->dir));
 }
@@ -39,7 +40,7 @@ void	joker_launch_recursion(t_ctx *data, char *dir,
 	joker->at++;
 	joker->save = ft_strdup(joker->dir);
 	inspect_all_files(data, dir, newtok, *joker);
-	joker->lastfromrecu = ret_last_token(*newtok);
+	joker->lastfromrecu = get_last_node(*newtok);//ret_last_token(*newtok);
 	joker->dir = joker->save;
 	joker->at--;
 }
