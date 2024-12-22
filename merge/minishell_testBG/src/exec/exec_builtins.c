@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/21 18:59:10 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 16:01:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,24 +37,24 @@ int	create_and_add_var(t_ctx *ctx, char *var, char *value)
 	return (0);
 }
 
-int handle_pwd_builtin(const char *input, t_ctx *ctx)
-{
-    char *cwd;
+// int handle_pwd_builtin(const char *input, t_ctx *ctx)
+// {
+//     char *cwd;
 
-    while (*input == ' ')
-        input++;
-    cwd = getcwd(NULL, 0);
-    if (!cwd)
-    {
-        perror("pwd");
-        ctx->exit_status = 1;
-        return 1;
-    }
-    printf("%s\n", cwd);
-    free(cwd);
-    ctx->exit_status = 0;
-    return 0;
-}
+//     while (*input == ' ')
+//         input++;
+//     cwd = getcwd(NULL, 0);
+//     if (!cwd)
+//     {
+//         perror("pwd");
+//         ctx->exit_status = 1;
+//         return 1;
+//     }
+//     printf("%s\n", cwd);
+//     free(cwd);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
 
 // int	handle_pwd_builtin(char **args, t_ctx *ctx)
 // {
@@ -165,59 +165,59 @@ int execute_builtin(char *cmd_line, t_ctx *ctx)
     return (free(cmd), result);
 }
 
-int handle_unset_builtin(const char *input, t_ctx *ctx)
-{
-    char **split_args;
-    int i;
+// int handle_unset_builtin(const char *input, t_ctx *ctx)
+// {
+//     char **split_args;
+//     int i;
 
-    while (*input == ' ')
-        input++;
-    if (!*input)
-        return 0;
-    split_args = ft_split(input, ' ');
-    if (!split_args)
-        return (perror("ft_split"), 1);
-    i = 0;
-    while(split_args[i])
-    {
-        if (!is_valid_var_name(split_args[i]))
-        {
-            ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
-            ctx->exit_status = 1;
-            continue;
-        }
-        if (unset_v(&ctx->env_vars, split_args[i]) != 0)
-            ctx->exit_status = 0;
-        i++;
-    }
-    return (free_array(split_args), 0);
-}
+//     while (*input == ' ')
+//         input++;
+//     if (!*input)
+//         return 0;
+//     split_args = ft_split(input, ' ');
+//     if (!split_args)
+//         return (perror("ft_split"), 1);
+//     i = 0;
+//     while(split_args[i])
+//     {
+//         if (!is_valid_var_name(split_args[i]))
+//         {
+//             ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
+//             ctx->exit_status = 1;
+//             continue;
+//         }
+//         if (unset_v(&ctx->env_vars, split_args[i]) != 0)
+//             ctx->exit_status = 0;
+//         i++;
+//     }
+//     return (free_array(split_args), 0);
+// }
 
-int unset_v(t_env_var **env_vars, const char *var)
-{
-    t_env_var *current;
-    t_env_var *prev;
+// int unset_v(t_env_var **env_vars, const char *var)
+// {
+//     t_env_var *current;
+//     t_env_var *prev;
 
-    current = *env_vars;
-    prev = NULL;
-    while (current)
-    {
-        if (ft_strcmp(current->name, var) == 0)
-        {
-            if (prev == NULL)
-                *env_vars = current->next;
-            else
-                prev->next = current->next;
-            free(current->name);
-            free(current->value);
-            free(current);
-            return 0;
-        }
-        prev = current;
-        current = current->next;
-    }
-    return 1;
-}
+//     current = *env_vars;
+//     prev = NULL;
+//     while (current)
+//     {
+//         if (ft_strcmp(current->name, var) == 0)
+//         {
+//             if (prev == NULL)
+//                 *env_vars = current->next;
+//             else
+//                 prev->next = current->next;
+//             free(current->name);
+//             free(current->value);
+//             free(current);
+//             return 0;
+//         }
+//         prev = current;
+//         current = current->next;
+//     }
+//     return 1;
+// }
 
 // int execute_builtin(t_ctx *ctx, t_token *tokens)
 // {

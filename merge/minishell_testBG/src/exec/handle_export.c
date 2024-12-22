@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/21 19:13:36 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 16:02:32 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ int handle_no_equal(const char *arg, t_ctx *ctx)
         return handle_error(arg, ctx);
     return (create_and_add_var(ctx, ft_strdup(arg), NULL));
 }
-static int export_single_var(const char *arg, t_ctx *ctx)
+int export_single_var(const char *arg, t_ctx *ctx)
 {
     int result;
     char *equal_sign;
@@ -136,6 +136,21 @@ static int export_single_var(const char *arg, t_ctx *ctx)
     result = create_var_with_value(temp, equal_sign + 1, ctx);
     free(temp);
     return result;
+}
+
+void	print_export(t_ctx *ctx)
+{
+	t_env_var	*current;
+
+	current = ctx->env_vars;
+	while (current)
+	{
+		if (current->value)
+			printf("%s=%s\n", current->name, current->value);
+		else
+			printf("%s\n", current->name);
+		current = current->next;
+	}
 }
 
 int handle_no_args(t_ctx *ctx)
@@ -177,7 +192,7 @@ int handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
     return result;
 }
 
-int handle_single_arg(const char *args, t_ctx *ctx)
+int handle_single_arg(char *args, t_ctx *ctx)
 {
     int result;
     char *arg;

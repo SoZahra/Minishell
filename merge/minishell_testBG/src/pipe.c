@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/21 19:27:53 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 15:56:21 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -270,230 +270,230 @@ int prepare_command(t_command *cmd, t_ctx *ctx)
 // }
 
 
-// Compte le nombre de commandes dans le pipeline
-int count_commands(t_command *cmd)
-{
-    int count = 0;
-    while (cmd)
-    {
-        count++;
-        cmd = cmd->next;
-    }
-    return count;
-}
+// // Compte le nombre de commandes dans le pipeline
+// int count_commands(t_command *cmd)
+// {
+//     int count = 0;
+//     while (cmd)
+//     {
+//         count++;
+//         cmd = cmd->next;
+//     }
+//     return count;
+// }
 
-// Créer les pipes pour le pipeline
-int **create_pipeline_pipes(int num_commands)
-{
-    if (num_commands <= 1)
-        return NULL;
+// // Créer les pipes pour le pipeline
+// int **create_pipeline_pipes(int num_commands)
+// {
+//     if (num_commands <= 1)
+//         return NULL;
 
-    int **pipes = malloc(sizeof(int *) * (num_commands - 1));
-    for (int i = 0; i < num_commands - 1; i++)
-    {
-        pipes[i] = malloc(sizeof(int) * 2);
-        if (pipe(pipes[i]) == -1)
-        {
-            perror("pipe");
-            // Libérer les pipes déjà créés
-            while (i > 0)
-            {
-                i--;
-                close(pipes[i][0]);
-                close(pipes[i][1]);
-                free(pipes[i]);
-            }
-            free(pipes);
-            return NULL;
-        }
-    }
-    return pipes;
-}
+//     int **pipes = malloc(sizeof(int *) * (num_commands - 1));
+//     for (int i = 0; i < num_commands - 1; i++)
+//     {
+//         pipes[i] = malloc(sizeof(int) * 2);
+//         if (pipe(pipes[i]) == -1)
+//         {
+//             perror("pipe");
+//             // Libérer les pipes déjà créés
+//             while (i > 0)
+//             {
+//                 i--;
+//                 close(pipes[i][0]);
+//                 close(pipes[i][1]);
+//                 free(pipes[i]);
+//             }
+//             free(pipes);
+//             return NULL;
+//         }
+//     }
+//     return pipes;
+// }
 
-// Fermer les descripteurs de pipe
-void close_pipes(int **pipes, int num_commands)
-{
-    if (!pipes)
-        return;
+// // Fermer les descripteurs de pipe
+// void close_pipes(int **pipes, int num_commands)
+// {
+//     if (!pipes)
+//         return;
 
-    for (int i = 0; i < num_commands - 1; i++)
-    {
-        close(pipes[i][0]);
-        close(pipes[i][1]);
-        free(pipes[i]);
-    }
-    free(pipes);
-}
+//     for (int i = 0; i < num_commands - 1; i++)
+//     {
+//         close(pipes[i][0]);
+//         close(pipes[i][1]);
+//         free(pipes[i]);
+//     }
+//     free(pipes);
+// }
 
-// Rediriger l'entrée pour un processus
-void redirect_input(t_command *cmd, int **pipes, int index)
-{
-    // Redirections d'entrée définies
-    if (cmd->redirs)
-    {
-        t_redirection *redir = cmd->redirs;
-        while (redir && redir->type != 0)
-        {
-            if (redir->type == '<')
-                handle_input_redirection(redir);
-            redir = redir->next;
-        }
-    }
+// // Rediriger l'entrée pour un processus
+// // void redirect_input(t_command *cmd, int **pipes, int index)
+// // {
+// //     // Redirections d'entrée définies
+// //     if (cmd->redirs)
+// //     {
+// //         t_redirection *redir = cmd->redirs;
+// //         while (redir && redir->type != 0)
+// //         {
+// //             if (redir->type == '<')
+// //                 handle_input_redirection(redir);
+// //             redir = redir->next;
+// //         }
+// //     }
 
-    // Redirection depuis le pipe précédent
-    if (index > 0 && pipes)
-    {
-        dup2(pipes[index - 1][0], STDIN_FILENO);
-        close(pipes[index - 1][0]);
-        close(pipes[index - 1][1]);
-    }
-}
+// //     // Redirection depuis le pipe précédent
+// //     if (index > 0 && pipes)
+// //     {
+// //         dup2(pipes[index - 1][0], STDIN_FILENO);
+// //         close(pipes[index - 1][0]);
+// //         close(pipes[index - 1][1]);
+// //     }
+// // }
 
-// Rediriger la sortie pour un processus
-void redirect_output(int **pipes, int index, int num_commands)
-{
-    if (index < num_commands - 1 && pipes)
-    {
-        dup2(pipes[index][1], STDOUT_FILENO);
-        close(pipes[index][0]);
-        close(pipes[index][1]);
-    }
-}
+// // Rediriger la sortie pour un processus
+// void redirect_output(int **pipes, int index, int num_commands)
+// {
+//     if (index < num_commands - 1 && pipes)
+//     {
+//         dup2(pipes[index][1], STDOUT_FILENO);
+//         close(pipes[index][0]);
+//         close(pipes[index][1]);
+//     }
+// }
 
-// Fermer tous les descripteurs de pipe sauf ceux utilisés
-void close_unused_pipes(int **pipes, int index, int num_commands)
-{
-    if (!pipes)
-        return;
+// // Fermer tous les descripteurs de pipe sauf ceux utilisés
+// void close_unused_pipes(int **pipes, int index, int num_commands)
+// {
+//     if (!pipes)
+//         return;
 
-    for (int j = 0; j < num_commands - 1; j++)
-    {
-        if (j != index - 1 && j != index)
-        {
-            close(pipes[j][0]);
-            close(pipes[j][1]);
-        }
-    }
-}
+//     for (int j = 0; j < num_commands - 1; j++)
+//     {
+//         if (j != index - 1 && j != index)
+//         {
+//             close(pipes[j][0]);
+//             close(pipes[j][1]);
+//         }
+//     }
+// }
 
-char *build_command_line(t_command *cmd)
-{
-    // Calculer la taille nécessaire
-    size_t total_len = 0;
-    for (int i = 0; cmd->args[i]; i++)
-    {
-        total_len += strlen(cmd->args[i]) + 1; // +1 pour l'espace
-    }
+// char *build_command_line(t_command *cmd)
+// {
+//     // Calculer la taille nécessaire
+//     size_t total_len = 0;
+//     for (int i = 0; cmd->args[i]; i++)
+//     {
+//         total_len += strlen(cmd->args[i]) + 1; // +1 pour l'espace
+//     }
 
-    // Allouer la mémoire
-    char *cmd_line = malloc(total_len + 1);
-    if (!cmd_line)
-        return NULL;
+//     // Allouer la mémoire
+//     char *cmd_line = malloc(total_len + 1);
+//     if (!cmd_line)
+//         return NULL;
 
-    // Construire la ligne de commande
-    cmd_line[0] = '\0';
-    for (int i = 0; cmd->args[i]; i++)
-    {
-        if (i > 0)
-            strcat(cmd_line, " ");
-        strcat(cmd_line, cmd->args[i]);
-    }
+//     // Construire la ligne de commande
+//     cmd_line[0] = '\0';
+//     for (int i = 0; cmd->args[i]; i++)
+//     {
+//         if (i > 0)
+//             strcat(cmd_line, " ");
+//         strcat(cmd_line, cmd->args[i]);
+//     }
 
-    return cmd_line;
-}
+//     return cmd_line;
+// }
 
-int has_input_redirection(t_command *cmd)
-{
-    if (!cmd->redirs)
-        return 0;
-    for (int i = 0; cmd->redirs[i].type != 0; i++)
-    {
-        if (cmd->redirs[i].type == '<' || cmd->redirs[i].type == 'H')
-            return 1;
-    }
-    return 0;
-}
-int has_output_redirection(t_command *cmd)
-{
-    if (!cmd->redirs)
-        return 0;
-    for (int i = 0; cmd->redirs[i].type != 0; i++)
-    {
-        if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
-            return 1;
-    }
-    return 0;
-}
+// int has_input_redirection(t_command *cmd)
+// {
+//     if (!cmd->redirs)
+//         return 0;
+//     for (int i = 0; cmd->redirs[i].type != 0; i++)
+//     {
+//         if (cmd->redirs[i].type == '<' || cmd->redirs[i].type == 'H')
+//             return 1;
+//     }
+//     return 0;
+// }
+// int has_output_redirection(t_command *cmd)
+// {
+//     if (!cmd->redirs)
+//         return 0;
+//     for (int i = 0; cmd->redirs[i].type != 0; i++)
+//     {
+//         if (cmd->redirs[i].type == '>' || cmd->redirs[i].type == 'A')
+//             return 1;
+//     }
+//     return 0;
+// }
 
-void setup_pipe_redirections(t_command *cmd, int index, int cmd_count)
-{
-    if (index > 0 && cmd->prev)
-    {
-        dup2(cmd->prev->pfd[0], STDIN_FILENO);
-        close(cmd->prev->pfd[0]);
-        close(cmd->prev->pfd[1]);
-    }
+// void setup_pipe_redirections(t_command *cmd, int index, int cmd_count)
+// {
+//     if (index > 0 && cmd->prev)
+//     {
+//         dup2(cmd->prev->pfd[0], STDIN_FILENO);
+//         close(cmd->prev->pfd[0]);
+//         close(cmd->prev->pfd[1]);
+//     }
     
-    if (index < cmd_count - 1)
-    {
-        close(cmd->pfd[0]);
-        dup2(cmd->pfd[1], STDOUT_FILENO);
-        close(cmd->pfd[1]);
-    }
-}
+//     if (index < cmd_count - 1)
+//     {
+//         close(cmd->pfd[0]);
+//         dup2(cmd->pfd[1], STDOUT_FILENO);
+//         close(cmd->pfd[1]);
+//     }
+// }
 
-void execute_command_in_child(t_command *cmd, t_ctx *ctx)
-{
-    if (apply_redirections(cmd->redirs, ctx) == -1)
-        exit(1);
+// void execute_command_in_child(t_command *cmd, t_ctx *ctx)
+// {
+//     if (apply_redirections(cmd->redirs, ctx) == -1)
+//         exit(1);
 
-    if (is_builtin(cmd->args[0]))
-    {
-        char *cmd_line = tokens_to_string_from_command(cmd);
-        int ret = execute_builtin(cmd_line, ctx);
-        free(cmd_line);
-        exit(ret);
-    }
+//     if (is_builtin(cmd->args[0]))
+//     {
+//         char *cmd_line = tokens_to_string_from_command(cmd);
+//         int ret = execute_builtin(cmd_line, ctx);
+//         free(cmd_line);
+//         exit(ret);
+//     }
 
-    char **env = create_env_array(ctx->env_vars);
-    if (prepare_command(cmd, ctx) == -1)
-        exit(1);
-    execve(cmd->path, cmd->args, env);
-    perror("execve");
-    free_command(cmd);
-    cleanup_shell(ctx);
-    exit(1);
-}
+//     char **env = create_env_array(ctx->env_vars);
+//     if (prepare_command(cmd, ctx) == -1)
+//         exit(1);
+//     execve(cmd->path, cmd->args, env);
+//     perror("execve");
+//     free_command(cmd);
+//     cleanup_shell(ctx);
+//     exit(1);
+// }
 
-void execute_commands_in_pipeline(t_command *cmd, int cmd_count, t_ctx *ctx)
-{
-    int i = 0;
-    t_command *current = cmd;
+// void execute_commands_in_pipeline(t_command *cmd, int cmd_count, t_ctx *ctx)
+// {
+//     int i = 0;
+//     t_command *current = cmd;
 
-    while (current && i < cmd_count)
-    {
-        if (i < cmd_count - 1)
-            pipe(current->pfd);
+//     while (current && i < cmd_count)
+//     {
+//         if (i < cmd_count - 1)
+//             pipe(current->pfd);
 
-        current->pid = fork();
-        if (current->pid == 0)
-        {
-            setup_pipe_redirections(current, i, cmd_count);
-            execute_command_in_child(current, ctx);
-            exit(1);
-        }
+//         current->pid = fork();
+//         if (current->pid == 0)
+//         {
+//             setup_pipe_redirections(current, i, cmd_count);
+//             execute_command_in_child(current, ctx);
+//             exit(1);
+//         }
         
-        if (i > 0)
-        {
-            close(current->prev->pfd[0]);
-            close(current->prev->pfd[1]);
-        }
+//         if (i > 0)
+//         {
+//             close(current->prev->pfd[0]);
+//             close(current->prev->pfd[1]);
+//         }
         
-        i++;
-        current = current->next;
-    }
-    wait_for_children(cmd, ctx);
-}
+//         i++;
+//         current = current->next;
+//     }
+//     wait_for_children(cmd, ctx);
+// }
 
 // void execute_command_in_pipeline(t_command *cmd, t_ctx *ctx, int **pipes, int index, int num_commands)
 // {

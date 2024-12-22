@@ -6,41 +6,41 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/21 18:20:47 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 17:11:07 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-int		g_var_global = 0;
 
-char	*empty_completion(const char *text, int state)
-{
-	(void)text;
-	(void)state;
-	return (NULL);
-}
 
-void	handle_sigint(int sig)
-{
-	(void)sig;
-	printf("\n");
-	rl_on_new_line();
-	rl_replace_line("", 0);
-	rl_redisplay();
-	g_var_global = 0;
-}
+// char	*empty_completion(const char *text, int state)
+// {
+// 	(void)text;
+// 	(void)state;
+// 	return (NULL);
+// }
 
-void	handle_sigquit(int sig)
-{
-	(void)sig;
-}
+// void	handle_sigint(int sig)
+// {
+// 	(void)sig;
+// 	printf("\n");
+// 	rl_on_new_line();
+// 	rl_replace_line("", 0);
+// 	rl_redisplay();
+// 	g_var_global = 0;
+// }
 
-void	init_sig(void)
-{
-	signal(SIGINT, handle_sigint);
-	signal(SIGQUIT, SIG_IGN);
-}
+// void	handle_sigquit(int sig)
+// {
+// 	(void)sig;
+// }
+
+// void	init_sig(void)
+// {
+// 	signal(SIGINT, handle_sigint);
+// 	signal(SIGQUIT, SIG_IGN);
+// }
 
 void print_tokens(t_token *tokens)
 {
@@ -498,8 +498,8 @@ int	process(t_ctx *ctx)
 		{
 			write(1, "exit\n", 5);
             rl_clear_history();
-            if(g_var_global)
-                ctx->exit_status = 130;
+            // if(g_var_global)
+            //     ctx->exit_status = 130;
 			return(ctx->exit_status);
 		}
 		handle_line_for_loop(line, ctx);

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/21 15:30:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 16:17:27 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,191 +259,191 @@ char *tokens_to_string_from_command(t_command *cmd)
 //     restore_fds(get_ctx()->save_stdin, get_ctx()->save_stdout);
 // }
 
-int handle_heredoc(t_redirection *redir, t_ctx *ctx)
-{
-    (void)ctx;
-    if (redir->heredoc_fd != -1)
-    {
-        if (dup2(redir->heredoc_fd, STDIN_FILENO) == -1)
-        {
-            perror("dup2 heredoc");
-            close(redir->heredoc_fd);
-            return -1;
-        }
-        close(redir->heredoc_fd);
-        return 0;
-    }
-    return -1;
-}
+// int handle_heredoc(t_redirection *redir, t_ctx *ctx)
+// {
+//     (void)ctx;
+//     if (redir->heredoc_fd != -1)
+//     {
+//         if (dup2(redir->heredoc_fd, STDIN_FILENO) == -1)
+//         {
+//             perror("dup2 heredoc");
+//             close(redir->heredoc_fd);
+//             return -1;
+//         }
+//         close(redir->heredoc_fd);
+//         return 0;
+//     }
+//     return -1;
+// }
 
 
-int handle_input_redirection(t_redirection *redir)
-{
-    int fd = open(redir->file, O_RDONLY);
-    if (fd == -1)
-    {
-        perror("open input redirection");
-        return -1;
-    }
+// int handle_input_redirection(t_redirection *redir)
+// {
+//     int fd = open(redir->file, O_RDONLY);
+//     if (fd == -1)
+//     {
+//         perror("open input redirection");
+//         return -1;
+//     }
 
-    if (dup2(fd, STDIN_FILENO) == -1)
-    {
-        perror("dup2 input");
-        close(fd);
-        return -1;
-    }
-    close(fd);
-    return 0;
-}
+//     if (dup2(fd, STDIN_FILENO) == -1)
+//     {
+//         perror("dup2 input");
+//         close(fd);
+//         return -1;
+//     }
+//     close(fd);
+//     return 0;
+// }
 
-int apply_redirections(t_redirection *redirs, t_ctx *ctx)
-{
-    if (!redirs || redirs->type == 0)
-        return 0;
+// int apply_redirections(t_redirection *redirs, t_ctx *ctx)
+// {
+//     if (!redirs || redirs->type == 0)
+//         return 0;
 
-    t_redirection *current = redirs;
-    while (current && current->type != 0)
-    {
-        if (current->type == '<')
-        {
-            if (access(current->file, F_OK) == -1)
-            {
-                ft_fprintf(2, "minishell: %s: No such file or directory\n", current->file);
-                return -1;
-            }
-            if (handle_input_redirection(current) == -1)
-                return -1;
-        }
-        else if (current->type == 'H')
-        {
-            if (handle_heredoc(current, ctx) == -1)
-                return -1;
-        }
-        else if (current->type == '>' || current->type == 'A')
-        {
-            if (access(current->file, W_OK) == -1 && access(current->file, F_OK) == 0)
-            {
-                ft_fprintf(2, "minishell: %s: Permission denied\n", current->file);
-                return -1;
-            }
-            int flags = O_WRONLY | O_CREAT;
-            flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
-            int fd = open(current->file, flags, 0644);
-            if (fd == -1)
-            {
-                perror("open");
-                return -1;
-            }
-            if (dup2(fd, STDOUT_FILENO) == -1)
-            {
-                perror("dup2");
-                close(fd);
-                return -1;
-            }
-            close(fd);
-        }
-        current = current->next;
-    }
-    return 0;
-}
-
-
-int here_doc(char *delimiter, t_ctx *ctx)
-{
-    int pipefd[2];
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-
-    if (pipe(pipefd) == -1)
-    {
-        perror("pipe");
-        return -1;
-    }
-    while (1)
-    {
-        printf("> ");
-        if ((read = getline(&line, &len, stdin)) == -1)
-        {
-            free(line);
-            break;
-        }
-    if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
-        (line[ft_strlen(delimiter)] == '\n' || line[ft_strlen(delimiter)] == '\0'))
-    {
-        free(line);
-        break;
-    }
-    if (read > 0 && line[read - 1] == '\n')
-            line[read - 1] = '\0';
-    t_token *expand_token = create_new_token('S', line);
-    if (expand_proc(&expand_token, ctx) == -1)
-    {
-        free(line);
-        free_tokens(expand_token);
-        break;
-    }
-    write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
-    write(pipefd[1], "\n", 1);
-    free_tokens(expand_token);
-    line = NULL;
-    }
-    close(pipefd[1]);
-    return pipefd[0];
-}
+//     t_redirection *current = redirs;
+//     while (current && current->type != 0)
+//     {
+//         if (current->type == '<')
+//         {
+//             if (access(current->file, F_OK) == -1)
+//             {
+//                 ft_fprintf(2, "minishell: %s: No such file or directory\n", current->file);
+//                 return -1;
+//             }
+//             if (handle_input_redirection(current) == -1)
+//                 return -1;
+//         }
+//         else if (current->type == 'H')
+//         {
+//             if (handle_heredoc(current, ctx) == -1)
+//                 return -1;
+//         }
+//         else if (current->type == '>' || current->type == 'A')
+//         {
+//             if (access(current->file, W_OK) == -1 && access(current->file, F_OK) == 0)
+//             {
+//                 ft_fprintf(2, "minishell: %s: Permission denied\n", current->file);
+//                 return -1;
+//             }
+//             int flags = O_WRONLY | O_CREAT;
+//             flags |= (current->type == 'A') ? O_APPEND : O_TRUNC;
+//             int fd = open(current->file, flags, 0644);
+//             if (fd == -1)
+//             {
+//                 perror("open");
+//                 return -1;
+//             }
+//             if (dup2(fd, STDOUT_FILENO) == -1)
+//             {
+//                 perror("dup2");
+//                 close(fd);
+//                 return -1;
+//             }
+//             close(fd);
+//         }
+//         current = current->next;
+//     }
+//     return 0;
+// }
 
 
-void restore_fds(int stdin_fd, int stdout_fd)
-{
-   if (stdin_fd != -1)
-   {
-       dup2(stdin_fd, STDIN_FILENO);
-       close(stdin_fd);
-   }
-   if (stdout_fd != -1)
-   {
-       dup2(stdout_fd, STDOUT_FILENO);
-       close(stdout_fd);
-   }
-}
-char *args_to_string(char **args)
-{
-    if (!args || !args[0])
-        return NULL;
+// int here_doc(char *delimiter, t_ctx *ctx)
+// {
+//     int pipefd[2];
+//     char *line = NULL;
+//     size_t len = 0;
+//     ssize_t read;
 
-    // Calculer la longueur totale nécessaire
-    size_t total_len = 0;
-    for (int i = 0; args[i]; i++)
-    {
-        total_len += ft_strlen(args[i]);
-        if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
-            total_len++;
-    }
-    char *result = malloc(total_len + 1);
-    if (!result)
-        return NULL;
-    // Construire la chaîne
-    result[0] = '\0';
-    for (int i = 0; args[i]; i++)
-    {
-        strcat(result, args[i]);
-        if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
-            strcat(result, " ");
-    }
-    return result;
-}
+//     if (pipe(pipefd) == -1)
+//     {
+//         perror("pipe");
+//         return -1;
+//     }
+//     while (1)
+//     {
+//         printf("> ");
+//         if ((read = getline(&line, &len, stdin)) == -1)
+//         {
+//             free(line);
+//             break;
+//         }
+//     if (strncmp(line, delimiter, ft_strlen(delimiter)) == 0 &&
+//         (line[ft_strlen(delimiter)] == '\n' || line[ft_strlen(delimiter)] == '\0'))
+//     {
+//         free(line);
+//         break;
+//     }
+//     if (read > 0 && line[read - 1] == '\n')
+//             line[read - 1] = '\0';
+//     t_token *expand_token = create_new_token('S', line);
+//     if (expand_proc(&expand_token, ctx) == -1)
+//     {
+//         free(line);
+//         free_tokens(expand_token);
+//         break;
+//     }
+//     write(pipefd[1], expand_token->value, ft_strlen(expand_token->value));
+//     write(pipefd[1], "\n", 1);
+//     free_tokens(expand_token);
+//     line = NULL;
+//     }
+//     close(pipefd[1]);
+//     return pipefd[0];
+// }
 
-void execute_builtin_command(t_command *cmd, t_ctx *ctx)
-{
-   char *cmd_str = args_to_string(cmd->args);
-//    printf("Debug: cmd->argssss[0]: '%s'\n", cmd->args[0]);
-//     printf("Debug: cmd->argssss[1]: '%s'\n", cmd->args[1]);
-   if (cmd_str)
-   {
-       ctx->exit_status = execute_builtin(cmd_str, ctx);
-       free(cmd_str);
-   }
-}
+
+// void restore_fds(int stdin_fd, int stdout_fd)
+// {
+//    if (stdin_fd != -1)
+//    {
+//        dup2(stdin_fd, STDIN_FILENO);
+//        close(stdin_fd);
+//    }
+//    if (stdout_fd != -1)
+//    {
+//        dup2(stdout_fd, STDOUT_FILENO);
+//        close(stdout_fd);
+//    }
+// }
+// char *args_to_string(char **args)
+// {
+//     if (!args || !args[0])
+//         return NULL;
+
+//     // Calculer la longueur totale nécessaire
+//     size_t total_len = 0;
+//     for (int i = 0; args[i]; i++)
+//     {
+//         total_len += ft_strlen(args[i]);
+//         if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
+//             total_len++;
+//     }
+//     char *result = malloc(total_len + 1);
+//     if (!result)
+//         return NULL;
+//     // Construire la chaîne
+//     result[0] = '\0';
+//     for (int i = 0; args[i]; i++)
+//     {
+//         strcat(result, args[i]);
+//         if (args[i + 1]) // Ajouter un espace si ce n'est pas le dernier argument
+//             strcat(result, " ");
+//     }
+//     return result;
+// }
+
+// void execute_builtin_command(t_command *cmd, t_ctx *ctx)
+// {
+//    char *cmd_str = args_to_string(cmd->args);
+// //    printf("Debug: cmd->argssss[0]: '%s'\n", cmd->args[0]);
+// //     printf("Debug: cmd->argssss[1]: '%s'\n", cmd->args[1]);
+//    if (cmd_str)
+//    {
+//        ctx->exit_status = execute_builtin(cmd_str, ctx);
+//        free(cmd_str);
+//    }
+// }
 
 // //pas encore utilise 
 // int execute_external_command(t_command *cmd, t_ctx *ctx)

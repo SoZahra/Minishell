@@ -117,18 +117,62 @@ int open_outt(t_command *cmd, t_redirection *redir)
     return (open_output_file(cmd, redir));
 }
 
+int here_doc(char *delimiter, t_ctx *ctx)
+{
+    (void)ctx;
+    int pipe_fd[2];
+    char *line;
+
+    if (pipe(pipe_fd) == -1)
+        return (-1);
+    while (1)
+    {
+        line = readline("> ");
+        if (!line)
+        {
+            ft_fprintf(2, "\nwarning: here-document delimited by end-of-file\n");
+            break;
+        }
+        if (ft_strcmp(line, delimiter) == 0)
+        {
+            free(line);
+            break;
+        }
+        write(pipe_fd[1], line, ft_strlen(line));
+        write(pipe_fd[1], "\n", 1);
+        free(line);
+    }
+    close(pipe_fd[1]);
+    return (pipe_fd[0]);
+}
+
+int handle_heredoc(t_command *cmd, t_redirection *redir)
+{
+    int fd;
+
+    fd = here_doc(redir->file, get_ctx());
+    if (fd == -1)
+        return (1);
+    if (cmd->in_fd > 0)
+        close(cmd->in_fd);
+    cmd->in_fd = fd;
+    return (0);
+}
+
 int	open_in(t_command *cmd, t_redirection *redir)
 {
-	if (access(redir->file, F_OK))
+    if (redir->type == 'H')
+        return (handle_heredoc(cmd, redir));
+    if (access(redir->file, F_OK))
 	{
 		get_ctx()->exit_status = 1;
-		return (printf("bash: %s: No such file or directoryyy\n", redir->file),
+		return (printf("MiniBG: %s: No such file or directory\n", redir->file),
 			1);
 	}
 	if (access(redir->file, R_OK))
 	{
 		get_ctx()->exit_status = 1;
-		return (printf("bash: %s: Permission denied\n", redir->file), 1);
+		return (printf("MiniBG %s: Permission denied\n", redir->file), 1);
 	}
 	if (cmd->in_fd)
 		close(cmd->in_fd);
@@ -137,6 +181,7 @@ int	open_in(t_command *cmd, t_redirection *redir)
 		return (1);
 	return (0);
 }
+
 int create_files_first(t_command *cmd)
 {
     t_redirection *redir;
@@ -242,11 +287,11 @@ int	set_fds(t_command *cmd)
 
 int	set_redirs(t_command *cmd)
 {
+    if (open_outfiles(cmd))
+		return (1);
+    if (set_fds(cmd))
+		return (1);
 	if (set_pfd(cmd))
-		return (1);
-	if (open_outfiles(cmd))
-		return (1);
-	if (set_fds(cmd))
 		return (1);
 	return (0);
 }
@@ -315,24 +360,13 @@ int	exec_child(t_ctx *ctx, t_command *cmd)
 		}
 		env_v = create_env_array(ctx->env_vars);
 		execve(cmd->path, cmd->args, env_v);
-		ft_fprintf(2, "bash: %s: command not found\n", cmd->args[0]);
+		ft_fprintf(2, "MiniBG: %s: command not found\n", cmd->args[0]);
 		cmd_clean_and_exit(ctx, cmd, env_v, 127);
 	}
 	if (cmd->pid)
 		exec_parent(cmd);
 	return (0);
 }
-
-// int save_std(t_ctx *ctx)
-// {
-// 	ctx->save_stdin = dup(STDIN_FILENO);
-// 	if (ctx->save_stdin == -1)
-// 		return (1);
-// 	ctx->save_stdout = dup(STDOUT_FILENO);
-// 	if (ctx->save_stdout == -1)
-// 		return (1);
-// 	return (0);
-// }
 
 int save_std(t_ctx *ctx)
 {
@@ -361,37 +395,6 @@ int restore_std(t_ctx *ctx)
     close(ctx->save_stdout);
     return (ret);
 }
-
-// int restore_std(t_ctx *ctx)
-// {
-// 	if (dup2(ctx->save_stdin, STDIN_FILENO) == -1)
-// 		return (1);
-// 	close(ctx->save_stdin);
-// 	if (dup2(ctx->save_stdout, STDOUT_FILENO) == -1)
-// 		return (1);
-// 	close(ctx->save_stdout);
-// 	return (0);
-// }
-
-// int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
-// {
-// 	char	*cmd_line;
-
-// 	if (!cmd)
-// 		return (1);
-// 	cmd_line = tokens_to_string_from_command(cmd);
-// 	if (!cmd_line)
-// 		return (1);
-// 	if (save_std(ctx))
-// 		return (free(cmd_line),1);
-// 	if (set_redirs(cmd))
-// 		return (free(cmd_line),1);
-// 	ctx->exit_status = execute_builtin(cmd_line, ctx);
-// 	if (restore_std(ctx))
-// 		return (1);
-// 	free(cmd_line);
-// 	return (0);
-// }
 
 int exec_builtin_once(t_ctx *ctx, t_command *cmd)
 {
@@ -440,6 +443,62 @@ void wait_loop(t_ctx *ctx, t_command *cmd)
 		tmp = tmp->next;
     }
 }
+
+// static int is_state_changing_builtin(const char *cmd)
+// {
+//     return (ft_strcmp(cmd, "export") == 0 ||
+//             ft_strcmp(cmd, "cd") == 0 ||
+//             ft_strcmp(cmd, "unset") == 0);
+// }
+
+// static int handle_state_builtin(t_ctx *ctx, t_command *cmd)
+// {
+//     int ret;
+
+//     ret = exec_builtin_once(ctx, cmd);
+//     if (ret || !cmd->next)
+//         return (ret);
+//     return (exec_child(ctx, cmd));
+// }
+
+// static int handle_piped_command(t_ctx *ctx, t_command *cmd)
+// {
+//     if (exec_child(ctx, cmd))
+//         return (1);
+//     return (0);
+// }
+
+// static int process_command(t_ctx *ctx, t_command *cmd, int *has_child)
+// {
+//     if (!cmd->prev && is_builtin(cmd->args[0]) && 
+//         is_state_changing_builtin(cmd->args[0]))
+//         return (handle_state_builtin(ctx, cmd));
+//     if (!cmd->prev && !cmd->next && is_builtin(cmd->args[0]))
+//         return (exec_builtin_once(ctx, cmd));
+//     *has_child = 1;
+//     return (handle_piped_command(ctx, cmd));
+// }
+
+// int exec_loop(t_ctx *ctx, t_command *cmd)
+// {
+//     t_command *tmp;
+//     int has_child;
+//     int ret;
+
+//     tmp = cmd;
+//     has_child = 0;
+//     ret = 0;
+//     ctx->current_command = cmd;
+//     while (tmp)
+//     {
+//         if (process_command(ctx, tmp, &has_child))
+//             ret = 1;
+//         tmp = tmp->next;
+//     }
+//     if (has_child)
+//         wait_loop(ctx, cmd);
+//     return (ret);
+// }
 
 int	exec_loop(t_ctx *ctx, t_command *cmd)
 {
