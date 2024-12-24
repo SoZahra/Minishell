@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 17:11:07 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/24 17:51:30 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,16 +126,15 @@ t_token *tokenize_input(char *line)
     t_token *tokens = NULL;
     t_token *tmp;
     if (tokenizer(&tokens, line) < 0)
-        return NULL;
-
+        return free_tokens(tokens), NULL;
     tmp = get_last_node(tokens);
     if(!tmp)
-        return(NULL);
+        return(free_tokens(tokens), NULL);
     if (is_token(tmp->type, REDIRS))
     {
         printf("syntax error\n");
-        if(!tokens)
-            free_tokens(tokens);
+        // if(!tokens)
+        free_tokens(tokens);
         return NULL;
     }
     return tokens;
@@ -270,7 +269,8 @@ t_token *tokenize_input(char *line)
 
 t_command *init_command_struct(int arg_count, int redir_count)
 {
-    t_command *cmd = calloc(1, sizeof(t_command));
+    t_command *cmd;
+    cmd = calloc(1, sizeof(t_command));
     if (!cmd)
         return NULL;
 
@@ -278,28 +278,15 @@ t_command *init_command_struct(int arg_count, int redir_count)
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = arg_count;
-    
     cmd->args = calloc(arg_count + 1, sizeof(char *));
     if (!cmd->args)
-    {
-        free_command_list(cmd);
-        return NULL;
-    }
-
+        return (free_command_list(cmd), NULL);
     cmd->redirs = calloc(redir_count + 1, sizeof(t_redirection));
     if (!cmd->redirs)
-    {
-        free_command_list(cmd);
-        return NULL;
-    }
-
+        return (free_command_list(cmd), NULL);
     cmd->had_spaces = calloc(arg_count, sizeof(int));
     if (!cmd->had_spaces)
-    {
-        free_command_list(cmd);
-        return NULL;
-    }
-
+        return (free_command_list(cmd), NULL);
     return cmd;
 }
 
@@ -317,7 +304,6 @@ int add_redir(t_command *cmd, t_token *token, int *redir_i)
 {
     if (!cmd || !cmd->redirs)
         return 1;
-
     cmd->redirs[*redir_i].type = token->type;
     if(token->type)
     {
@@ -350,6 +336,7 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     int arg_i;
     int redir_i;
     t_token *current;
+    t_command *cmd;
 
     current = start;
     arg_count = ((redir_count = arg_i = redir_i = 0));
@@ -366,7 +353,7 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
         if (current)
             current = current->next;
     }
-    t_command *cmd = init_command_struct(arg_count, redir_count);
+    cmd = init_command_struct(arg_count, redir_count);
     if (!cmd)
         return (NULL);
     current = start; 
@@ -401,8 +388,9 @@ t_token *get_next_pipe_token(t_token *start)
 
 t_command *link_commands(t_command *first_cmd, t_command *new_cmd)
 {
-    t_command *last_cmd = first_cmd;
+    t_command *last_cmd;
 
+    last_cmd = first_cmd;
     if (!first_cmd)
         return new_cmd;
     while (last_cmd->next)
@@ -416,16 +404,20 @@ t_token *find_next_command(t_token *current)
 {
     while (current && current->type != '|')
         current = current->next;
-    return (current ? current->next : NULL);
+    if (!current)
+        return NULL;
+    return current->next;
 }
 
 t_command *parse_pipe_sequence(t_token *tokens)
 {
-    t_token *current = tokens;
-    t_command *first_cmd = NULL;
+    t_token *current;
+    t_command *first_cmd;
     t_token *cmd_end;
     t_command *new_cmd;
 
+    current = tokens;
+    first_cmd = NULL;
     while (current)
     {
         cmd_end = current;
@@ -487,6 +479,7 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     return 0;
 }
 
+
 int	process(t_ctx *ctx)
 {
 	char	*line;
@@ -498,8 +491,6 @@ int	process(t_ctx *ctx)
 		{
 			write(1, "exit\n", 5);
             rl_clear_history();
-            // if(g_var_global)
-            //     ctx->exit_status = 130;
 			return(ctx->exit_status);
 		}
 		handle_line_for_loop(line, ctx);

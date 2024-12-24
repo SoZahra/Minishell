@@ -213,6 +213,7 @@ char						**create_env_array(t_env_var *env_vars);
 char						*find_command_path(const char *cmd, t_ctx *ctx);
 char						*find_env_value(const char *name,
 								t_env_var *env_vars);
+char	*ps_get_env_var(char *var_name, t_ctx *ctx);
 
 // Tokens
 

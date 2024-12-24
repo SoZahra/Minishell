@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 13:36:08 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 13:52:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/24 18:17:28 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,20 +85,52 @@ int ft_cd_oldpwd(t_ctx *ctx)
     return ft_update_pwd(ctx);
 }
 
+
 int ft_update_pwd(t_ctx *ctx)
 {
     char *cwd;
+    char *oldpwd;
 
     cwd = getcwd(NULL, 0);
     if (!cwd)
     {
         perror("getcwd");
         ctx->exit_status = 1;
-        return 1;
+        return (1);
+    }
+    oldpwd = ctx->pwd;
+    if (create_var_with_value("PWD", cwd, ctx))
+    {
+        free(cwd);
+        ctx->exit_status = 1;
+        return (1);
+    }
+    if (oldpwd && create_var_with_value("OLDPWD", oldpwd, ctx))
+    {
+        ctx->exit_status = 1;
+        return (1);
     }
     free(ctx->oldpwd);
-    ctx->oldpwd = ctx->pwd;
+    ctx->oldpwd = oldpwd;
     ctx->pwd = cwd;
     ctx->exit_status = 0;
-    return 0;
+    return (0);
 }
+
+// int ft_update_pwd(t_ctx *ctx)
+// {
+//     char *cwd;
+
+//     cwd = getcwd(NULL, 0);
+//     if (!cwd)
+//     {
+//         perror("getcwd");
+//         ctx->exit_status = 1;
+//         return 1;
+//     }
+//     free(ctx->oldpwd);
+//     ctx->oldpwd = ctx->pwd;
+//     ctx->pwd = cwd;
+//     ctx->exit_status = 0;
+//     return 0;
+// }
