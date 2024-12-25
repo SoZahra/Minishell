@@ -78,45 +78,87 @@ int is_executable(const char *path)
     return 0;
 }
 
+// char *find_command_path(const char *command, t_ctx *ctx)
+// {
+//     char *path_env;
+//     char *path_copy;
+//     char *token;
+//     char *full_path;
+     
+//     if (strchr(command, '/'))
+//     {
+//         if (is_executable(command))
+//             return strdup(command);
+//         return NULL;
+//     }
+//     path_env = ps_get_env_var("PATH", ctx);
+//     if (!path_env)
+//         return NULL;
+//     path_copy = ft_strdup(path_env);
+//     if (!path_copy)
+//     {
+//         perror("strdup");
+//         return NULL;
+//     }
+//     token = strtok(path_copy, ":");
+//     while (token)
+//     {
+//         full_path = join_path(token, command);
+//         if (!full_path)
+//         {
+//             return (NULL);
+//         }
+//         if (is_executable(full_path))
+//         {
+//             free(path_copy);
+//             return full_path;
+//         }
+//         free(full_path);
+//         token = strtok(NULL, ":");
+//     }
+//     free(path_copy);
+//     return NULL;
+// }
+
 char *find_command_path(const char *command, t_ctx *ctx)
 {
     char *path_env;
-    char *path_copy;
-    char *token;
+    char **paths;
     char *full_path;
-     
+    int i;
+
     if (strchr(command, '/'))
     {
         if (is_executable(command))
-            return strdup(command);
+            return ft_strdup(command);
         return NULL;
     }
     path_env = ps_get_env_var("PATH", ctx);
     if (!path_env)
         return NULL;
-    path_copy = ft_strdup(path_env);
-    if (!path_copy)
-    {
-        perror("strdup");
+
+    paths = ft_split(path_env, ':');
+    if (!paths)
         return NULL;
-    }
-    token = strtok(path_copy, ":");
-    while (token)
+
+    i = 0;
+    while (paths[i])
     {
-        full_path = join_path(token, command);
+        full_path = join_path(paths[i], command);
         if (!full_path)
         {
-            return (NULL);
+            free_array(paths);
+            return NULL;
         }
         if (is_executable(full_path))
         {
-            free(path_copy);
+            free_array(paths);
             return full_path;
         }
         free(full_path);
-        token = strtok(NULL, ":");
+        i++;
     }
-    free(path_copy);
+    free_array(paths);
     return NULL;
 }
 

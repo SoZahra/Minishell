@@ -45,12 +45,133 @@ char *ps_get_env_var(char *var_name, t_ctx *ctx)
     return (NULL);
 }
 
+// char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
+// {
+//     char *result;
+//     char *temp;
+//     char *var_name;
+//     char *var_value;
+//     int i;
+
+//     i = 0;
+//     result = ft_strdup("");
+//     while (str[i])
+//     {
+//         if (str[i] == '$')
+//         {
+//             if (str[i + 1] == '?')
+//             {
+//                 char *exit_str = ft_itoa(ctx->exit_status);
+//                 temp = ft_strjoin(result, exit_str);
+//                 free(exit_str);
+//                 free(result);
+//                 result = temp;
+//                 i += 2;
+//             }
+//             else if (str[i + 1] && (ft_isalnum(str[i + 1]) || str[i + 1] == '_'))
+//             {
+//                 int j = i + 1;
+//                 while (str[j] && (ft_isalnum(str[j]) || str[j] == '_'))
+//                     j++;
+//                 var_name = ft_substr(str, i + 1, j - (i + 1));
+//                 var_value = ps_get_env_var(var_name, ctx);
+//                 free(var_name);
+//                 if (var_value)
+//                 {
+//                     temp = ft_strjoin(result, var_value);
+//                     free(result);
+//                     result = temp;
+//                 }
+//                 i = j;
+//             }
+//             else
+//             {
+//                 if (quote_type != '\'')
+//                 {
+//                     temp = ft_strjoin(result, "$");
+//                     free(result);
+//                     result = temp;
+//                 }
+//                 i++;
+//             }
+//         }
+//         else
+//         {
+//             char c[2] = {str[i], '\0'};
+//             temp = ft_strjoin(result, c);
+//             free(result);
+//             result = temp;
+//             i++;
+//         }
+//     }
+//     return result;
+// }
+
+char *handle_exit_status(char *result, t_ctx *ctx, int *i)
+{
+    char *exit_str;
+    char *temp;
+
+    exit_str = ft_itoa(ctx->exit_status);
+    temp = ft_strjoin(result, exit_str);
+    free(exit_str);
+    free(result);
+    *i += 2;
+    return temp;
+}
+
+char *handle_env_var(char *result, const char *str, int *i, t_ctx *ctx)
+{
+    char *var_name;
+    char *var_value;
+    char *temp;
+    int j;
+
+    j = (*i) + 1;
+    while (str[j] && (ft_isalnum(str[j]) || str[j] == '_'))
+        j++;
+    var_name = ft_substr(str, (*i) + 1, j - (*i + 1));
+    var_value = ps_get_env_var(var_name, ctx);
+    free(var_name);
+    if (var_value)
+    {
+        temp = ft_strjoin(result, var_value);
+        free(result);
+        result = temp;
+    }
+    *i = j;
+    return result;
+}
+
+char *handle_dollar(char *result, char quote_type)
+{
+    char *temp;
+
+    if (quote_type != '\'')
+    {
+        temp = ft_strjoin(result, "$");
+        free(result);
+        return temp;
+    }
+    return result;
+}
+
+char *handle_regular_char(char *result, char c)
+{
+    char str[2];
+    char *temp;
+
+    str[0] = c;
+    str[1] = '\0';
+    temp = ft_strjoin(result, str);
+    free(result);
+    return temp;
+}
+
+
 char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
 {
     char *result;
-    char *temp;
-    char *var_name;
-    char *var_value;
     int i;
 
     i = 0;
@@ -60,120 +181,20 @@ char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
         if (str[i] == '$')
         {
             if (str[i + 1] == '?')
-            {
-                char *exit_str = ft_itoa(ctx->exit_status);
-                temp = ft_strjoin(result, exit_str);
-                free(exit_str);
-                free(result);
-                result = temp;
-                i += 2;
-            }
+                result = handle_exit_status(result, ctx, &i);
             else if (str[i + 1] && (ft_isalnum(str[i + 1]) || str[i + 1] == '_'))
-            {
-                int j = i + 1;
-                while (str[j] && (ft_isalnum(str[j]) || str[j] == '_'))
-                    j++;
-                var_name = ft_substr(str, i + 1, j - (i + 1));
-                var_value = ps_get_env_var(var_name, ctx);
-                free(var_name);
-                if (var_value)
-                {
-                    temp = ft_strjoin(result, var_value);
-                    free(result);
-                    result = temp;
-                }
-                i = j;
-            }
+                result = handle_env_var(result, str, &i, ctx);
             else
             {
-                if (quote_type != '\'')
-                {
-                    temp = ft_strjoin(result, "$");
-                    free(result);
-                    result = temp;
-                }
+                result = handle_dollar(result, quote_type);
                 i++;
             }
         }
         else
-        {
-            char c[2] = {str[i], '\0'};
-            temp = ft_strjoin(result, c);
-            free(result);
-            result = temp;
-            i++;
-        }
+            result = handle_regular_char(result, str[i++]);
     }
     return result;
 }
-
-// char *expand_full_string(const char *str, char quote_type, t_ctx *ctx)
-// {
-//     (void)quote_type;
-//     char *result;
-//     char *temp;
-//     char *var_name;
-//     char *var_value;
-//     int i;
-
-//     printf("Debug: Input string: [%s]\n", str);  // Debug
-//     i = 0;
-//     result = ft_strdup("");
-//     while (str[i])
-//     {
-//         printf("Debug: Current char: [%c] at position %d\n", str[i], i);  // Debug
-//         if (str[i] == '$')
-//         {
-//             if (str[i + 1] == '?')
-//             {
-//                 // ... code existant pour $? ...
-//             }
-//             else if (str[i + 1] && (ft_isalnum(str[i + 1]) || str[i + 1] == '_'))
-//             {
-//                 int j = i + 1;
-//                 while (str[j] && (ft_isalnum(str[j]) || str[j] == '_'))
-//                     j++;
-//                 var_name = ft_substr(str, i + 1, j - (i + 1));
-//                 printf("Debug: Found variable name: [%s]\n", var_name);  // Debug
-//                 var_value = ps_get_env_var(var_name, ctx);
-//                 printf("Debug: Variable value: [%s]\n", var_value ? var_value : "NULL");  // Debug
-
-//                 if (i == 0 && !var_value)
-//                 {
-//                     printf("Debug: Skipping empty variable at start\n");  // Debug
-//                     i = j;
-//                     while (str[i] == ' ')
-//                         i++;
-//                     printf("Debug: Skipped to position %d, char [%c]\n", i, str[i]);  // Debug
-//                     free(var_name);
-//                     continue;
-//                 }
-                
-//                 if (var_value)
-//                 {
-//                     temp = ft_strjoin(result, var_value);
-//                     free(result);
-//                     result = temp;
-//                 }
-//                 free(var_name);
-//                 i = j;
-//                 printf("Debug: Current result: [%s]\n", result);  // Debug
-//             }
-//             // ... reste du code ...
-//         }
-//         else
-//         {
-//             char c[2] = {str[i], '\0'};
-//             temp = ft_strjoin(result, c);
-//             free(result);
-//             result = temp;
-//             i++;
-//             printf("Debug: Added char, result is now: [%s]\n", result);  // Debug
-//         }
-//     }
-//     printf("Debug: Final result: [%s]\n", result);  // Debug
-//     return result;
-// }
 
 
 int expand_str(t_token *token, t_ctx *ctx)
@@ -265,13 +286,10 @@ void token_del(t_token *token)
     if (!token)
         return;
 
-    // Ajuster les liens
     if (token->prev)
         token->prev->next = token->next;
     if (token->next)
         token->next->prev = token->prev;
-
-    // Libérer la mémoire
     free(token->value);
     free(token->content);
     free(token);
@@ -284,20 +302,12 @@ int join_tokens(t_token *prev, t_token *current)
 
     if (!prev || !current || !prev->value || !current->value)
         return -1;
-
-    // Sauvegarder la valeur précédente
     tmp = prev->value;
-
-    // Joindre les valeurs
     joined = ft_strjoin(tmp, current->value);
     if (!joined)
         return -1;
-
-    // Mettre à jour les valeurs
     prev->value = joined;
     free(tmp);
-
-    // Hériter du type si c'est une quote
     if (current->type == '"' || current->type == '\'')
         prev->type = current->type;
 
@@ -342,7 +352,6 @@ char *tokens_to_string(t_token *tokens)
         return (NULL);
     while (current)
     {
-        
         if (*result && !current->had_space)
         {
             temp = ft_strjoin(result, " ");
@@ -426,23 +435,22 @@ int quotes_proc(t_token **tokens, char *input, int *i)
     value = ft_substr(input, j, *i - j - 1);
     if (!value)
         return -1;
-    // add_token(tokens, type, value);
-    if (add_token(tokens, type, value) != 0)  // ajout
-        return (free(value) ,-1); //ajout
+    if (add_token(tokens, type, value) != 0)
+        return (free(value) ,-1);
     if (j > 1 && tokens && !ft_isspace(input[j - 2]) && !is_token(input[j - 2], UNJOIN))
         get_last_token(*tokens)->had_space = 1;
-    free(value); //ajout
+    free(value);
     return 0;
 }
 // > < |
 
-void clear(pid_t *pids, t_command *cmds, int exit_code)
-{
-    (void)pids;
-    if (cmds)
-        free_args(cmds->args); 
-    exit(exit_code);
-}
+// void clear(pid_t *pids, t_command *cmds, int exit_code)
+// {
+//     (void)pids;
+//     if (cmds)
+//         free_args(cmds->args); 
+//     exit(exit_code);
+// }
 
 int operators_proc(t_token **tokens, char *input, int *i, int n)
 {
@@ -456,8 +464,6 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
     start = *i;
     x = 1;
     type = input[(*i)++];
-    // while (input[*i] && input[*i] == type && x++ < n)
-    //     (*i)++;
     while (input[*i] && input[*i] == type)
     {
         x++;
@@ -519,7 +525,7 @@ int word_proc(t_token **tokens, char *input, int *i)
     free(value);
     if (result != 0)
     {
-        free_tokens(*tokens);  // Libérer les tokens existants
+        free_tokens(*tokens);
         *tokens = NULL;
         return -1;
     }

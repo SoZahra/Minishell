@@ -12,36 +12,6 @@
 
 #include "../../include/minishell.h"
 
-
-
-// char	*empty_completion(const char *text, int state)
-// {
-// 	(void)text;
-// 	(void)state;
-// 	return (NULL);
-// }
-
-// void	handle_sigint(int sig)
-// {
-// 	(void)sig;
-// 	printf("\n");
-// 	rl_on_new_line();
-// 	rl_replace_line("", 0);
-// 	rl_redisplay();
-// 	g_var_global = 0;
-// }
-
-// void	handle_sigquit(int sig)
-// {
-// 	(void)sig;
-// }
-
-// void	init_sig(void)
-// {
-// 	signal(SIGINT, handle_sigint);
-// 	signal(SIGQUIT, SIG_IGN);
-// }
-
 void print_tokens(t_token *tokens)
 {
 	t_token *tmp;
@@ -123,8 +93,10 @@ t_token *tokenize_input(char *line)
         return NULL;
     if (check_syntax_errors(line))
         return NULL;
-    t_token *tokens = NULL;
+    t_token *tokens;
     t_token *tmp;
+
+    tokens = NULL;
     if (tokenizer(&tokens, line) < 0)
         return free_tokens(tokens), NULL;
     tmp = get_last_node(tokens);
@@ -270,6 +242,7 @@ t_token *tokenize_input(char *line)
 t_command *init_command_struct(int arg_count, int redir_count)
 {
     t_command *cmd;
+    
     cmd = calloc(1, sizeof(t_command));
     if (!cmd)
         return NULL;
@@ -439,37 +412,47 @@ t_command *parse_pipe_sequence(t_token *tokens)
 
 t_command *allocate_command(int arg_count, int redir_count)
 {
-    t_command *new_cmd = malloc(sizeof(t_command));
+    t_command *new_cmd;
+    int i;
+
+    new_cmd = malloc(sizeof(t_command));
     *new_cmd = (t_command){0};
     new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
     new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
     new_cmd->arg_count = arg_count;
     new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
     *new_cmd->redirs = (t_redirection){0};
-    for (int i = 0; i <= redir_count; i++)
+    i = 0;
+    while (i <= redir_count)
+    {
         new_cmd->redirs[i].heredoc_fd = -1;
+        i++;
+    }
     return new_cmd;
 }
 
-t_token *find_pipe_token(t_token *start)
-{
-    t_token *current = start;
-    while (current && current->type != '|')
-        current = current->next;
-    return current;
-}
+// t_token *find_pipe_token(t_token *start)
+// {
+//     t_token *current = start;
+//     while (current && current->type != '|')
+//         current = current->next;
+//     return current;
+// }
 
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!line || !*line)
         return 1;
+    t_command *cmd;
+    t_token *tokens;
+
     add_history(line);
-    t_token *tokens = tokenize_input(line);
+    tokens = tokenize_input(line);
     if (!tokens)
         return (ft_fprintf(2, "Error: tokenization failed\n"), 1);
     if (expand_proc(&tokens, ctx) == -1)
         return (free_tokens(tokens), 1);
-    t_command *cmd = parse_pipe_sequence(tokens);
+    cmd = parse_pipe_sequence(tokens);
     free_tokens(tokens);
     if (!cmd)
         return 1;

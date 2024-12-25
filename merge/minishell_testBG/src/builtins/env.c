@@ -70,9 +70,21 @@
 
 void free_array(char **array)
 {
+    int i;
+
     if (!array)
         return;
-    for (int i = 0; array[i]; i++)
-        free(array[i]);
+    i = 0;
+    while (array[i])
+        free(array[i++]);
     free(array);
 }
+
+// void free_array(char **array)
+// {
+//     if (!array)
+//         return;
+//     for (int i = 0; array[i]; i++)
+//         free(array[i]);
+//     free(array);
+// }
