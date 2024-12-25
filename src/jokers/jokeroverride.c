@@ -3,16 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   jokeroverride.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 00:26:18 by bama              #+#    #+#             */
-/*   Updated: 2024/12/22 14:15:29 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 00:07:50 by bama             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-char	there_is_joker(char *str);
 void	inspect_all_files(
 			t_ctx *data,
 			char *dir,
@@ -54,6 +53,8 @@ void	jokeroverride(t_token **root, t_ctx *data)
 		{
 			prepare_inspection(data, &tok, &joks);
 			token_insert(&tok, joks);
+			if (tok == *root)
+				*root = (*root)->next;
 			token_del(tok);
 			tok = NULL;
 			return ;
@@ -85,7 +86,7 @@ void	inspect_all_files(t_ctx *data, char *dir, t_token **newtok, t_joker joker)
 	struct dirent	*rd;
 
 	joker_check_firstlast(joker.dirs[joker.at], &joker);
-	joker.words = ft_split_quotes(joker.dirs[joker.at], data);
+	joker.words = skibidi_split(joker.dirs[joker.at], "\n\t *");
 	joker.dijok[joker.at] = joker_opendir(dir, &joker);
 	if (!joker.dijok[joker.at])
 		return (exit_joker(joker));

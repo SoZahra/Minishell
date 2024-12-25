@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 11:12:40 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/25 18:03:39 by bama             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -757,6 +757,7 @@ void execute_pipeline(t_command *cmd, t_ctx *ctx)
    pid_t last_pid;
    int status;
 
+    last_pid = 0;
    while (cmd_count > 0)
    {
        if (--cmd_count > 0)

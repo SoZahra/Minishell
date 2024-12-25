@@ -1,3 +1,3 @@
 objs/./src/loop/utils_parse_2.obj: src/loop/utils_parse_2.c \
-  include/../include/minishell.h include/../libft/libft.h \
-  include/colors.h
+ include/../include/minishell.h include/../include/../libft/libft.h \
+ include/../include/colors.h

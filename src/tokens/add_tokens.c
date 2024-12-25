@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   add_tokens.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:00:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 19:29:48 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 00:11:10 by bama             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ t_token *create_new_token(t_token_type type, char *value)
     
     if (!value)
         return NULL;
-    new_token = malloc(sizeof(t_token));
-    *new_token = (t_token){0};
+    new_token = (t_token *)malloc(sizeof(t_token));
     if (!new_token)
         return NULL;
+    ft_memset(new_token, 0, sizeof(t_token));
     new_token->value = ft_strdup(value);
     if (!new_token->value)
     {
@@ -50,7 +50,7 @@ t_token *create_new_token(t_token_type type, char *value)
     // new_token->content = NULL;
     // new_token->content = new_token->value;  // Même adresse
     new_token->type = type;
-    return new_token;
+    return (new_token);
 }
 
 

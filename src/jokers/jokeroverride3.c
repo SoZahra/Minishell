@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   jokeroverride3.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/13 18:48:58 by bama              #+#    #+#             */
-/*   Updated: 2024/12/22 12:21:09 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/25 23:35:27 by bama             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,6 @@ void	where_place_joker(char *d_name, t_token **current, t_token **newtok, t_joke
 		add_joker_to_token(ft_strjoin(joker.dir, d_name), current, newtok);
 	else
 		add_joker_to_token(ft_strdup(d_name), current, newtok);
-	/*if (joker.at != 0)
-		ft_printf("%sADD : %s%s\n", BOLD, ft_strjoin(joker.dir, d_name), RESET);
-	else
-		ft_printf("%sADD : %s%s\n", BOLD, ft_strdup(d_name), RESET);*/
 }
 
 void	is_joker_valid(t_ctx *data, t_token **newtok, char *d_name, t_joker *joker)
@@ -73,4 +69,15 @@ void	is_joker_valid(t_ctx *data, t_token **newtok, char *d_name, t_joker *joker)
 		else if (joker->at < joker->dirslen - 1)
 			joker_launch_recursion(data, ft_strdup(d_name), newtok, joker);
 	}
+}
+
+void	check_quote_status(char c, char *opened_status)
+{
+	if (!*opened_status && c == '\'')
+		*opened_status = 1;
+	else if (!*opened_status && c == '"')
+		*opened_status = 2;
+	else if ((*opened_status == 1 && c == '\'')
+		|| (*opened_status == 2 && c == '"'))
+		*opened_status = 0;
 }

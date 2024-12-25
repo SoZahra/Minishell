@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
+#    By: bama <bama@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/22 13:54:05 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/25 23:34:30 by bama             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -63,11 +63,10 @@ SRCS =	./src/builtins/echo.c				\
 		./src/expand/expand_variables.c		\
 		./src/expand/utils_expand.c			\
 		\
-		./src/jokers/ft_split_quotes.c		\
-		./src/jokers/ft_split_quotes2.c		\
 		./src/jokers/jokeroverride.c		\
 		./src/jokers/jokeroverride2.c		\
 		./src/jokers/jokeroverride3.c		\
+		./src/jokers/skibidi_split.c		\
 		\
 		./src/signaux/handle_signal.c		\
 		\
@@ -99,7 +98,7 @@ DEPS = $(OBJS:%.obj=%.d)
 
 INCLUDES = -I ./include/ -I $(LIBFT_P)/ -I .
 
-CFLAGS = -Wall -Wextra -Werror -MMD -O3 -g3 #
+CFLAGS = -Wall -Wextra -Werror -Wno-unused-result -MMD -O3 -fPIE -g3 #
 
 LIBFT_P = ./libft
 

@@ -1,2 +1,2 @@
 objs/./src/pipe/pipe.obj: src/pipe/pipe.c include/../include/minishell.h \
-  include/../libft/libft.h include/colors.h
+ include/../include/../libft/libft.h include/../include/colors.h

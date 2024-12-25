@@ -28,6 +28,8 @@
 # define UNJOIN "<>|"
 
 # define BOOL	char
+# define TRUE	1
+# define FALSE	0
 
 # define JOKER_ERROR "\n%sjoker : \"%s%s%s%s%s\" : no match found%s\n"
 # define JOKER_NO		-1
@@ -128,11 +130,12 @@ typedef struct s_command {
 int	exec_loop(t_ctx *ctx, t_command *cmd);
 void print_command_debug(t_command *cmd);
 void	token_insert(t_token **at, t_token *insertion);
-char	**ft_split_quotes(const char *s, t_ctx *data);
 BOOL	is_sep_joker(char c);
 void	check_quote_status(char c, char *opened_status);
 t_token	*get_last_node(t_token *tokens);
 void	jokeroverride(t_token **root, t_ctx *data);
+char	there_is_joker(char *str);
+char	**skibidi_split(const char *str, const char *delim);
 
 //-----------------------------
 

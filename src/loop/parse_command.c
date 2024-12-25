@@ -145,16 +145,11 @@ void token_del(t_token *token)
 {
 	if (!token)
 		return;
-
-	// Ajuster les liens
 	if (token->prev)
 		token->prev->next = token->next;
 	if (token->next)
 		token->next->prev = token->prev;
-
-	// Libérer la mémoire
 	free(token->value);
-	free(token->content);
 	free(token);
 }
 
