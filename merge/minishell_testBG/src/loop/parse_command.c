@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/24 17:25:57 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/25 14:29:40 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -595,7 +595,7 @@ int tokenizer(t_token **tokens, char *input)
                 result = word_proc(tokens, input, &i);
             if (result != 0)
             {
-                free_tokens(*tokens);
+                // free_tokens(*tokens);
                 *tokens = NULL;
                 return -1;
             }

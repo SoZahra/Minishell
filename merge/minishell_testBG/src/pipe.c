@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 14:02:51 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 15:56:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/25 14:09:55 by fatimazahra      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -683,17 +683,17 @@ void clear_and_exit(pid_t *pids, t_command *cmds, int exit_code)
 //     }
 // }
 
-int has_heredoc(t_command *cmd)
-{
-    if (!cmd->redirs)
-        return 0;
-    for (int i = 0; cmd->redirs[i].type != 0; i++)
-    {
-        if (cmd->redirs[i].type == 'H')
-            return 1;
-    }
-    return 0;
-}
+// int has_heredoc(t_command *cmd)
+// {
+//     if (!cmd->redirs)
+//         return 0;
+//     for (int i = 0; cmd->redirs[i].type != 0; i++)
+//     {
+//         if (cmd->redirs[i].type == 'H')
+//             return 1;
+//     }
+//     return 0;
+// }
 
 // int execute_single_command(t_command *cmd, t_ctx *ctx)
 // {

@@ -323,27 +323,56 @@ int	set_fds(t_command *cmd)
 	return (0);
 }
 
-int	set_redirs(t_command *cmd)
-{
-    if (open_outfiles(cmd))
-		return (1);
-    if (set_fds(cmd))
-		return (1);
-	if (set_pfd(cmd))
-		return (1);
-	return (0);
-}
-
+//heredoc
 // int	set_redirs(t_command *cmd)
 // {
-//     if (set_pfd(cmd))
-// 		return (1);
 //     if (open_outfiles(cmd))
 // 		return (1);
 //     if (set_fds(cmd))
 // 		return (1);
+// 	if (set_pfd(cmd))
+// 		return (1);
 // 	return (0);
 // }
+
+int has_heredoc(t_command *cmd)
+{
+    int i;
+
+    if (!cmd || !cmd->redirs)
+        return (0);
+    i = 0;
+    while (cmd->redirs[i].type)
+    {
+        if (cmd->redirs[i].type == 'H')
+            return (1);
+        i++;
+    }
+    return (0);
+}
+
+int set_redirs(t_command *cmd)
+{
+    if (has_heredoc(cmd))
+    {
+        if (open_outfiles(cmd))
+            return (1);
+        if (set_fds(cmd))
+            return (1);
+        if (set_pfd(cmd))
+            return (1);
+    }
+    else
+    {
+        if (set_pfd(cmd))
+            return (1);
+        if (open_outfiles(cmd))
+            return (1);
+        if (set_fds(cmd))
+            return (1);
+    }
+    return (0);
+}
 
 int	set_and_exec_builtin(t_ctx *ctx, t_command *cmd)
 {
