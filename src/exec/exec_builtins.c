@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 11:54:19 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 12:49:55 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,24 +37,24 @@ int	create_and_add_var(t_ctx *ctx, char *var, char *value)
 	return (0);
 }
 
-int handle_pwd_builtin(const char *input, t_ctx *ctx)
-{
-    char *cwd;
+// int handle_pwd_builtin(const char *input, t_ctx *ctx)
+// {
+//     char *cwd;
 
-    while (*input == ' ')
-        input++;
-    cwd = getcwd(NULL, 0);
-    if (!cwd)
-    {
-        perror("pwd");
-        ctx->exit_status = 1;
-        return 1;
-    }
-    printf("%s\n", cwd);
-    free(cwd);
-    ctx->exit_status = 0;
-    return 0;
-}
+//     while (*input == ' ')
+//         input++;
+//     cwd = getcwd(NULL, 0);
+//     if (!cwd)
+//     {
+//         perror("pwd");
+//         ctx->exit_status = 1;
+//         return 1;
+//     }
+//     printf("%s\n", cwd);
+//     free(cwd);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
 
 // int	handle_pwd_builtin(char **args, t_ctx *ctx)
 // {
@@ -118,14 +118,17 @@ int handle_env_builtin(const char *input, t_ctx *ctx)
     return 0;
 }
 
-int execute_builtin(const char *cmd_line, t_ctx *ctx)
+int execute_builtin(char *cmd_line, t_ctx *ctx)
 {
     char *cmd;
     char *space;
     const char *args;
     int result;
+    char *args_dup = NULL;
 
     cmd = ft_strdup(cmd_line);
+    if(!cmd)
+        return (1);
     space = ft_strchr(cmd, ' ');
     if (space)
         *space = '\0';
@@ -133,6 +136,21 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
     while (*args == ' ')
         args++;
     result = 0;
+    if (ft_strcmp(cmd, "exit") == 0)
+    {
+        args_dup = ft_strdup(args);
+        if (!args_dup)
+        {
+            free(cmd);
+            return (1);
+        }
+        free(cmd);
+        free(cmd_line);
+        result = handle_exit_builtin(args_dup, ctx);
+        free(args_dup);  // On libère args_dup une fois qu'on a le résultat
+        return (result);
+        // return (handle_exit_builtin(args_dup, ctx));
+    }
     if (ft_strcmp(cmd, "echo") == 0)
         result = handle_echo_builtin(args, ctx);
     else if (ft_strcmp(cmd, "cd") == 0)
@@ -143,66 +161,66 @@ int execute_builtin(const char *cmd_line, t_ctx *ctx)
         result = handle_export_builtin(args, ctx);
     else if (ft_strcmp(cmd, "env") == 0)
         result = handle_env_builtin(args, ctx);
-    else if (ft_strcmp(cmd, "exit") == 0)
-        result = handle_exit_builtin(args, ctx);
+    // else if (ft_strcmp(cmd, "exit") == 0)
+    //     result = handle_exit_builtin(args, ctx);
     else if (ft_strcmp(cmd, "unset") == 0)
         result = handle_unset_builtin(args, ctx);
     return (free(cmd), result);
 }
 
-int handle_unset_builtin(const char *input, t_ctx *ctx)
-{
-    char **split_args;
-    int i;
+// int handle_unset_builtin(const char *input, t_ctx *ctx)
+// {
+//     char **split_args;
+//     int i;
 
-    while (*input == ' ')
-        input++;
-    if (!*input)
-        return 0;
-    split_args = ft_split(input, ' ');
-    if (!split_args)
-        return (perror("ft_split"), 1);
-    i = 0;
-    while(split_args[i])
-    {
-        if (!is_valid_var_name(split_args[i]))
-        {
-            ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
-            ctx->exit_status = 1;
-            continue;
-        }
-        if (unset_v(&ctx->env_vars, split_args[i]) != 0)
-            ctx->exit_status = 0;
-        i++;
-    }
-    return (free_array(split_args), 0);
-}
+//     while (*input == ' ')
+//         input++;
+//     if (!*input)
+//         return 0;
+//     split_args = ft_split(input, ' ');
+//     if (!split_args)
+//         return (perror("ft_split"), 1);
+//     i = 0;
+//     while(split_args[i])
+//     {
+//         if (!is_valid_var_name(split_args[i]))
+//         {
+//             ft_fprintf(2, "MiniBG: unset: `%s': not a valid identifier\n", split_args[i]);
+//             ctx->exit_status = 1;
+//             continue;
+//         }
+//         if (unset_v(&ctx->env_vars, split_args[i]) != 0)
+//             ctx->exit_status = 0;
+//         i++;
+//     }
+//     return (free_array(split_args), 0);
+// }
 
-int unset_v(t_env_var **env_vars, const char *var)
-{
-    t_env_var *current;
-    t_env_var *prev;
+// int unset_v(t_env_var **env_vars, const char *var)
+// {
+//     t_env_var *current;
+//     t_env_var *prev;
 
-    current = *env_vars;
-    prev = NULL;
-    while (current)
-    {
-        if (ft_strcmp(current->name, var) == 0)
-        {
-            if (prev == NULL)
-                *env_vars = current->next;
-            else
-                prev->next = current->next;
-            free(current->name);
-            free(current->value);
-            free(current);
-            return 0;
-        }
-        prev = current;
-        current = current->next;
-    }
-    return 1;
-}
+//     current = *env_vars;
+//     prev = NULL;
+//     while (current)
+//     {
+//         if (ft_strcmp(current->name, var) == 0)
+//         {
+//             if (prev == NULL)
+//                 *env_vars = current->next;
+//             else
+//                 prev->next = current->next;
+//             free(current->name);
+//             free(current->value);
+//             free(current);
+//             return 0;
+//         }
+//         prev = current;
+//         current = current->next;
+//     }
+//     return 1;
+// }
 
 // int execute_builtin(t_ctx *ctx, t_token *tokens)
 // {

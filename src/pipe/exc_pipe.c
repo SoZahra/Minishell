@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 15:02:31 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 13:47:06 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 18:08:19 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int	validate_pipe_syntax(t_token *tokens)
 			if (!current->next || current->next->type == TOKEN_PIPE)
 			{
 				fprintf(stderr,
-					"bash: syntax error near unexpected token '|'\n");
+					"MiniBG: syntax error near unexpected token '|'\n");
 				return (-1);
 			}
 		}
@@ -45,14 +45,14 @@ int	valide_pipes(t_token *tokens)
 	current = tokens;
 	if (!current || current->type == TOKEN_PIPE)
 		return (fprintf(stderr,
-				"minibg : syntax error near unexpected token `|'\n"), -1);
+				"MiniBG : syntax error near unexpected token `|'\n"), -1);
 	while (current)
 	{
 		if (current->type == TOKEN_PIPE)
 		{
 			if (!current->next || current->next->type == TOKEN_PIPE)
 				return (fprintf(stderr,
-						"Minibg : syntax error near unexpected token `|'\n"),
+						"MiniBG : syntax error near unexpected token `|'\n"),
 					-1);
 		}
 		current = current->next;

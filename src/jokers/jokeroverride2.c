@@ -6,13 +6,14 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 00:26:52 by bama              #+#    #+#             */
-/*   Updated: 2024/12/26 14:59:44 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 15:27:46 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 char	is_sep_joker(char c);
+void	check_quote_status(char c, char *opened_status);
 
 static void	init_t_joker(t_joker *joker)
 {

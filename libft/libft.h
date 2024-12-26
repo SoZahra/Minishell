@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 10:24:47 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 12:14:16 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 15:26:24 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,16 @@ typedef struct s_list
 	void			*content;
 	struct s_list	*next;
 }					t_list;
+
+char				*ft_strstr(const char *str, const char *to_find);
+
+char				*ft_strffjoin(char *s1, char *s2);
+
+char				*ft_strfjoin(char *s1, const char *s2);
+
+char				*ft_strdup_at(const char *str, ssize_t start, ssize_t end);
+
+char				*ft_strfdup_at(char *str, ssize_t start, ssize_t end);
 
 int					ft_atoi(const char *str);
 
@@ -95,16 +105,6 @@ void				*ft_memcpy(void *dest, const void *src, size_t n);
 void				*ft_memmove(void *dest, const void *src, size_t len);
 
 char				*ft_strnstr(const char *s1, const char *s2, size_t n);
-
-char				*ft_strstr(const char *str, const char *to_find);
-
-char				*ft_strffjoin(char *s1, char *s2);
-
-char				*ft_strfjoin(char *s1, const char *s2);
-
-char				*ft_strdup_at(const char *str, ssize_t start, ssize_t end);
-
-char				*ft_strfdup_at(char *str, ssize_t start, ssize_t end);
 
 char				*ft_substr(char const *s, unsigned int start, size_t len);
 

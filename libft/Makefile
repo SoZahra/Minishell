@@ -6,7 +6,7 @@
 #    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/21 16:32:06 by fzayani           #+#    #+#              #
-#    Updated: 2024/12/22 12:14:25 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/26 15:17:26 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,9 +37,6 @@ SRC = ft_atoi.c \
 	  ft_strdup.c \
 	  ft_striteri.c \
 	  ft_strjoin.c \
-	  ft_strstr.c \
-	  ft_strfjoin.c \
-	  ft_strdup_at.c \
 	  ft_strlcat.c \
 	  ft_strlen.c \
 	  ft_strmapi.c \
@@ -67,7 +64,10 @@ SRC = ft_atoi.c \
 	  ft_itoa_unsig.c\
 	  ft_strcmp.c\
 	  ft_strndup.c\
-	  ft_strncpy.c
+	  ft_strncpy.c\
+	  ft_strstr.c\
+	  ft_strfjoin.c\
+	  ft_strdup_at.c\
 
 
 src_bonus = ft_lstnew_bonus.c \

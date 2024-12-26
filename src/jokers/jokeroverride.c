@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 00:26:18 by bama              #+#    #+#             */
-/*   Updated: 2024/12/26 14:59:39 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 15:24:56 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ void	is_joker_valid(
 			t_token **newtok,
 			char *d_name,
 			t_joker *joker);
+char	**skibidi_split(const char *str, const char *delim);
+BOOL	there_is_joker(char *str);
 
 void	jokeroverride(t_token **root, t_ctx *data)
 {

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 15:07:23 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/14 14:24:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/22 15:58:59 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,28 +110,28 @@
 //     return (0);
 // }
 
-void    read_heredoc(int fd, char *limiter)
-{
-	char	*buf;
+// void    read_heredoc(int fd, char *limiter)
+// {
+// 	char	*buf;
 
-	while(1)
-	{
-		buf = NULL;
-		buf = readline("> ");
-		if (!buf)
-		{
-			exit_error();
-			break ;
-		}
-		if (!ft_strncmp(limiter, buf, INT_MAX))
-			break ;
-		write(fd, buf, ft_strlen(buf));
-		write(fd, "\n", 1);
-		free(buf);
-	}
-	free(buf);
-	close(fd);
-}
+// 	while(1)
+// 	{
+// 		buf = NULL;
+// 		buf = readline("> ");
+// 		if (!buf)
+// 		{
+// 			// exit_error();
+// 			break ;
+// 		}
+// 		if (!ft_strncmp(limiter, buf, INT_MAX))
+// 			break ;
+// 		write(fd, buf, ft_strlen(buf));
+// 		write(fd, "\n", 1);
+// 		free(buf);
+// 	}
+// 	free(buf);
+// 	close(fd);
+// }
 
 // int here_doc(char *limiter)
 // {
@@ -210,28 +210,28 @@ void handle_output_redirection(t_token *redir_token, int *redirect, int *redirec
 //     *exec_tokens_tail = NULL;
 // }
 
-void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
-{
-    if (prev_fd != -1 && redirect_input != 1)
-	{
-        dup2(prev_fd, STDIN_FILENO);
-        close(prev_fd);
-    }
-    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0 && redirect_output != 1)
-	{
-        close(pipe_fd[0]);
-        dup2(pipe_fd[1], STDOUT_FILENO);
-        close(pipe_fd[1]);
-    }
-}
+// void setup_pipe_for_child(int prev_fd, int *pipe_fd, int redirect_input, int redirect_output, t_token *cmd_end)
+// {
+//     if (prev_fd != -1 && redirect_input != 1)
+// 	{
+//         dup2(prev_fd, STDIN_FILENO);
+//         close(prev_fd);
+//     }
+//     if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0 && redirect_output != 1)
+// 	{
+//         close(pipe_fd[0]);
+//         dup2(pipe_fd[1], STDOUT_FILENO);
+//         close(pipe_fd[1]);
+//     }
+// }
 
-void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end)
-{
-    if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0) {
-        if (pipe(pipe_fd) == -1)
-            exit_error();
-    }
-}
+// void initialize_pipe_if_needed(int *pipe_fd, t_token *cmd_end)
+// {
+//     if (cmd_end != NULL && ft_strcmp(cmd_end->value, "|") == 0) {
+//         if (pipe(pipe_fd) == -1)
+//             exit_error();
+//     }
+// }
 
 // void execute_command_in_child(t_token *cmd_start, t_token *cmd_end, int prev_fd, int *pipe_fd, t_ctx *ctx)
 // {

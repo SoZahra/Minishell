@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   token_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 11:46:05 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 00:05:19 by bama             ###   ########.fr       */
+/*   Updated: 2024/12/26 15:10:09 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,17 +33,4 @@ void	token_insert(t_token **at, t_token *insertion)
 	}
 	insertion->prev = tmp_prev;
 	insertion->next = tmp;
-}
-
-t_token	*token_create(char *value)
-{
-	t_token	*ret;
-
-	ret = (t_token *)malloc(sizeof(t_token));
-	ft_memset(ret, 0, sizeof(ret));
-	ret->value = value;
-	ret->type = STRING;
-	ret->prev = NULL;
-	ret->next = NULL;
-	return (ret);
 }

@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:10:05 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 11:52:45 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 15:22:25 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int count_args(char **args)
    if (args)
        while (args[count])
            count++;
-   return (count);
+   return count;
 }
 
 t_env_var	*get_last_env_node(t_env_var **env)

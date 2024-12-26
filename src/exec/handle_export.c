@@ -3,41 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   handle_export.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 11:54:05 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 15:34:01 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-// int handle_exit_builtin(char **args, t_ctx *ctx)
-// {
-//     process_exit_arg(args, ctx);
-//     write(1, "exit\n", 5);
-//     exit(ctx->exit_status);
-//     return (1); // Ne sera jamais atteint
-// }
-
-// int handle_echo_builtin(char **args, t_ctx *ctx)
-// {
-//     t_token *token_list;
-
-//     token_list = create_token_list(args + 1);
-//     if (!token_list)
-//     {
-//         ctx->exit_status = 1;
-//         return (1);
-//     }
-//     handle_echo(token_list, ctx);
-//     return (1);
-// }
+int clear_exit(t_ctx *ctx)
+{
+    write(1, "exit\n", 5);
+    cleanup_shell(ctx);
+    rl_clear_history();
+    free_command_list(get_ctx()->current_command);
+    return(0);
+}
 
 int handle_exit_builtin(const char *input, t_ctx *ctx)
 {
     char **arg_array;
     int i;
+    int should_exit;
 
     while (*input == ' ')
         input++;
@@ -45,18 +33,23 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     if (!arg_array)
     {
         ctx->exit_status = 1;
-        write(1, "exit\n", 5);
+        clear_exit(ctx);
+        free((void*)input);
         exit(1);
     }
-    process_exit_arg(arg_array, ctx);
+    should_exit = process_exit_arg(arg_array, ctx);
     i = 0;
     while (arg_array[i])
         free(arg_array[i++]);
     free(arg_array);
-    write(1, "exit\n", 5);
-    exit(ctx->exit_status);
-    return 1;
-} 
+    if(should_exit)
+    {
+        clear_exit(ctx);
+        free((void*)input);
+        exit(ctx->exit_status);
+    }
+    return (1);
+}
 
 int handle_echo_builtin(const char *args, t_ctx *ctx)
 {
@@ -120,13 +113,13 @@ int create_var_with_value(const char *name, const char *value, t_ctx *ctx)
     return result;
 }
 
-int handle_no_equal(const char *arg, t_ctx *ctx)
+/*int handle_no_equal(const char *arg, t_ctx *ctx)
 {
     if (!is_valid_var_name(arg))
         return handle_error(arg, ctx);
     return (create_and_add_var(ctx, ft_strdup(arg), NULL));
-}
-static int export_single_var(const char *arg, t_ctx *ctx)
+}*/
+int export_single_var(const char *arg, t_ctx *ctx)
 {
     int result;
     char *equal_sign;
@@ -149,12 +142,27 @@ static int export_single_var(const char *arg, t_ctx *ctx)
     return result;
 }
 
-int handle_no_args(t_ctx *ctx)
+/*void	print_export(t_ctx *ctx)
+{
+	t_env_var	*current;
+
+	current = ctx->env_vars;
+	while (current)
+	{
+		if (current->value)
+			printf("%s=%s\n", current->name, current->value);
+		else
+			printf("%s\n", current->name);
+		current = current->next;
+	}
+}*/
+
+/*int handle_no_args(t_ctx *ctx)
 {
     print_export(ctx);
     ctx->exit_status = 0;
     return 0;
-}
+}*/
 
 int handle_error(const char *arg, t_ctx *ctx)
 {
@@ -163,7 +171,7 @@ int handle_error(const char *arg, t_ctx *ctx)
     return 1;
 }
 
-int handle_no_equal_sign(char *arg, t_ctx *ctx)
+/*int handle_no_equal_sign(char *arg, t_ctx *ctx)
 {
     int result;
     if (!is_valid_var_name(arg))
@@ -172,7 +180,7 @@ int handle_no_equal_sign(char *arg, t_ctx *ctx)
     free(arg);
     ctx->exit_status = result;
     return result;
-}
+}*/
 
 int handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
 {
@@ -188,7 +196,7 @@ int handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
     return result;
 }
 
-int handle_single_arg(const char *args, t_ctx *ctx)
+/*int handle_single_arg(char *args, t_ctx *ctx)
 {
     int result;
     char *arg;
@@ -199,8 +207,30 @@ int handle_single_arg(const char *args, t_ctx *ctx)
     result = export_single_var(arg, ctx);
     free(arg);
     return result;
-}
+}*/
 
+
+// int handle_multiple_args(const char *args, t_ctx *ctx)
+// {
+//     char **arg_array;
+//     int result;
+//     int i;
+
+//     result = 0;
+//     arg_array = ft_split(args, ' ');
+//     if (!arg_array)
+//         return 1;
+//     i = 0;
+//     while(arg_array[i])
+//     {
+//         result |= export_single_var(arg_array[i], ctx);
+//         i++;
+//     }
+//     while(arg_array[i])
+//         free(arg_array[i++]);
+//     free(arg_array);
+//     return result;
+// }
 
 int handle_multiple_args(const char *args, t_ctx *ctx)
 {
@@ -216,10 +246,9 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
     while(arg_array[i])
     {
         result |= export_single_var(arg_array[i], ctx);
+        free(arg_array[i]);  // Libérer chaque élément après l'avoir utilisé
         i++;
     }
-    while(arg_array[i])
-        free(arg_array[i++]);
     free(arg_array);
     return result;
 }
@@ -239,14 +268,14 @@ int handle_export_builtin(const char *input, t_ctx *ctx)
     {
         if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
         {
-            ft_fprintf(2, "minishell: export: `%s': not a valid identifier\n", 
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
                       split_args[i]);
             ctx->exit_status = 1;
             continue;
         }
         if (ft_strchr(split_args[i], '-'))
         {
-            ft_fprintf(2, "minishell: export: `%s': not a valid identifier\n", 
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
                       split_args[i]);
             ctx->exit_status = 1;
             continue;

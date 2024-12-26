@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/20 16:08:46 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/24 16:16:37 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,7 +254,11 @@ void free_tokens(t_token *tokens)
             free(current->value);
             current->value = NULL;
         }
-        // Ne pas gérer content du tout car il ne devrait pas être alloué
+        if (current->content && current->content != current->value)
+        {
+            free(current->content);
+            current->content = NULL;
+        }  
         free(current);
         current = next;
     }

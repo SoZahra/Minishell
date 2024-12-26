@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: bama <bama@student.42.fr>                  +#+  +:+       +#+         #
+#    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/25 23:34:30 by bama             ###   ########.fr        #
+#    Updated: 2024/12/26 15:34:33 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,19 +34,30 @@ NAME = minishell
 
 CC = @cc
 
-SRCS =	./src/builtins/echo.c				\
+SRCS =	./src/builtins/cd.c					\
+		./src/builtins/echo.c				\
 		./src/builtins/env.c				\
 		./src/builtins/exit.c				\
 		./src/builtins/gestion_builtins.c	\
-		./src/builtins/utils_env.c			\
+		./src/builtins/pwd.c				\
+		./src/builtins/unset.c				\
+		./src/builtins/utils_export.c		\
 		\
 		./src/env/build_env_list.c			\
 		\
 		./src/exec/exec_builtins.c			\
+		./src/exec/exec_simple.c			\
 		./src/exec/generic_exec.c			\
-		./src/exec/handle_cd.c				\
 		./src/exec/handle_export.c			\
 		./src/exec/utils_parse_command.c	\
+		\
+		./src/expand/expand_variables.c		\
+		./src/expand/utils_expand.c			\
+		\
+		./src/jokers/jokeroverride.c		\
+		./src/jokers/jokeroverride2.c		\
+		./src/jokers/jokeroverride3.c		\
+		./src/jokers/skibidi_split.c		\
 		\
 		./src/loop/loop.c					\
 		./src/loop/parse_command.c			\
@@ -60,20 +71,11 @@ SRCS =	./src/builtins/echo.c				\
 		./src/pipe/pipe_utils.c				\
 		./src/pipe/pipe.c					\
 		\
-		./src/expand/expand_variables.c		\
-		./src/expand/utils_expand.c			\
-		\
-		./src/jokers/jokeroverride.c		\
-		./src/jokers/jokeroverride2.c		\
-		./src/jokers/jokeroverride3.c		\
-		./src/jokers/skibidi_split.c		\
-		\
 		./src/signaux/handle_signal.c		\
 		\
 		./src/tokens/add_tokens.c			\
 		./src/tokens/args.c					\
 		\
-		./src/utils/free_2.c				\
 		./src/utils/free.c					\
 		./src/utils/ft_fprintf.c			\
 		./src/utils/init.c					\
@@ -83,10 +85,6 @@ SRCS =	./src/builtins/echo.c				\
 		./src/pipe.c						\
 		./src/exec.c						\
 		./src/main.c
-
-#./src/jokers/jokeroverride.c		\
-#./src/jokers/jokeroverride2.c		\
-#./src/jokers/jokeroverride3.c		\
 
 LMAKE = @make --no-print-directory -C
 
