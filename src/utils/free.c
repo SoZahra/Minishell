@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   free.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/24 16:16:37 by fzayani          ###   ########.fr       */
+/*   Created: 2024/12/26 16:32:55 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/26 16:36:28 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,80 +27,76 @@ void	free_env_copy(char **env_copy)
 	free(env_copy);
 }
 
-void free_env(t_env_var *env_var)
+void	free_env(t_env_var *env_var)
 {
-    t_env_var *current;
-    t_env_var *next;
-    
-    if (!env_var)
-        return;
-    current = env_var;
-    while (current)
-    {
-        // Sauvegarder next avant de free
-        next = current->next;
-        // Free name s'il existe
-        if (current->name)
-        {
-            free(current->name);
-            current->name = NULL;
-        }
-        // Free value s'il existe
-        if (current->value)
-        {
-            free(current->value);
-            current->value = NULL;
-        }
-        // Free la structure elle-même
-        free(current);
-        current = NULL;
-        // Passer au suivant
-        current = next;
-    }
+	t_env_var	*current;
+	t_env_var	*next;
+
+	if (!env_var)
+		return ;
+	current = env_var;
+	while (current)
+	{
+		next = current->next;
+		if (current->name)
+		{
+			free(current->name);
+			current->name = NULL;
+		}
+		if (current->value)
+		{
+			free(current->value);
+			current->value = NULL;
+		}
+		free(current);
+		current = NULL;
+		current = next;
+	}
 }
 
-void free_ctx(t_ctx *ctx)
+void	free_ctx(t_ctx *ctx)
 {
-    if (!ctx)
-        return;
-    if (ctx->env_vars)
-    {
-        free_env(ctx->env_vars);
-        ctx->env_vars = NULL;
-    }
-    if (ctx->tokens)
-    {
-        t_token *current = ctx->tokens;
-        t_token *next;
+	t_token	*current;
+	t_token	*next;
 
-        while (current)
-        {
-            next = current->next;
-            if (current->value)
-            {
-                free(current->value);
-                current->value = NULL;
-            }
-            current->content = NULL;
-            free(current);
-            current = next;
-        }
-        ctx->tokens = NULL;
-    }
-    if (ctx->oldpwd)
-    {
-        free(ctx->oldpwd);
-        ctx->oldpwd = NULL;
-    }
-    if (ctx->pwd)
-    {
-        free(ctx->pwd);
-        ctx->pwd = NULL;
-    }
+	if (!ctx)
+		return ;
+	if (ctx->env_vars)
+	{
+		free_env(ctx->env_vars);
+		ctx->env_vars = NULL;
+	}
+	if (ctx->tokens)
+	{
+		current = ctx->tokens;
+		while (current)
+		{
+			next = current->next;
+			if (current->value)
+			{
+				free(current->value);
+				current->value = NULL;
+			}
+			current->content = NULL;
+			free(current);
+			current = next;
+		}
+		ctx->tokens = NULL;
+	}
+	if (ctx->oldpwd)
+	{
+		free(ctx->oldpwd);
+		ctx->oldpwd = NULL;
+	}
+	if (ctx->pwd)
+	{
+		free(ctx->pwd);
+		ctx->pwd = NULL;
+	}
 	if (ctx->save_stdin != STDIN_FILENO)
-        close(ctx->save_stdin);
-    if (ctx->save_stdout != STDOUT_FILENO)
-        close(ctx->save_stdout);
+		close(ctx->save_stdin);
+	if (ctx->save_stdout != STDOUT_FILENO)
+		close(ctx->save_stdout);
 }
 
 void	*free_tab(char **tab)
@@ -118,150 +114,95 @@ void	*free_tab(char **tab)
 	return (NULL);
 }
 
-// void free_command(t_command *cmd)
-// {
-//     if (!cmd)
-//         return;
-
-//     t_command *next = cmd->next;
-//     if (cmd->args)
-//     {
-//         for (int i = 0; i < cmd->arg_count; i++)
-//         {
-//             if (cmd->args[i])
-//                 free(cmd->args[i]);
-//         }
-//         free(cmd->args);
-//         cmd->args = NULL;
-//     }
-//     if (cmd->had_spaces)
-//     {
-//         free(cmd->had_spaces);
-//         cmd->had_spaces = NULL;
-//     }
-//     if (cmd->path)
-//     {
-//         free(cmd->path);
-//         cmd->path = NULL;
-//     }
-//     if (cmd->redirs)
-//     {
-//         t_redirection *current = cmd->redirs;
-//         t_redirection *next;
-//         while (current && current->type != 0)
-//         {
-//             next = current->next;
-//             if (current->file)
-//                 free(current->file);
-//             if (current->heredoc_fd > 2)
-//                 close(current->heredoc_fd);
-//             current = next;
-//         }
-//         free(cmd->redirs);
-//         cmd->redirs = NULL;
-//     }
-//     if (cmd->in_fd > 2)
-//         close(cmd->in_fd);
-//     if (cmd->out_fd > 2)
-//         close(cmd->out_fd);
-//     if (cmd->pfd[0] > 2)
-//         close(cmd->pfd[0]);
-//     if (cmd->pfd[1] > 2)
-//         close(cmd->pfd[1]);
-//     free(cmd);
-//     if (next)
-//         free_command(next);
-// }
-
-void free_command_list(t_command *cmd)
+void	free_command_list(t_command *cmd)
 {
-    t_command *current;
-    t_command *next;
+	t_command	*current;
+	t_command	*next;
 
-    current = cmd;
-    while (current)
-    {
-        next = current->next;
-        free_command(current);
-        current = next;
-    }
+	current = cmd;
+	while (current)
+	{
+		next = current->next;
+		free_command(current);
+		current = next;
+	}
 }
 
-void free_command(t_command *cmd)
+void	free_command(t_command *cmd)
 {
-    if (!cmd)
-        return;
-    if (cmd->args)
-    {
-        for (int i = 0; i < cmd->arg_count; i++)
-        {
-            free(cmd->args[i]);
-            cmd->args[i] = NULL;
-        }
-        free(cmd->args);
-        cmd->args = NULL;
-    }
-    if (cmd->path)
-    {
-        free(cmd->path);
-        cmd->path = NULL;
-    }
-    if (cmd->had_spaces)
-    {
-        free(cmd->had_spaces);
-        cmd->had_spaces = NULL;
-    }
-    if (cmd->redirs)
-    {
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
-        {
-            if (cmd->redirs[i].file)
-                free(cmd->redirs[i].file);
-            cmd->redirs[i].file = NULL;
-        }
-        free(cmd->redirs);
-        cmd->redirs = NULL;
-    }
-    if (cmd->in_fd > 2)
-        close(cmd->in_fd);
-    if (cmd->out_fd > 2)
-        close(cmd->out_fd);
-    if (cmd->pfd[0] > 2)
-        close(cmd->pfd[0]);
-    if (cmd->pfd[1] > 2)
-        close(cmd->pfd[1]);
-    free(cmd);
+	int	i;
+
+	if (!cmd)
+		return ;
+	if (cmd->args)
+	{
+		i = 0;
+		while (i < cmd->arg_count)
+		{
+			free(cmd->args[i]);
+			cmd->args[i++] = NULL;
+		}
+		free(cmd->args);
+		cmd->args = NULL;
+	}
+	if (cmd->path)
+	{
+		free(cmd->path);
+		cmd->path = NULL;
+	}
+	if (cmd->had_spaces)
+	{
+		free(cmd->had_spaces);
+		cmd->had_spaces = NULL;
+	}
+	if (cmd->redirs)
+	{
+		i = 0;
+		while (cmd->redirs[i].type)
+		{
+			if (cmd->redirs[i].file)
+				free(cmd->redirs[i].file);
+			cmd->redirs[i++].file = NULL;
+		}
+		free(cmd->redirs);
+		cmd->redirs = NULL;
+	}
+	if (cmd->in_fd > 2)
+		close(cmd->in_fd);
+	if (cmd->out_fd > 2)
+		close(cmd->out_fd);
+	if (cmd->pfd[0] > 2)
+		close(cmd->pfd[0]);
+	if (cmd->pfd[1] > 2)
+		close(cmd->pfd[1]);
+	free(cmd);
 }
 
-
-
-
-
-void free_tokens(t_token *tokens)
+void	free_tokens(t_token *tokens)
 {
-    t_token *current;
-    t_token *next;
+	t_token	*current;
+	t_token	*next;
 
-    if (!tokens)
-        return;
+	if (!tokens)
+		return ;
 
-    current = tokens;
-    while (current)
-    {
-        next = current->next;
-        if (current->value)
-        {
-            free(current->value);
-            current->value = NULL;
-        }
-        if (current->content && current->content != current->value)
-        {
-            free(current->content);
-            current->content = NULL;
-        }  
-        free(current);
-        current = next;
-    }
+	current = tokens;
+	while (current)
+	{
+		next = current->next;
+		if (current->value)
+		{
+			free(current->value);
+			current->value = NULL;
+		}
+		if (current->content && current->content != current->value)
+		{
+			free(current->content);
+			current->content = NULL;
+		}
+		free(current);
+		current = next;
+	}
 }
 
 void	free_args(char **args)
@@ -281,19 +222,22 @@ void	free_args(char **args)
 	args = NULL;
 }
 
-void free_pipeline_pipes(int **pipes, int num_commands)
+void	free_pipeline_pipes(int **pipes, int num_commands)
 {
-    if (!pipes || num_commands <= 1)
-        return;
-        
-    for (int i = 0; i < num_commands - 1; i++)
-    {
-        if (pipes[i])
+	int	i;
+
+	i = 0;
+	if (!pipes || num_commands <= 1)
+		return ;
+	while (i < num_commands - 1)
+	{
+		if (pipes[i])
 		{
-            free(pipes[i]);
+			free(pipes[i]);
 			pipes[i] = NULL;
 		}
-    }
-    free(pipes);
+		++i;
+	}
+	free(pipes);
 	pipes = NULL;
 }

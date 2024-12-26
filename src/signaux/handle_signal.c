@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_signal.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/02 15:22:27 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 17:20:10 by fzayani          ###   ########.fr       */
+/*   Created: 2024/12/26 16:31:52 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/26 16:32:02 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,140 +31,63 @@ void	sighndl_sigint_main(int sig)
 	rl_redisplay();
 }
 
-void sigset_sigint_main(int sig)
+void	sigset_sigint_main(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = sighndl_sigint_main;
-    sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = sighndl_sigint_main;
+	sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
 }
 
 void	sighndl_sigquit_ign(int sig)
 {
-    (void)sig;
-    return ;
+	(void)sig;
+	return ;
 }
 
-void sigset_sigquit_main(int sig)
+void	sigset_sigquit_main(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = SIG_IGN;
-    sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = SIG_IGN;
+	sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
 }
 
-void sigset_sigint_child(int sig)
+void	sigset_sigint_child(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = SIG_DFL;
-    sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
 }
 
 
-void sigset_sigquit_child(int sig)
+void	sigset_sigquit_child(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = SIG_DFL;
-    sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = SIG_DFL;
+	sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
 }
 
-void sigset_sigint_heredoc(int sig)
+void	sigset_sigint_heredoc(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = SIG_DFL;
-    sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
 }
 
-void sigset_sigquit_heredoc(int sig)
+void	sigset_sigquit_heredoc(int sig)
 {
-    (void)sig;
-    sigemptyset(&get_ctx()->s_sigint.sa_mask);
-    get_ctx()->s_sigint.sa_flags = 0;
-    get_ctx()->s_sigint.sa_handler = SIG_IGN;
-    sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
+	(void)sig;
+	sigemptyset(&get_ctx()->s_sigint.sa_mask);
+	get_ctx()->s_sigint.sa_flags = 0;
+	get_ctx()->s_sigint.sa_handler = SIG_IGN;
+	sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
 }
-// void sigset_sigquit_main(int sig)
-// {
-//     (void)sig;
-//     sigemptyset(&get_ctx()->s_sigint.sa_mask);
-//     get_ctx()->s_sigint.sa_flags = 0;
-//     get_ctx()->s_sigint.sa_handler = sighndl_sigquit_ign; // func_handler
-//     // get_ctx()->s_sigint.sa_handler = NULL; // func_handler
-//     sigaction(SIG_IGN, &get_ctx()->s_sigint, NULL);
-// }
-
-// void sigset_sigint_child(int sig)
-// {
-//     (void)sig;
-//     sigemptyset(&get_ctx()->s_sigint.sa_mask);
-//     get_ctx()->s_sigint.sa_flags = 0;
-//     get_ctx()->s_sigint.sa_handler = NULL; // func_handler
-//     sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
-// }
-
-// void sigset_sigquit_child(int sig)
-// {
-//     (void)sig;
-//     sigemptyset(&get_ctx()->s_sigint.sa_mask);
-//     get_ctx()->s_sigint.sa_flags = 0;
-//     get_ctx()->s_sigint.sa_handler = NULL; // func_handler
-//     sigaction(SIGQUIT, &get_ctx()->s_sigint, NULL);
-// }
-
-// void sigset_sigint_heredoc(int sig)
-// {
-//     (void)sig;
-//     sigemptyset(&get_ctx()->s_sigint.sa_mask);
-//     get_ctx()->s_sigint.sa_flags = 0;
-//     get_ctx()->s_sigint.sa_handler = NULL; // func_handler
-//     sigaction(SIGINT, &get_ctx()->s_sigint, NULL);
-// }
-
-// void sigset_sigquit_heredoc(int sig)
-// {
-//     (void)sig;
-//     sigemptyset(&get_ctx()->s_sigint.sa_mask);
-//     get_ctx()->s_sigint.sa_flags = 0;
-//     get_ctx()->s_sigint.sa_handler = sighndl_sigquit_ign; // func_handler
-//     // get_ctx()->s_sigint.sa_handler = NULL; // func_handler
-//     sigaction(SIG_IGN, &get_ctx()->s_sigint, NULL);
-// }
-
-//////////////////////////////////////
-// int		g_var_global = 0;
-
-// char	*empty_completion(const char *text, int state)
-// {
-// 	(void)text;
-// 	(void)state;
-// 	return (NULL);
-// }
-
-// void	handle_sigint(int sig)
-// {
-// 	(void)sig;
-// 	printf("\n");
-// 	rl_on_new_line();
-// 	rl_replace_line("", 0);
-// 	rl_redisplay();
-// 	g_var_global = 130;
-// }
-
-// void	handle_sigquit(int sig)
-// {
-// 	(void)sig;
-// }
-
-// void	init_sig(void)
-// {
-// 	signal(SIGINT, handle_sigint);
-// 	signal(SIGQUIT, SIG_IGN);
-// }

@@ -3,182 +3,102 @@
 /*                                                        :::      ::::::::   */
 /*   build_env_list.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 20:41:56 by fzayani          ###   ########.fr       */
+/*   Created: 2024/12/26 15:59:08 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/26 16:00:18 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-
-// t_env_var	*create_new_env_var(char *env_str)
-// {
-// 	char		*sep;
-// 	t_env_var	*new_var;
-
-// 	sep = ft_strchr(env_str, '=');
-// 	if (!sep)
-// 		return (NULL);
-// 	new_var = malloc(sizeof(t_env_var));
-// 	if (!new_var)
-// 		return (perror("malloc failed"), NULL);
-// 	new_var->name = ft_strndup(env_str, sep - env_str);
-// 	new_var->value = ft_strdup(sep + 1);
-// 	new_var->next = NULL;
-// 	if (!new_var->name || !new_var->value)
-// 	{
-// 		free(new_var->name);
-// 		free(new_var->value);
-// 		free(new_var);
-// 		return (perror("malloc failed"), NULL);
-// 	}
-// 	return (new_var);
-// }
-
-// t_env_var *create_new_env_var(char *env_str)
-// {
-//     char *sep;
-//     t_env_var *new_var;
-    
-//     sep = ft_strchr(env_str, '=');
-//     if (!sep)
-//         return NULL;
-//     new_var = malloc(sizeof(t_env_var));
-//     if (!new_var)
-//         return NULL;
-//     new_var->name = NULL;
-//     new_var->value = NULL;
-//     new_var->next = NULL;
-//     new_var->name = ft_strndup(env_str, sep - env_str);
-//     if (!new_var->name)
-//     {
-//         free(new_var);
-//         new_var = NULL;
-//         free(env_str);
-//         env_str = NULL;
-//         return NULL;
-//     }
-//     new_var->value = ft_strdup(sep + 1);
-//     if (!new_var->value)
-//     {
-//         free(new_var->name);
-//         new_var->name = NULL;
-//         free(new_var->value);
-//         new_var->value = NULL;
-//         free(new_var);
-//         new_var = NULL;
-//         free(sep);
-//         sep = NULL;
-//         return NULL;
-//     }
-//     return new_var;
-// }
-
-void free_env_var(t_env_var *var)
+void	free_env_var(t_env_var *var)
 {
-    if (var)
-    {
-        free(var->name);
-        var->name = NULL;
-        free(var->value);
-        var->value = NULL;
-        free(var);
-    }
+	if (var)
+	{
+		free(var->name);
+		var->name = NULL;
+		free(var->value);
+		var->value = NULL;
+		free(var);
+	}
 }
 
-void free_env_list(t_env_var *head)
+void	free_env_list(t_env_var *head)
 {
-    t_env_var *temp;
+	t_env_var	*temp;
 
-    while (head)
-    {
-        temp = head->next; // Sauvegarde du pointeur vers l'élément suivant
-        free_env_var(head); // Libère l'élément actuel
-        head = temp;        // Passe au suivant
-    }
+	while (head)
+	{
+		temp = head->next;
+		free_env_var(head);
+		head = temp;
+	}
 }
 
 
-t_env_var *create_new_env_var(char *env_str)
+t_env_var	*create_new_env_var(char *env_str)
 {
-    char *sep;
-    t_env_var *new_var;
-    
-    sep = ft_strchr(env_str, '=');
-    if (!sep)
-        return NULL;
-    new_var = calloc(1, sizeof(t_env_var)); // Utiliser calloc pour init à 0
-    if (!new_var)
-        return NULL;
-    new_var->name = ft_strndup(env_str, sep - env_str);
-    if (!new_var->name)
-    {
-        free(new_var->name);
-        new_var->name = NULL;
-        free(new_var);
-        new_var = NULL;
-        return NULL;
-    }
-    new_var->value = ft_strdup(sep + 1);
-    if (!new_var->value)
-    {
-        free(new_var->name);
-        free(new_var);
-        return NULL;
-    }
-    return new_var;
+	char		*sep;
+	t_env_var	*new_var;
+
+	sep = ft_strchr(env_str, '=');
+	if (!sep)
+		return (NULL);
+	new_var = calloc(1, sizeof(t_env_var));
+	if (!new_var)
+		return (NULL);
+	new_var->name = ft_strndup(env_str, sep - env_str);
+	if (!new_var->name)
+	{
+		free(new_var->name);
+		new_var->name = NULL;
+		free(new_var);
+		new_var = NULL;
+		return (NULL);
+	}
+	new_var->value = ft_strdup(sep + 1);
+	if (!new_var->value)
+	{
+		free(new_var->name);
+		free(new_var);
+		return (NULL);
+	}
+	return (new_var);
 }
 
-void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
+void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
-     if (!head || !new_var)
-        return;
+	t_env_var	*current;
+	t_env_var	*prev;
 
-    if (!*head)
-    {
-        *head = new_var;
-        return;
-    }
-    t_env_var *current;
-    t_env_var *prev;
-
-    current = *head;
+	if (!head || !new_var)
+		return ;
+	if (!*head)
+	{
+		*head = new_var;
+		return ;
+	}
+	current = *head;
 	prev = NULL;
-    while (current)
-    {
-        if (ft_strcmp(current->name, new_var->name) == 0)
-        {
-            free(current->value);
-            current->value = new_var->value;
-            free(new_var->name);
-            free(new_var);
-            return;
-        }
-        prev = current;
-        current = current->next;
-    }
-    if (!*head)
-        *head = new_var;
-    else
-        prev->next = new_var;
+	while (current)
+	{
+		if (ft_strcmp(current->name, new_var->name) == 0)
+		{
+			free(current->value);
+			current->value = new_var->value;
+			free(new_var->name);
+			free(new_var);
+			return ;
+		}
+		prev = current;
+		current = current->next;
+	}
+	if (!*head)
+		*head = new_var;
+	else
+		prev->next = new_var;
 }
-
-// void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)
-// {
-// 	t_env_var	*current;
-// 	// printf("inside end \n");
-// 	if (!*head)
-// 		*head = new_var;
-// 	else
-// 	{
-// 		current = *head;
-// 		while (current->next)
-// 			current = current->next;
-// 		current->next = new_var;
-// 	}
-// }
 
 t_env_var	*build_env_list(char **envp)
 {

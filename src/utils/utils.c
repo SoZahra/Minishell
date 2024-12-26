@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/02 14:56:58 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 23:03:10 by fatimazahra      ###   ########.fr       */
+/*   Created: 2024/12/26 16:38:54 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/26 16:41:28 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,69 +36,30 @@ int	is_numeric_argument(const char *arg)
 	return (1);
 }
 
-//fonction a enlever
-char **convert_env_to_array(t_ctx *ctx)
+size_t	ft_strspn(const char *str, const char *accept)
 {
-    int count = 0;
-    t_env_var *current = ctx->env_vars;
-    char **env_array;
+	size_t	count;
+	size_t	i;
+	size_t	j;
+	int		found;
 
-    while (current)
-    {
-        count++;
-        current = current->next;
-    }
-
-    env_array = malloc((count + 1) * sizeof(char *));
-    if (!env_array)
-        return (NULL);
-
-    current = ctx->env_vars;
-    for (int i = 0; i < count && current; i++)
-    {
-        int len = ft_strlen(current->name)
-	+ (current->value ? ft_strlen(current->value) : 0) + 2;
-        env_array[i] = malloc(len);
-        if (!env_array[i])
-        {
-            free_tab(env_array);
-            return (NULL);
-        }
-        if (current->value)
-            snprintf(env_array[i], len, "%s=%s", current->name,
-	current->value);
-        else
-            snprintf(env_array[i], len, "%s=", current->name);
-        current = current->next;
-    }
-    env_array[count] = NULL;
-    return (env_array);
-}
-
-size_t  ft_strspn(const char *str, const char *accept)
-{
-    size_t  count;
-    size_t  i;
-    size_t  j;
-    int     found;
-
-    count = ((i = 0));
-    while (str[i])
-    {
-        found = ((j = 0));
-        while (accept[j])
-        {
-            if (str[i] == accept[j])
-            {
-                found = 1;
-                break;
-            }
-            j++;
-        }
-        if (!found)
-            return (count);
-        count++;
-        i++;
-    }
-    return (count);
+	count = ((i = 0));
+	while (str[i])
+	{
+		found = ((j = 0));
+		while (accept[j])
+		{
+			if (str[i] == accept[j])
+			{
+				found = 1;
+				break ;
+			}
+			j++;
+		}
+		if (!found)
+			return (count);
+		count++;
+		i++;
+	}
+	return (count);
 }

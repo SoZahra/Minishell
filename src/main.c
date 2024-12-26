@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 16:55:30 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 16:50:29 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,21 +29,21 @@ int	set_term_attr(void)
 	return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
 }
 
-void init_sig(void)
+void	init_sig(void)
 {
-    sigset_sigint_main(SIGINT);
-    sigset_sigquit_main(SIGQUIT);
+	sigset_sigint_main(SIGINT);
+	sigset_sigquit_main(SIGQUIT);
 }
 
-void cleanup_shell(t_ctx *ctx)
+void	cleanup_shell(t_ctx *ctx)
 {
 	if (!ctx)
-        return;
+		return ;
 	if (ctx->save_stdin > 2)
-        close(ctx->save_stdin);
-    if (ctx->save_stdout > 2)
-        close(ctx->save_stdout);
-    free_ctx(ctx);
+		close(ctx->save_stdin);
+	if (ctx->save_stdout > 2)
+		close(ctx->save_stdout);
+	free_ctx(ctx);
 }
 
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
