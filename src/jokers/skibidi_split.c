@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/25 22:58:48 by bama              #+#    #+#             */
-/*   Updated: 2024/12/26 14:12:13 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 14:58:54 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ char	**skibidi_split(const char *str, const char *delim)
 	ret = (char **)malloc((size + 1) * sizeof(char *));
 	if (!ret)
 		return (NULL);
-	printf("size %d\n", size);
 	ret[size] = NULL;
 	while (j < size)
 	{
