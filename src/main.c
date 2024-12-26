@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 16:50:29 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 19:29:30 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ int	set_term_attr(void)
 
 void	init_sig(void)
 {
-	sigset_sigint_main(SIGINT);
-	sigset_sigquit_main(SIGQUIT);
+	setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
+	setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
 }
 
 void	cleanup_shell(t_ctx *ctx)
@@ -46,7 +46,8 @@ void	cleanup_shell(t_ctx *ctx)
 	free_ctx(ctx);
 }
 
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
+int	main(int argc __attribute__((unused)),
+		char **argv __attribute__((unused)),
 		char **envp)
 {
 	if (initialize_ctx(get_ctx()))

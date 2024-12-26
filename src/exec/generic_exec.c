@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:06:09 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:08:32 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 19:26:25 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,37 +131,51 @@ int	open_outt(t_command *cmd, t_redirection *redir)
 
 int	here_doc(char *delimiter, t_ctx *ctx)
 {
-	(void)ctx;
-	int		pipe_fd[2];
 	char	*line;
+	pid_t	pid;
+	int		status;
 
-	if (pipe(pipe_fd) == -1)
+	if (pipe(ctx->pfd) == -1)
 		return (-1);
-	while (1)
+	pid = fork();
+	if (!pid)
 	{
-		line = readline("> ");
-		if (!line)
+		while (g_heredoc_active)
 		{
-			ft_fprintf(2, "\nwarning: here-document delimited by end-of-file\n");
-			break ;
-		}
-		if (ft_strcmp(line, delimiter) == 0)
-		{
+			close(ctx->pfd[0]);
+			line = readline("> ");
+			if (!line)
+			{
+				ft_fprintf(2, "\nwarning: here-document delimited by end-of-file\n");
+				break ;
+			}
+			if (ft_strcmp(line, delimiter) == 0)
+			{
+				free(line);
+				break ;
+			}
+			write(ctx->pfd[1], line, ft_strlen(line));
+			write(ctx->pfd[1], "\n", 1);
 			free(line);
-			break ;
 		}
-		write(pipe_fd[1], line, ft_strlen(line));
-		write(pipe_fd[1], "\n", 1);
-		free(line);
+		g_heredoc_active = FALSE;
+		close(ctx->pfd[1]);
+		exit(0);
 	}
-	close(pipe_fd[1]);
-	return (pipe_fd[0]);
+	setsig(&get_ctx()->s_sigint, SIGINT, SIG_IGN, 0);
+	waitpid(pid, &status, 0);
+	setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
+	ctx->exit_status = status;
+	//close(ctx->pfd[0]);
+	close(ctx->pfd[1]);
+	return (ctx->pfd[0]);
 }
 
 int	handle_heredoc(t_command *cmd, t_redirection *redir)
 {
 	int	fd;
 
+	g_heredoc_active = TRUE;
 	fd = here_doc(redir->file, get_ctx());
 	if (fd == -1)
 		return (1);

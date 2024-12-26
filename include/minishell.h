@@ -1,5 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/12/26 18:25:58 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/26 19:15:59 by ymanchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef MINISHELL_H
 # define MINISHELL_H
+
+# define _GNU_SOURCE
 
 # include "../libft/libft.h"
 # include "colors.h"
@@ -40,7 +54,7 @@
 # define JOKER_YES		0
 # define JOKER_SINGLE	1
 
-extern int	g_var_global;
+extern volatile int	g_heredoc_active;
 
 typedef struct s_env_var
 {
@@ -128,6 +142,7 @@ typedef struct s_ctx
 	t_command				*current_command;
 	int						save_stdin;
 	int						save_stdout;
+	int pfd[2];
 }							t_ctx;
 
 // -------------------------------------------------------------
@@ -139,6 +154,9 @@ t_token	*get_last_node(t_token *tokens);
 void	jokeroverride(t_token **root, t_ctx *data);
 char	there_is_joker(char *str);
 char	**skibidi_split(const char *str, const char *delim);
+int		here_doc(char *delimiter, t_ctx *ctx);
+void	handle_sigquit(int signum);
+void	setsig(struct sigaction *sa, int signum, void (*f)(int), int flags);
 
 // expand
 
@@ -232,12 +250,14 @@ t_command					*parse_pipe_sequence(t_token *tokens);
 void						handle_sigint(int sig);
 void						handle_sigquit(int sig);
 void						sighndl_sigint_main(int sig);
-void sigset_sigint_main(int sig);
-void sigset_sigquit_main(int sig);
+void sigset_sigint_main();
+void sigset_sigquit_main();
 void sigset_sigint_child(int sig);
 void sigset_sigquit_child(int sig);
 void sigset_sigint_heredoc(int sig);
 void sigset_sigquit_heredoc(int sig);
+
+void	sigset_sigign_main(int sig);
 
 // env
 
