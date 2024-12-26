@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 16:02:32 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 12:41:39 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
 {
     char **arg_array;
     int i;
+    int should_exit;
 
     while (*input == ' ')
         input++;
@@ -36,14 +37,17 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
         free((void*)input);
         exit(1);
     }
-    process_exit_arg(arg_array, ctx);
+    should_exit = process_exit_arg(arg_array, ctx);
     i = 0;
     while (arg_array[i])
-    free(arg_array[i++]);
+        free(arg_array[i++]);
     free(arg_array);
-    clear_exit(ctx);
-    free((void*)input);
-    exit(ctx->exit_status);
+    if(should_exit)
+    {
+        clear_exit(ctx);
+        free((void*)input);
+        exit(ctx->exit_status);
+    }
     return (1);
 }
 
@@ -206,6 +210,28 @@ int handle_single_arg(char *args, t_ctx *ctx)
 }
 
 
+// int handle_multiple_args(const char *args, t_ctx *ctx)
+// {
+//     char **arg_array;
+//     int result;
+//     int i;
+
+//     result = 0;
+//     arg_array = ft_split(args, ' ');
+//     if (!arg_array)
+//         return 1;
+//     i = 0;
+//     while(arg_array[i])
+//     {
+//         result |= export_single_var(arg_array[i], ctx);
+//         i++;
+//     }
+//     while(arg_array[i])
+//         free(arg_array[i++]);
+//     free(arg_array);
+//     return result;
+// }
+
 int handle_multiple_args(const char *args, t_ctx *ctx)
 {
     char **arg_array;
@@ -220,10 +246,9 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
     while(arg_array[i])
     {
         result |= export_single_var(arg_array[i], ctx);
+        free(arg_array[i]);  // Libérer chaque élément après l'avoir utilisé
         i++;
     }
-    while(arg_array[i])
-        free(arg_array[i++]);
     free(arg_array);
     return result;
 }

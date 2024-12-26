@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:05:20 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 16:01:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 12:49:55 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,10 @@ int execute_builtin(char *cmd_line, t_ctx *ctx)
         }
         free(cmd);
         free(cmd_line);
-        return (handle_exit_builtin(args_dup, ctx));
+        result = handle_exit_builtin(args_dup, ctx);
+        free(args_dup);  // On libère args_dup une fois qu'on a le résultat
+        return (result);
+        // return (handle_exit_builtin(args_dup, ctx));
     }
     if (ft_strcmp(cmd, "echo") == 0)
         result = handle_echo_builtin(args, ctx);

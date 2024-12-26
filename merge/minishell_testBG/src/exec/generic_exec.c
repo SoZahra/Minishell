@@ -249,7 +249,7 @@ int create_files_first(t_command *cmd)
     return (0);
 }
 
-static int create_output_file(t_redirection *redir)
+int create_output_file(t_redirection *redir)
 {
     int tmp_fd;
     
@@ -281,6 +281,31 @@ static int handle_redirection(t_command *cmd, t_redirection *redir)
     return (0);
 }
 
+// int open_outfiles(t_command *cmd)
+// {
+//     t_redirection *curr;
+//     int i;
+
+//     if (!cmd || !cmd->redirs)
+//         return (0);
+//     curr = cmd->redirs;
+//     i = 0;
+//     while (curr[i].type)
+//     {
+//         if ((curr[i].type == '>') && create_output_file(&curr[i]))
+//             return (1);
+//         i++;
+//     }
+//     i = 0;
+//     while (curr[i].type)
+//     {
+//         if (handle_redirection(cmd, &curr[i]))
+//             return (1);
+//         i++;
+//     }
+//     return (0);
+// }
+
 int open_outfiles(t_command *cmd)
 {
     t_redirection *curr;
@@ -289,13 +314,6 @@ int open_outfiles(t_command *cmd)
     if (!cmd || !cmd->redirs)
         return (0);
     curr = cmd->redirs;
-    i = 0;
-    while (curr[i].type)
-    {
-        if ((curr[i].type == '>') && create_output_file(&curr[i]))
-            return (1);
-        i++;
-    }
     i = 0;
     while (curr[i].type)
     {
@@ -473,11 +491,6 @@ int child_process(t_ctx *ctx, t_command *cmd)
     if (set_redirs(cmd))
         cmd_clean_and_exit(ctx, cmd, env_v, 1);
     if (is_builtin(cmd->args[0]))
-    // {
-    //     if (cmd->next || cmd->prev) // Si dans un pipe
-    //             cmd_clean_and_exit(ctx, cmd, env_v, 0);
-    //     set_and_exec_builtin(ctx, cmd);
-    // }   
         set_and_exec_builtin(ctx, cmd);
     execute_command(ctx, cmd, env_v);
     return (0);
@@ -585,8 +598,10 @@ int exec_builtin_once(t_ctx *ctx, t_command *cmd)
         return (free(cmd_line), 1);
     }
     ctx->exit_status = execute_builtin(cmd_line, ctx);
+    if (ft_strncmp(cmd->args[0], "exit", 5))  // Si ce n'est PAS la commande exit
+        free(cmd_line);
     ret = restore_std(ctx);
-    free(cmd_line);
+    // free(cmd_line);
     return (ret);
 }
 

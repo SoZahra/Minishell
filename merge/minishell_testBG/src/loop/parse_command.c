@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/25 14:29:40 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/26 14:23:16 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,17 +244,20 @@ int expand_proc(t_token **tokens, t_ctx *ctx)
         next = token->next;
         if ((token->type == 'S' || token->type == '"') && ft_strchr(token->value, '$'))
         {
-            if (expand_str(token, ctx) == -1)
-                return -1;
-            if (token == *tokens && token->value && !*token->value)
+            if (!token->prev || token->prev->type != 'H')
             {
-                *tokens = token->next;
-                if (token->next)
-                    token->next->prev = NULL;
-                free(token->value);
-                free(token);
-                token = *tokens;
-                continue;
+                if (expand_str(token, ctx) == -1)
+                    return -1;
+                if (token == *tokens && token->value && !*token->value)
+                {
+                    *tokens = token->next;
+                    if (token->next)
+                        token->next->prev = NULL;
+                    free(token->value);
+                    free(token);
+                    token = *tokens;
+                    continue;
+                }
             }
         }
         token = next;
@@ -559,8 +562,7 @@ t_token *join_it(t_token *token)
             token->next->prev = token->prev;
         free(token->value);
         prev = token->prev;
-        free(token);
-        return prev;
+        return (free(token), prev);
     }
     return NULL;
 }

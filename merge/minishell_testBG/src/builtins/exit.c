@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:07:10 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 14:18:21 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 12:35:19 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int handle_exit_with_argument(char **args, t_ctx *ctx)
     {
         ft_fprintf(2, "minishell: exit: too many arguments\n");
         ctx->exit_status = 1;
-        return 1;
+        return 0;
     }
     if (exit_code < 0)
         ctx->exit_status = 256 + (exit_code % 256);
