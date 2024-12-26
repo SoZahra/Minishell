@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 00:26:52 by bama              #+#    #+#             */
-/*   Updated: 2024/12/22 11:56:57 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/26 14:30:28 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,16 +50,9 @@ char	inspect_a_file(char *file, t_joker joker)
 			return (JOKER_NO);
 	}
 	else if (joker.first && !ft_strncmp(file, ".", 1) && ft_strcmp(file, "."))
-	{
-		//write(1, file, ft_strlen(file)); write(1, "\n", 1);
-		//write(1, &file[size], ft_strlen(&file[size])); write(1, "\n", 1);
-		//write(1, joker.words[i - 1], ft_strlen(joker.words[i - 1])); write(1, "\n", 1);
-		//write(1, "ezezez", 6);
 		return (JOKER_NO);
-	}
 	if (!joker.last && ft_strcmp(&file[size], joker.words[i - 1]))
 		return (JOKER_NO);
-	//write(1, file, ft_strlen(file)); write(1, "\n", 1);
 	return (JOKER_YES);
 }
 
@@ -78,7 +71,7 @@ void	joker_check_firstlast(const char *str, t_joker *joker)
 		}
 	}
 	i = ft_strlen(str) - 1;
-	while (str[i] && is_sep_joker(str[i]))
+	while (i > 0 && str[i] && is_sep_joker(str[i]))
 	{
 		if (str[i--] == '*')
 		{

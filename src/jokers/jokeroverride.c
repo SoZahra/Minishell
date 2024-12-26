@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   jokeroverride.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bama <bama@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 00:26:18 by bama              #+#    #+#             */
-/*   Updated: 2024/12/26 00:07:50 by bama             ###   ########.fr       */
+/*   Updated: 2024/12/26 14:43:25 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,19 @@ void	jokeroverride(t_token **root, t_ctx *data)
 		if (there_is_joker((char *)tok->value))
 		{
 			prepare_inspection(data, &tok, &joks);
-			token_insert(&tok, joks);
 			if (tok == *root)
-				*root = (*root)->next;
-			token_del(tok);
+			{
+				get_last_node(joks)->next = (*root)->next;
+				*root = joks;
+				(*root)->prev = NULL;
+				//free(tok->value);
+				//free(tok);
+			}
+			else
+			{
+				token_insert(&tok, joks);
+				token_del(tok);
+			}
 			tok = NULL;
 			return ;
 		}

@@ -1,3 +1,3 @@
 objs/./src/loop/loop.obj: src/loop/loop.c \
- src/loop/../../include/minishell.h \
- src/loop/../../include/../libft/libft.h src/loop/../../include/colors.h
+  src/loop/../../include/minishell.h include/../libft/libft.h \
+  include/colors.h
