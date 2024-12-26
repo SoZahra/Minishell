@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:48:48 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/19 14:13:52 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 15:35:26 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,54 @@ int is_valid_n(t_token *current)
     }
     if (current->value[0] == '-')
         return (1);
+    return 0;
+}
+
+
+int handle_echo_builtin(const char *args, t_ctx *ctx)
+{
+    while (*args == ' ')
+        args++;
+    if (args[0] == '-' && 
+        (ft_strchr(args, 'n') == args + 1 || 
+         (ft_strspn(args + 1, "n") == ft_strlen(args + 1))))
+    {
+        return handle_echo_builtin_n(args, ctx);
+    }
+    write(STDOUT_FILENO, args, ft_strlen(args));
+    write(STDOUT_FILENO, "\n", 1);
+    ctx->exit_status = 0;
+    return 0;
+}
+
+int handle_echo_builtin_n(const char *args, t_ctx *ctx)
+{
+    t_token *tokens;
+    int no_newline;
+    t_token *current;
+    int first;
+
+    tokens = tokenize_input((char *)args);
+    no_newline = 0;
+    current = tokens;
+    while (current && is_valid_n(current))
+    {
+        no_newline = 1;
+        current = current->next;
+    }
+    first = 1;
+    while (current)
+    {
+        if (!first)
+            write(STDOUT_FILENO, " ", 1);
+        write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+        first = 0;
+        current = current->next;
+    }
+    if (!no_newline)
+        write(STDOUT_FILENO, "\n", 1);
+    free_tokens(tokens);
+    ctx->exit_status = 0;
     return 0;
 }
 

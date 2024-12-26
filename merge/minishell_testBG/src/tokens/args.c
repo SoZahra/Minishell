@@ -6,24 +6,24 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:01:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 15:58:37 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 15:44:01 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	count_tokens(t_token *tokens)
-{
-	int	count;
+// int	count_tokens(t_token *tokens)
+// {
+// 	int	count;
 
-	count = 0;
-	while (tokens)
-	{
-		count++;
-		tokens = tokens->next;
-	}
-	return (count);
-}
+// 	count = 0;
+// 	while (tokens)
+// 	{
+// 		count++;
+// 		tokens = tokens->next;
+// 	}
+// 	return (count);
+// }
 
 // static char	*process_token_value(t_token *token, t_ctx *ctx)
 // {

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/22 16:55:30 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 20:09:22 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,32 @@ int	set_term_attr(void)
 	return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
 }
 
-void init_sig(void)
+// void init_sig(void)
+// {
+//     sigset_sigint_main(SIGINT);
+//     sigset_sigquit_main(SIGQUIT);
+// }
+
+//void init_sig(void)
+//{
+//    t_ctx *ctx = get_ctx();
+
+//    sigemptyset(&ctx->s_sigint.sa_mask);
+//    sigemptyset(&ctx->s_sigquit.sa_mask);
+//    ctx->s_sigint.sa_flags = 0;
+//    ctx->s_sigquit.sa_flags = 0;
+
+//    // Mode interactif normal
+//    ctx->s_sigint.sa_handler = sighndl_sigint_main;
+//    ctx->s_sigquit.sa_handler = SIG_IGN;
+//    sigaction(SIGINT, &ctx->s_sigint, NULL);
+//    sigaction(SIGQUIT, &ctx->s_sigquit, NULL);
+//}
+
+void    init_sig(void)
 {
-    sigset_sigint_main(SIGINT);
-    sigset_sigquit_main(SIGQUIT);
+    setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
+    setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
 }
 
 void cleanup_shell(t_ctx *ctx)

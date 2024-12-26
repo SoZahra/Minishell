@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 12:41:39 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 16:05:56 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,52 +51,52 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     return (1);
 }
 
-int handle_echo_builtin(const char *args, t_ctx *ctx)
-{
-    while (*args == ' ')
-        args++;
-    if (args[0] == '-' && 
-        (ft_strchr(args, 'n') == args + 1 || 
-         (ft_strspn(args + 1, "n") == ft_strlen(args + 1))))
-    {
-        return handle_echo_builtin_n(args, ctx);
-    }
-    write(STDOUT_FILENO, args, ft_strlen(args));
-    write(STDOUT_FILENO, "\n", 1);
-    ctx->exit_status = 0;
-    return 0;
-}
+// int handle_echo_builtin(const char *args, t_ctx *ctx)
+// {
+//     while (*args == ' ')
+//         args++;
+//     if (args[0] == '-' && 
+//         (ft_strchr(args, 'n') == args + 1 || 
+//          (ft_strspn(args + 1, "n") == ft_strlen(args + 1))))
+//     {
+//         return handle_echo_builtin_n(args, ctx);
+//     }
+//     write(STDOUT_FILENO, args, ft_strlen(args));
+//     write(STDOUT_FILENO, "\n", 1);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
 
-int handle_echo_builtin_n(const char *args, t_ctx *ctx)
-{
-    t_token *tokens;
-    int no_newline;
-    t_token *current;
-    int first;
+// int handle_echo_builtin_n(const char *args, t_ctx *ctx)
+// {
+//     t_token *tokens;
+//     int no_newline;
+//     t_token *current;
+//     int first;
 
-    tokens = tokenize_input((char *)args);
-    no_newline = 0;
-    current = tokens;
-    while (current && is_valid_n(current))
-    {
-        no_newline = 1;
-        current = current->next;
-    }
-    first = 1;
-    while (current)
-    {
-        if (!first)
-            write(STDOUT_FILENO, " ", 1);
-        write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-        first = 0;
-        current = current->next;
-    }
-    if (!no_newline)
-        write(STDOUT_FILENO, "\n", 1);
-    free_tokens(tokens);
-    ctx->exit_status = 0;
-    return 0;
-}
+//     tokens = tokenize_input((char *)args);
+//     no_newline = 0;
+//     current = tokens;
+//     while (current && is_valid_n(current))
+//     {
+//         no_newline = 1;
+//         current = current->next;
+//     }
+//     first = 1;
+//     while (current)
+//     {
+//         if (!first)
+//             write(STDOUT_FILENO, " ", 1);
+//         write(STDOUT_FILENO, current->value, ft_strlen(current->value));
+//         first = 0;
+//         current = current->next;
+//     }
+//     if (!no_newline)
+//         write(STDOUT_FILENO, "\n", 1);
+//     free_tokens(tokens);
+//     ctx->exit_status = 0;
+//     return 0;
+// }
 
 int create_var_with_value(const char *name, const char *value, t_ctx *ctx)
 {
@@ -119,6 +119,7 @@ int handle_no_equal(const char *arg, t_ctx *ctx)
         return handle_error(arg, ctx);
     return (create_and_add_var(ctx, ft_strdup(arg), NULL));
 }
+
 int export_single_var(const char *arg, t_ctx *ctx)
 {
     int result;
@@ -253,39 +254,118 @@ int handle_multiple_args(const char *args, t_ctx *ctx)
     return result;
 }
 
+// int handle_export_builtin(const char *input, t_ctx *ctx)
+// {
+//     char **split_args;
+
+//     while (*input == ' ')
+//         input++;
+//     if (!*input)
+//         return (handle_no_args(ctx));
+//     split_args = ft_split(input, ' ');
+//     if (!split_args)
+//         return (perror("ft_split"), 1);
+//     for (int i = 0; split_args[i]; i++)
+//     {
+//         if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
+//         {
+//             ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
+//                       split_args[i]);
+//             ctx->exit_status = 1;
+//             continue;
+//         }
+//         if (ft_strchr(split_args[i], '-'))
+//         {
+//             ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
+//                       split_args[i]);
+//             ctx->exit_status = 1;
+//             continue;
+//         }
+//         if (ft_strchr(split_args[i], '='))
+//             handle_single_arg(split_args[i], ctx);
+//         else
+//             handle_multiple_args(split_args[i], ctx);
+//         i++;
+//     }
+//     return (free_array(split_args), ctx->exit_status);
+// }
+
 int handle_export_builtin(const char *input, t_ctx *ctx)
 {
     char **split_args;
+    int i;
 
     while (*input == ' ')
         input++;
     if (!*input)
         return (handle_no_args(ctx));
+    if (ft_strchr(input, '='))
+    {
+        handle_single_arg((char *)input, ctx);
+        return (ctx->exit_status);
+    }
     split_args = ft_split(input, ' ');
     if (!split_args)
         return (perror("ft_split"), 1);
-    for (int i = 0; split_args[i]; i++)
+    i = 0;
+    while (split_args[i])
     {
         if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
         {
-            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
-                      split_args[i]);
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
+                split_args[i]);
             ctx->exit_status = 1;
-            continue;
         }
-        if (ft_strchr(split_args[i], '-'))
+        else if (ft_strchr(split_args[i], '-'))
         {
-            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", 
-                      split_args[i]);
+            ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
+                split_args[i]);
             ctx->exit_status = 1;
-            continue;
         }
-        if (ft_strchr(split_args[i], '='))
-            handle_single_arg(split_args[i], ctx);
         else
             handle_multiple_args(split_args[i], ctx);
+        i++;
     }
-    free_array(split_args);
-    return ctx->exit_status;
+    return (free_array(split_args), ctx->exit_status);
 }
+
+// int handle_export_builtin(const char *input, t_ctx *ctx)
+// {
+//     char **split_args;
+//     int i;
+
+//     while (*input == ' ')
+//         input++;
+//     if (!*input)
+//         return (handle_no_args(ctx));
+//     split_args = ft_split(input, ' ');
+//     if (!split_args)
+//         return (perror("ft_split"), 1);
+//     i = 0;
+//     while (split_args[i])
+//     {
+//         if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
+//         {
+//             ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
+//                 split_args[i]);
+//             ctx->exit_status = 1;
+//             i++;
+//             continue;
+//         }
+//         if (ft_strchr(split_args[i], '-'))
+//         {
+//             ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
+//                 split_args[i]);
+//             ctx->exit_status = 1;
+//             i++;
+//             continue;
+//         }
+//         if (ft_strchr(split_args[i], '='))
+//             handle_single_arg(split_args[i], ctx);
+//         else
+//             handle_multiple_args(split_args[i], ctx);
+//         i++;
+//     }
+//     return (free_array(split_args), ctx->exit_status);
+// }
 

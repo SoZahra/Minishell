@@ -24,10 +24,14 @@
 # define REDIRS "<>HA"
 # define OPERATORS "AH<>|"
 # define UNJOIN "<>|"
-extern int g_var_global;
+extern int g_heredoc_active;
 # ifndef PATH_MAX
 #  define PATH_MAX 4096
 # endif
+
+# define BOOL	char
+# define TRUE	1
+# define FALSE	0
 
 typedef struct s_env_var
 {
@@ -98,6 +102,7 @@ typedef struct s_ctx
 	t_command				*current_command;
 	int						save_stdin;
 	int						save_stdout;
+	int						pfd[2];
 }							t_ctx;
 
 // -------------------------------------------------------------
@@ -200,11 +205,15 @@ void sigset_sigint_child(int sig);
 void sigset_sigquit_child(int sig);
 void sigset_sigint_heredoc(int sig);
 void sigset_sigquit_heredoc(int sig);
+void init_heredoc_sig(void);
+void restore_main_sig(void);
+
+void    setsig(struct sigaction *sa, int signum, void (*f)(int), int flags);
 
 // env
 
 t_env_var					*build_env_list(char **envp);
-void						add_env_var_to_list(t_env_var **head,
+int						add_env_var_to_list(t_env_var **head,
 								t_env_var *new_var);
 t_env_var					*get_last_env_node(t_env_var **env);
 int							create_and_add_var(t_ctx *ctx, char *var,
@@ -223,7 +232,7 @@ int							add_token(t_token **token_list, t_token_type type,
 t_token						*create_new_token(t_token_type type, char *value);
 t_token						*tokenize_input(char *line);
 t_token						*create_token_node(char *arg, t_token_type type);
-int							count_tokens(t_token *tokens);
+void count_tokens(t_token *start, t_token *end, int *arg_c, int *red_c);
 bool						is_token(char c, char *str);
 
 // free

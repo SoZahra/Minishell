@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:58:29 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 14:23:16 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 19:55:30 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -434,7 +434,7 @@ int quotes_proc(t_token **tokens, char *input, int *i)
     while (input[(*i)] && input[(*i)] != type)
         (*i)++;
     if (input[(*i)++] != type)
-        return (printf("error: syntax\n"), -1);
+        return (printf("error: syntax1\n"), -1);
     value = ft_substr(input, j, *i - j - 1);
     if (!value)
         return -1;
@@ -447,14 +447,6 @@ int quotes_proc(t_token **tokens, char *input, int *i)
 }
 // > < |
 
-// void clear(pid_t *pids, t_command *cmds, int exit_code)
-// {
-//     (void)pids;
-//     if (cmds)
-//         free_args(cmds->args); 
-//     exit(exit_code);
-// }
-
 int operators_proc(t_token **tokens, char *input, int *i, int n)
 {
     char type;
@@ -462,31 +454,79 @@ int operators_proc(t_token **tokens, char *input, int *i, int n)
     int start;
     char *value;
 
-    if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
-        return (printf("error: syntax\n"), free_tokens(*tokens), -1);
+	//  printf("DEBUG: Processing operator at position %d: '%c'\n", *i, input[*i]);
+    //if (*tokens)
+    //    printf("DEBUG: Last token type: '%c'\n", get_last_token(*tokens)->type);
     start = *i;
-    x = 1;
     type = input[(*i)++];
+    x = 1;
     while (input[*i] && input[*i] == type)
     {
         x++;
         (*i)++;
-        if (x > n) // Si on dépasse la limite autorisée (1 pour |, 2 pour > et <)
-            return (printf("error: syntax\n"), -1);
+		//printf("DEBUG: Found repeated operator, count: %d\n", x);
+        if (x > n)
+            return (printf("error: syntax3\n"), -1);
     }
     value = ft_substr(input, start, *i - start);
     if (!value)
-        return -1;
+        return (-1);
+
+    // Vérifier les opérateurs consécutifs seulement pour les cas non-heredoc
+    if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
+    {
+        t_token *last = get_last_token(*tokens);
+        // Autoriser '|' après 'H' et 'H' après '|'
+        if (!((last->type == 'H' && type == '|') || 
+              (last->type == '|' && type == '<' && x == 2)))
+        {
+            free(value);
+            return (printf("error: syntax2\n"), free_tokens(*tokens), -1);
+        }
+    }
+
     if (type == '<' && x > 1)
         type = 'H';
     else if (type == '>' && x > 1)
         type = 'A';
+
     int ret = add_token(tokens, type, value);
     free(value);
-    if(ret != 0)
-        return 1;
-    return 0;
+    return (ret ? 1 : 0);
 }
+
+//int operators_proc(t_token **tokens, char *input, int *i, int n)
+//{
+//    char type;
+//    int x;
+//    int start;
+//    char *value;
+
+//    if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
+//        return (printf("error: syntax2\n"), free_tokens(*tokens), -1);
+//    start = *i;
+//    x = 1;
+//    type = input[(*i)++];
+//    while (input[*i] && input[*i] == type)
+//    {
+//        x++;
+//        (*i)++;
+//        if (x > n) // Si on dépasse la limite autorisée (1 pour |, 2 pour > et <)
+//            return (printf("error: syntax3\n"), -1);
+//    }
+//    value = ft_substr(input, start, *i - start);
+//    if (!value)
+//        return -1;
+//    if (type == '<' && x > 1)
+//        type = 'H';
+//    else if (type == '>' && x > 1)
+//        type = 'A';
+//    int ret = add_token(tokens, type, value);
+//    free(value);
+//    if(ret != 0)
+//        return 1;
+//    return 0;
+//}
 
 // x"y"'z'"a"'b'c>|>><"x"<<
 

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:17:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/18 20:41:56 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/26 16:02:51 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,15 +131,14 @@ t_env_var *create_new_env_var(char *env_str)
     return new_var;
 }
 
-void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
+int add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
-     if (!head || !new_var)
-        return;
-
+    if (!head || !new_var)
+        return 1;
     if (!*head)
     {
         *head = new_var;
-        return;
+        return 1;
     }
     t_env_var *current;
     t_env_var *prev;
@@ -152,9 +151,7 @@ void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
         {
             free(current->value);
             current->value = new_var->value;
-            free(new_var->name);
-            free(new_var);
-            return;
+            return (free(new_var->name), free(new_var), 1);
         }
         prev = current;
         current = current->next;
@@ -163,6 +160,7 @@ void add_env_var_to_list(t_env_var **head, t_env_var *new_var)
         *head = new_var;
     else
         prev->next = new_var;
+    return(0);
 }
 
 // void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)

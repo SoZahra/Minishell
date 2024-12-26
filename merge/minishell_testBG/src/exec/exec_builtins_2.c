@@ -3,54 +3,54 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins_2.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: llarrey <llarrey@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 19:40:17 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/17 19:40:42 by llarrey          ###   ########.fr       */
+/*   Updated: 2024/12/26 15:21:37 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-static const char	*parse_command(const char *cmd_line, char **cmd)
-{
-	char		*space;
-	const char	*args;
+// static const char	*parse_command(const char *cmd_line, char **cmd)
+// {
+// 	char		*space;
+// 	const char	*args;
 
-	*cmd = ft_strdup(cmd_line);
-	space = ft_strchr(*cmd, ' ');
-	if (space)
-		*space = '\0';
-	args = cmd_line + ft_strlen(*cmd);
-	while (*args == ' ')
-		args++;
-	return (args);
-}
+// 	*cmd = ft_strdup(cmd_line);
+// 	space = ft_strchr(*cmd, ' ');
+// 	if (space)
+// 		*space = '\0';
+// 	args = cmd_line + ft_strlen(*cmd);
+// 	while (*args == ' ')
+// 		args++;
+// 	return (args);
+// }
 
-int	execute_builtin(const char *cmd_line, t_ctx *ctx)
-{
-	char		*cmd;
-	const char	*args;
-	int			result;
+// int	execute_builtin(const char *cmd_line, t_ctx *ctx)
+// {
+// 	char		*cmd;
+// 	const char	*args;
+// 	int			result;
 
-	args = parse_command(cmd_line, &cmd);
-	result = 0;
-	if (ft_strcmp(cmd, "echo") == 0)
-		result = handle_echo_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "cd") == 0)
-		result = handle_cd_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "pwd") == 0)
-		result = handle_pwd_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "export") == 0)
-		result = handle_export_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "env") == 0)
-		result = handle_env_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "exit") == 0)
-		result = handle_exit_builtin(args, ctx);
-	else if (ft_strcmp(cmd, "unset") == 0)
-		result = handle_unset_builtin(args, ctx);
-	return (free(cmd), result);
-}
+// 	args = parse_command(cmd_line, &cmd);
+// 	result = 0;
+// 	if (ft_strcmp(cmd, "echo") == 0)
+// 		result = handle_echo_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "cd") == 0)
+// 		result = handle_cd_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "pwd") == 0)
+// 		result = handle_pwd_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "export") == 0)
+// 		result = handle_export_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "env") == 0)
+// 		result = handle_env_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "exit") == 0)
+// 		result = handle_exit_builtin(args, ctx);
+// 	else if (ft_strcmp(cmd, "unset") == 0)
+// 		result = handle_unset_builtin(args, ctx);
+// 	return (free(cmd), result);
+// }
 
 int	handle_unset_builtin(const char *input, t_ctx *ctx)
 {
