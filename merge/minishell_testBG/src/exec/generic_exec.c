@@ -675,8 +675,8 @@ int exec_builtin_once(t_ctx *ctx, t_command *cmd)
 		return (free(cmd_line), 1);
 	}
 	ctx->exit_status = execute_builtin(cmd_line, ctx);
-	if (ft_strncmp(cmd->args[0], "exit", 5))  // Si ce n'est PAS la commande exit
-		free(cmd_line);
+	//if (ft_strncmp(cmd->args[0], "exit", 5))  // Si ce n'est PAS la commande exit
+	//	free(cmd_line);
 	ret = restore_std(ctx);
 	// free(cmd_line);
 	return (ret);
