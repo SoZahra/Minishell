@@ -793,31 +793,6 @@ static int setup_heredocs(t_command *cmd)
     return (0);
 }
 
-void close_heredocs(t_command *cmd)
-{
-    t_command *tmp;
-    int i;
-
-    tmp = cmd;
-    while (tmp)
-    {
-        if (tmp->redirs)
-        {
-            i = 0;
-            while (tmp->redirs[i].type)
-            {
-                if (tmp->redirs[i].type == 'H' && tmp->redirs[i].heredoc_fd > 0)
-                {
-                    close(tmp->redirs[i].heredoc_fd);
-                    tmp->redirs[i].heredoc_fd = -1;
-                }
-                i++;
-            }
-        }
-        tmp = tmp->next;
-    }
-}
-
 int exec_loop(t_ctx *ctx, t_command *cmd)
 {
     t_command *tmp;
@@ -826,7 +801,6 @@ int exec_loop(t_ctx *ctx, t_command *cmd)
 
     if (setup_heredocs(cmd))
         return (1);
-
     tmp = cmd;
     has_child = ((ret = 0));
     ctx->current_command = cmd;
@@ -847,7 +821,6 @@ int exec_loop(t_ctx *ctx, t_command *cmd)
     }
     if(has_child)
 		wait_loop(ctx, cmd);
-	close_heredocs(cmd);
     return (ret);
 }
 

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 18:40:11 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 16:05:56 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/27 11:18:12 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 int clear_exit(t_ctx *ctx)
 {
-    write(1, "exit\n", 5);
+    //write(1, "exit\n", 5);
     cleanup_shell(ctx);
     rl_clear_history();
     free_command_list(get_ctx()->current_command);
@@ -27,8 +27,9 @@ int handle_exit_builtin(const char *input, t_ctx *ctx)
     int i;
     int should_exit;
 
-    while (*input == ' ')
+	while (*input == ' ')
         input++;
+	write(1, "exit\n", 5);
     arg_array = ft_split(input, ' ');
     if (!arg_array)
     {

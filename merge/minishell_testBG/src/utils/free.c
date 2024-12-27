@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/24 16:16:37 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/27 11:21:58 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,16 +187,38 @@ void free_command_list(t_command *cmd)
     }
 }
 
+void close_heredocs(t_command *cmd)
+{
+    int i;
+
+    if (!cmd || !cmd->redirs)
+        return;
+    i = 0;
+    while (cmd->redirs[i].type)
+    {
+        if (cmd->redirs[i].type == 'H' && cmd->redirs[i].heredoc_fd > 0)
+        {
+            close(cmd->redirs[i].heredoc_fd);
+            cmd->redirs[i].heredoc_fd = -1;
+        }
+        i++;
+    }
+}
+
 void free_command(t_command *cmd)
 {
     if (!cmd)
         return;
+	int i;
+
+	i = 0;
     if (cmd->args)
     {
-        for (int i = 0; i < cmd->arg_count; i++)
+		while(i < cmd->arg_count)
         {
             free(cmd->args[i]);
             cmd->args[i] = NULL;
+			i++;
         }
         free(cmd->args);
         cmd->args = NULL;
@@ -213,6 +235,8 @@ void free_command(t_command *cmd)
     }
     if (cmd->redirs)
     {
+		close_heredocs(cmd);
+		while()
         for (int i = 0; cmd->redirs[i].type != 0; i++)
         {
             if (cmd->redirs[i].file)
