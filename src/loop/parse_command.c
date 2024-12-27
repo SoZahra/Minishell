@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   parse_command.c                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/26 16:29:25 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:29:27 by ymanchon         ###   ########.fr       */
-/*                                                                            */
+/*																			*/
+/*														:::	  ::::::::   */
+/*   parse_command.c									:+:	  :+:	:+:   */
+/*													+:+ +:+		 +:+	 */
+/*   By: ymanchon <ymanchon@student.42.fr>		  +#+  +:+	   +#+		*/
+/*												+#+#+#+#+#+   +#+		   */
+/*   Created: 2024/12/26 16:29:25 by ymanchon		  #+#	#+#			 */
+/*   Updated: 2024/12/27 11:30:55 by ymanchon		 ###   ########.fr	   */
+/*																			*/
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
@@ -142,7 +142,7 @@ int	expand_proc(t_token **tokens, t_ctx *ctx)
 	if (!tokens || !*tokens)
 		return (0);
 	token = *tokens;
-	jokeroverride(tokens, ctx);
+	//jokeroverride(tokens, ctx);
 	while (token)
 	{
 		next = token->next;
@@ -329,36 +329,47 @@ int	quotes_proc(t_token **tokens, char *input, int *i)
 
 int	operators_proc(t_token **tokens, char *input, int *i, int n)
 {
+	char	type;
 	int		x;
 	int		start;
-	int		ret;
-	char	type;
 	char	*value;
 
-	if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
-		return (printf("error: syntax\n"), free_tokens(*tokens), -1);
 	start = *i;
-	x = 1;
 	type = input[(*i)++];
+	x = 1;
 	while (input[*i] && input[*i] == type)
 	{
 		x++;
 		(*i)++;
+		//printf("DEBUG: Found repeated operator, count: %d\n", x);
 		if (x > n)
-			return (printf("error: syntax\n"), -1);
+			return (printf("error: syntax3\n"), -1);
 	}
 	value = ft_substr(input, start, *i - start);
 	if (!value)
 		return (-1);
+
+	// Vérifier les opérateurs consécutifs seulement pour les cas non-heredoc
+	if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
+	{
+		t_token *last = get_last_token(*tokens);
+		// Autoriser '|' après 'H' et 'H' après '|'
+		if (!((last->type == 'H' && type == '|') || 
+			  (last->type == '|' && type == '<' && x == 2)))
+		{
+			free(value);
+			return (printf("error: syntax2\n"), free_tokens(*tokens), -1);
+		}
+	}
+
 	if (type == '<' && x > 1)
 		type = 'H';
 	else if (type == '>' && x > 1)
 		type = 'A';
-	ret = add_token(tokens, type, value);
+
+	int ret = add_token(tokens, type, value);
 	free(value);
-	if (ret != 0)
-		return (1);
-	return (0);
+	return (ret ? 1 : 0);
 }
 
 // x"y"'z'"a"'b'c>|>><"x"<<

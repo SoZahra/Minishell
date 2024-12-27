@@ -12,92 +12,6 @@
 
 #include "../include/minishell.h"
 
-int	clear_exit(t_ctx *ctx)
-{
-	write(1, "exit\n", 5);
-	cleanup_shell(ctx);
-	rl_clear_history();
-	free_command_list(get_ctx()->current_command);
-	return (0);
-}
-
-int	handle_exit_builtin(const char *input, t_ctx *ctx)
-{
-	char	**arg_array;
-	int		i;
-	int		should_exit;
-
-	while (*input == ' ')
-		input++;
-	arg_array = ft_split(input, ' ');
-	if (!arg_array)
-	{
-		ctx->exit_status = 1;
-		clear_exit(ctx);
-		free((void *)input);
-		exit(1);
-	}
-	should_exit = process_exit_arg(arg_array, ctx);
-	i = 0;
-	while (arg_array[i])
-		free(arg_array[i++]);
-	free(arg_array);
-	if (should_exit)
-	{
-		clear_exit(ctx);
-		free((void *)input);
-		exit(ctx->exit_status);
-	}
-	return (1);
-}
-
-int	handle_echo_builtin(const char *args, t_ctx *ctx)
-{
-	while (*args == ' ')
-		args++;
-	if (args[0] == '-'
-		&& (ft_strchr(args, 'n') == args + 1
-			|| (ft_strspn(args + 1, "n") == ft_strlen(args + 1))))
-	{
-		return (handle_echo_builtin_n(args, ctx));
-	}
-	write(STDOUT_FILENO, args, ft_strlen(args));
-	write(STDOUT_FILENO, "\n", 1);
-	ctx->exit_status = 0;
-	return (0);
-}
-
-int	handle_echo_builtin_n(const char *args, t_ctx *ctx)
-{
-	t_token	*tokens;
-	t_token	*current;
-	int		no_newline;
-	int		first;
-
-	tokens = tokenize_input((char *)args);
-	no_newline = 0;
-	current = tokens;
-	while (current && is_valid_n(current))
-	{
-		no_newline = 1;
-		current = current->next;
-	}
-	first = 1;
-	while (current)
-	{
-		if (!first)
-			write(STDOUT_FILENO, " ", 1);
-		write(STDOUT_FILENO, current->value, ft_strlen(current->value));
-		first = 0;
-		current = current->next;
-	}
-	if (!no_newline)
-		write(STDOUT_FILENO, "\n", 1);
-	free_tokens(tokens);
-	ctx->exit_status = 0;
-	return (0);
-}
-
 int	create_var_with_value(const char *name, const char *value, t_ctx *ctx)
 {
 	char	*var_name;
@@ -118,13 +32,14 @@ int	export_single_var(const char *arg, t_ctx *ctx)
 	int		result;
 	char	*equal_sign;
 	char	*temp_equal;
+	char	*temp;
 
 	if (ft_strcmp(arg, "=") == 0)
 		return (handle_error(arg, ctx));
 	equal_sign = ft_strchr(arg, '=');
 	if (!equal_sign)
 		return (handle_no_equal(arg, ctx));
-	char *temp = ft_strdup(arg);
+	temp = ft_strdup(arg);
 	if (!temp)
 		return (1);
 	temp_equal = temp + (equal_sign - arg);
@@ -134,13 +49,6 @@ int	export_single_var(const char *arg, t_ctx *ctx)
 	result = create_var_with_value(temp, equal_sign + 1, ctx);
 	free(temp);
 	return (result);
-}
-
-int	handle_error(const char *arg, t_ctx *ctx)
-{
-	ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n", arg);
-	ctx->exit_status = 1;
-	return (1);
 }
 
 int	handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)

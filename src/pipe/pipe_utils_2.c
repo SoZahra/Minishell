@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:29:12 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:30:43 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 14:51:54 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ void	handle_output_redirection(
 	*redirect = 1;
 	*redirect_output = 1;
 }
+
 void	cleanup_parent_resources(
 	int *prev_fd,
 	int *pipe_fd,

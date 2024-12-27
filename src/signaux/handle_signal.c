@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:31:52 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 19:22:48 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 14:18:52 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,19 +28,24 @@ void	setsig(struct sigaction *sa, int signum, void (*f)(int), int flags)
 	sigaction(signum, sa, NULL);
 }
 
+void	handle_sigquit(int signum)
+{
+	(void)signum;
+	write(STDERR_FILENO, "Quit (core dumped)\n", 20);
+	get_ctx()->exit_status = 131;
+	cmd_clean_and_exit(get_ctx(), NULL, NULL, 131);
+	//exit(131);
+}
+
 void	handle_sigint(int signum)
 {
-	if (g_heredoc_active)
-	{
-		rl_on_new_line();
-		rl_replace_line("", 0);
-		write(STDOUT_FILENO, "\n", 1);
-		exit(0);
-	}
 	(void)signum;
 	get_ctx()->exit_status = 130;
-	write(STDOUT_FILENO, "\n", 1);
-	rl_replace_line("", 0);
 	rl_on_new_line();
+	rl_replace_line("", 0);
+	write(STDOUT_FILENO, "\n", 1);
+	if (g_heredoc_active)
+		cmd_clean_and_exit(get_ctx(), NULL, NULL, 130);
+		//exit(130);
 	rl_redisplay();
 }

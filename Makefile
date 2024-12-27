@@ -6,7 +6,7 @@
 #    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/26 17:41:04 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/27 15:00:25 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -48,18 +48,26 @@ SRCS =	./src/builtins/cd.c					\
 		./src/exec/exec_builtins.c			\
 		./src/exec/exec_simple.c			\
 		./src/exec/generic_exec.c			\
-		./src/exec/handle_export.c			\
+		./src/exec/generic_exec2.c			\
+		./src/exec/handle_builtins.c		\
 		./src/exec/utils_parse_command.c	\
+		./src/exec/open_fct.c				\
+		./src/exec/open_fct_utils.c			\
+		./src/exec/heredoc.c				\
+		./src/exec/fd_utils.c				\
+		./src/exec/redirections.c			\
+		./src/exec/check_and_exit.c			\
+		./src/exec/handle_export.c			\
 		\
-		./src/jokers/jokeroverride.c		\
-		./src/jokers/jokeroverride2.c		\
-		./src/jokers/jokeroverride3.c		\
 		./src/jokers/skibidi_split.c		\
 		\
 		./src/loop/loop.c					\
 		./src/loop/parse_command.c			\
 		./src/loop/utils_parse_2.c			\
 		./src/loop/token_utils.c			\
+		./src/loop/commands_lst.c			\
+		./src/loop/redirections.c			\
+		./src/loop/utils.c					\
 		\
 		./src/pipe/exec_struct_utils.c		\
 		./src/pipe/pipe_utils_2.c			\
@@ -71,12 +79,15 @@ SRCS =	./src/builtins/cd.c					\
 		./src/tokens/args.c					\
 		\
 		./src/utils/free.c					\
+		./src/utils/free2.c					\
+		./src/utils/free3.c					\
 		./src/utils/ft_fprintf.c			\
 		./src/utils/init.c					\
 		./src/utils/list.c					\
 		./src/utils/utils.c					\
 		\
 		./src/pipe.c						\
+		./src/exec_utils.c					\
 		./src/exec.c						\
 		./src/main.c
 
