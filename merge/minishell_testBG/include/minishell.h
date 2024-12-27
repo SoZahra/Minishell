@@ -97,8 +97,8 @@ typedef struct s_ctx
 	char					*oldpwd;
 	char					*pwd;
 	struct termios			term;
-	struct sigaction		s_sigint;
-	struct sigaction		s_sigquit;
+	struct sigaction		sa_int;
+	struct sigaction		sa_quit;
 	t_command				*current_command;
 	int						save_stdin;
 	int						save_stdout;
@@ -188,6 +188,9 @@ char						*tokens_to_string_from_command(t_command *cmd);
 
 int							exec_loop(t_ctx *ctx, t_command *cmd);
 
+//heredoc
+void close_heredocs(t_command *cmd);
+
 // loop
 
 int							handle_line_for_loop(char *line, t_ctx *ctx);
@@ -196,17 +199,24 @@ t_command					*parse_pipe_sequence(t_token *tokens);
 
 // signaux
 
-void						handle_sigint(int sig);
-void						handle_sigquit(int sig);
-void						sighndl_sigint_main(int sig);
-void sigset_sigint_main(int sig);
-void sigset_sigquit_main(int sig);
-void sigset_sigint_child(int sig);
-void sigset_sigquit_child(int sig);
-void sigset_sigint_heredoc(int sig);
-void sigset_sigquit_heredoc(int sig);
+//void						handle_sigint(int sig);
+//void						handle_sigquit(int sig);
+//void						sighndl_sigint_main(int sig);
+//void sigset_sigint_main(int sig);
+//void sigset_sigquit_main(int sig);
+//void sigset_sigint_child(int sig);
+//void sigset_sigquit_child(int sig);
+//void sigset_sigint_heredoc(int sig);
+//void sigset_sigquit_heredoc(int sig);
+//void init_heredoc_sig(void);
+//void restore_main_sig(void);
+void init_child_sig(void);
+void    init_sig(void);
 void init_heredoc_sig(void);
 void restore_main_sig(void);
+
+void sigint_main_ignore(void);
+void sigint_main_handl(void);
 
 void    setsig(struct sigaction *sa, int signum, void (*f)(int), int flags);
 

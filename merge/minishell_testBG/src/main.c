@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 20:09:22 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/27 11:48:54 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,11 @@ int	set_term_attr(void)
 //    sigaction(SIGQUIT, &ctx->s_sigquit, NULL);
 //}
 
-void    init_sig(void)
-{
-    setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
-    setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
-}
+//void    init_sig(void)
+//{
+//    setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
+//    setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
+//}
 
 void cleanup_shell(t_ctx *ctx)
 {

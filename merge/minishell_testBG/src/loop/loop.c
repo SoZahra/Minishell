@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:50:52 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 19:32:47 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/27 15:33:04 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,21 +265,20 @@ t_command *init_command_struct(int arg_count, int redir_count)
     
     cmd = calloc(1, sizeof(t_command));
     if (!cmd)
-        return NULL;
-
+        return (NULL);
     cmd->pid = -1;
     cmd->pfd[0] = -1;
     cmd->pfd[1] = -1;
     cmd->arg_count = arg_count;
     cmd->args = calloc(arg_count + 1, sizeof(char *));
     if (!cmd->args)
-        return (free_command_list(cmd), NULL);
+        return (free_command(cmd), NULL);
     cmd->redirs = calloc(redir_count + 1, sizeof(t_redirection));
     if (!cmd->redirs)
-        return (free_command_list(cmd), NULL);
+        return (free_command(cmd), NULL);
     cmd->had_spaces = calloc(arg_count, sizeof(int));
     if (!cmd->had_spaces)
-        return (free_command_list(cmd), NULL);
+        return (free_command(cmd), NULL);
     return cmd;
 }
 
@@ -293,17 +292,30 @@ int is_argument(t_token_type type)
     return (type == 'S' || type == '"' || type == '\'');
 }
 
+//int add_redir(t_command *cmd, t_token *token, int *redir_i)
+//{
+//    if (!cmd || !cmd->redirs)
+//        return 1;
+//    cmd->redirs[*redir_i].type = token->type;
+//    if(token->type)
+//    {
+//        cmd->redirs[*redir_i].file = ft_strdup(token->next->value);
+//        if (!cmd->redirs[*redir_i].file)
+//            return (1);
+//    }
+//    (*redir_i)++;
+//    return (0);
+//}
+
 int add_redir(t_command *cmd, t_token *token, int *redir_i)
 {
-    if (!cmd || !cmd->redirs)
-        return 1;
+    if (!cmd || !cmd->redirs || !token || !token->next)
+        return (1);
     cmd->redirs[*redir_i].type = token->type;
-    if(token->type)
-    {
-        cmd->redirs[*redir_i].file = ft_strdup(token->next->value);
-        if (!cmd->redirs[*redir_i].file)
-            return (1);
-    }
+    cmd->redirs[*redir_i].file = ft_strdup(token->next->value);
+    if (!cmd->redirs[*redir_i].file)
+        return (1);
+    cmd->redirs[*redir_i].heredoc_fd = -1;
     (*redir_i)++;
     return (0);
 }
@@ -393,6 +405,35 @@ void count_tokens(t_token *start, t_token *end, int *arg_c, int *red_c)
     }
 }
 
+//static int fill_command(t_command *cmd, t_token *curr, t_token *end)
+//{
+//    int arg_i;
+//    int red_i;
+
+//    arg_i = 0;
+//    red_i = 0;
+//    while (curr && curr != end && curr->type != '|')
+//    {
+//        if (is_redirection(curr->type))
+//        {
+//            if (add_redir(cmd, curr, &red_i))
+//                return (free_command_list(cmd), 1);
+//            curr = curr->next;
+//        }
+//        else if (is_argument(curr->type))
+//		{
+//			if (add_argument(cmd, curr, &arg_i))
+//                return (free_command_list(cmd), 1);
+//		}
+//        if (curr)
+//            curr = curr->next;
+//    }
+//    cmd->args[arg_i] = NULL;
+//    cmd->redirs[red_i].type = 0;
+//    cmd->arg_count = arg_i;
+//    return (0);
+//}
+
 static int fill_command(t_command *cmd, t_token *curr, t_token *end)
 {
     int arg_i;
@@ -404,13 +445,17 @@ static int fill_command(t_command *cmd, t_token *curr, t_token *end)
     {
         if (is_redirection(curr->type))
         {
+            if (!curr->next)
+                return (1);
             if (add_redir(cmd, curr, &red_i))
                 return (1);
             curr = curr->next;
         }
         else if (is_argument(curr->type))
+        {
             if (add_argument(cmd, curr, &arg_i))
                 return (1);
+        }
         if (curr)
             curr = curr->next;
     }
@@ -420,6 +465,23 @@ static int fill_command(t_command *cmd, t_token *curr, t_token *end)
     return (0);
 }
 
+//t_command *create_command_from_tokens_range(t_token *start, t_token *end)
+//{
+//    int arg_count;
+//    int redir_count;
+//    t_command *cmd;
+
+//    if (!start)
+//        return (NULL);
+//    count_tokens(start, end, &arg_count, &redir_count);
+//    cmd = init_command_struct(arg_count, redir_count);
+//    if (!cmd)
+//        return (NULL);
+//    if (fill_command(cmd, start, end))
+//        return (free_command_list(cmd), NULL);
+//    return (cmd);
+//}
+
 t_command *create_command_from_tokens_range(t_token *start, t_token *end)
 {
     int arg_count;
@@ -427,14 +489,17 @@ t_command *create_command_from_tokens_range(t_token *start, t_token *end)
     t_command *cmd;
 
     if (!start)
-        return (NULL);
+        return NULL;
     count_tokens(start, end, &arg_count, &redir_count);
     cmd = init_command_struct(arg_count, redir_count);
     if (!cmd)
-        return (NULL);
+        return NULL;
     if (fill_command(cmd, start, end))
-        return (free_command_list(cmd), NULL);
-    return (cmd);
+    {
+        free_command(cmd);
+        return NULL;
+    }
+    return cmd;
 }
 
 t_token *get_next_pipe_token(t_token *start) 
@@ -516,14 +581,6 @@ t_command *allocate_command(int arg_count, int redir_count)
     return new_cmd;
 }
 
-// t_token *find_pipe_token(t_token *start)
-// {
-//     t_token *current = start;
-//     while (current && current->type != '|')
-//         current = current->next;
-//     return current;
-// }
-
 int handle_line_for_loop(char *line, t_ctx *ctx)
 {
     if (!line || !*line)
@@ -546,7 +603,6 @@ int handle_line_for_loop(char *line, t_ctx *ctx)
     free_command_list(cmd);
     return 0;
 }
-
 
 int	process(t_ctx *ctx)
 {

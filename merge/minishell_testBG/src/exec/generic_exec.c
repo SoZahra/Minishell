@@ -1,19 +1,58 @@
 #include "../../include/minishell.h"
 
-void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
-		int exit_code)
+//void	cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v,
+//		int exit_code)
+//{
+//	if (ctx->save_stdin > 2)
+//		close(ctx->save_stdin);
+//	if (ctx->save_stdout > 2)
+//		close(ctx->save_stdout);
+//	free_args(env_v);
+//	while (cmd && cmd->prev)
+//		cmd = cmd->prev;
+//	free_command_list(cmd);
+//	cleanup_shell(ctx);
+//	free_env(ctx->env_vars);
+//	exit(exit_code);
+//}
+
+void clean_and_close_all_fds(t_command *cmd)
 {
-	if (ctx->save_stdin > 2)
-		close(ctx->save_stdin);
-	if (ctx->save_stdout > 2)
-		close(ctx->save_stdout);
-	free_args(env_v);
-	while (cmd && cmd->prev)
-		cmd = cmd->prev;
-	free_command_list(cmd);
-	cleanup_shell(ctx);
-	free_env(ctx->env_vars);
-	exit(exit_code);
+    t_command *current = cmd;
+    while (current)
+    {
+        close_heredocs(current);
+        if (current->in_fd > 2)
+            close(current->in_fd);
+        if (current->out_fd > 2)
+            close(current->out_fd);
+        if (current->pfd[0] > 2)
+            close(current->pfd[0]);
+        if (current->pfd[1] > 2)
+            close(current->pfd[1]);
+        current = current->next;
+    }
+}
+
+void cmd_clean_and_exit(t_ctx *ctx, t_command *cmd, char **env_v, int exit_code)
+{
+    if (ctx->save_stdin > 2)
+        close(ctx->save_stdin);
+    if (ctx->save_stdout > 2)
+        close(ctx->save_stdout);
+    free_args(env_v);
+
+    if (cmd)
+    {
+        while (cmd->prev)
+            cmd = cmd->prev;
+        clean_and_close_all_fds(cmd); // Ajouter cette ligne
+        free_command_list(cmd);
+    }
+
+    cleanup_shell(ctx);
+    free_env(ctx->env_vars);
+    exit(exit_code);
 }
 
 static int check_parent_dir(const char *file)
@@ -117,144 +156,68 @@ int open_outt(t_command *cmd, t_redirection *redir)
 	return (open_output_file(cmd, redir));
 }
 
-//int here_doc(char *delimiter, t_ctx *ctx)
-//{
-//	(void)ctx;
-//	int pipe_fd[2];
-//	char *line;
-
-//	g_var_global = 0;
-//	if (pipe(pipe_fd) == -1)
-//		return (-1);
-//	init_heredoc_sig();
-//	while (1)
-//	{
-//		if (g_var_global)
-//		{
-//			close(pipe_fd[0]);
-//			close(pipe_fd[1]);
-//			restore_main_sig();
-//			return (-1);
-//		}
-//		line = readline("> ");
-//		if (!line)
-//		{
-//			close(pipe_fd[1]);
-//			ft_fprintf(2, "warning: here-document delimited by end-of-file\n");
-//			break;
-//		}
-//		if (ft_strcmp(line, delimiter) == 0)
-//		{
-//			free(line);
-//			break;
-//		}
-//		write(pipe_fd[1], line, ft_strlen(line));
-//		write(pipe_fd[1], "\n", 1);
-//		free(line);
-//	}
-//	close(pipe_fd[1]);
-//	restore_main_sig();
-//	return (pipe_fd[0]);
-//}
-
 int here_doc(char *delimiter, t_ctx *ctx)
 {
 	(void)ctx;
     int pipe_fd[2];
     char *line;
+	pid_t pid;
+	int status;
 
-    if (pipe(pipe_fd) == -1)
+	if (pipe(pipe_fd) == -1)
         return (-1);
-    init_heredoc_sig();
-    while (1)
-    {
-        if (g_heredoc_active)
-        {
-            close(pipe_fd[0]);
-            close(pipe_fd[1]);
-            restore_main_sig();
-            return (-1);
-        }
-        line = readline("> ");
-        if (!line)
-        {
-            close(pipe_fd[1]);
-            ft_fprintf(2, "warning: here-document delimited by end-of-file\n");
-            break;
-        }
-        if (ft_strcmp(line, delimiter) == 0)
-        {
-            free(line);
-            break;
-        }
-        write(pipe_fd[1], line, ft_strlen(line));
-        write(pipe_fd[1], "\n", 1);
-        free(line);
-    }
-    close(pipe_fd[1]);
-    restore_main_sig();
+	pid = fork();
+	if (!pid)
+	{
+		init_heredoc_sig();
+		close(pipe_fd[0]);
+		while (1)
+		{
+			line = readline("> ");
+			if (!line)
+			{
+				ft_fprintf(2, "warning: here-document delimited by end-of-file\n");
+				break;
+			}
+			if (ft_strcmp(line, delimiter) == 0)
+				break;
+			write(pipe_fd[1], line, ft_strlen(line));
+			write(pipe_fd[1], "\n", 1);
+			free(line);
+			//line = NULL;
+		}
+		free(line);
+		line = NULL;
+		close(pipe_fd[1]);
+		cmd_clean_and_exit(ctx, NULL, NULL, 0);
+		//exit(0);
+
+	}
+	close(pipe_fd[1]);
+    sigint_main_ignore();
+	waitpid(pid, &status, 0);
+	ctx->exit_status = status;
+    sigint_main_handl();
     return (pipe_fd[0]);
 }
-
-//int    here_doc(char *delimiter, t_ctx *ctx)
-//{
-//    char    *line;
-//    pid_t    pid;
-//    int        status;
-
-//    if (pipe(ctx->pfd) == -1)
-//        return (-1);
-//    pid = fork();
-//    if (!pid)
-//    {
-//        while (g_heredoc_active)
-//        {
-//            close(ctx->pfd[0]);
-//            line = readline("> ");
-//            if (!line)
-//            {
-//                ft_fprintf(2, "\nwarning: here-document delimited by end-of-file\n");
-//                break ;
-//            }
-//            if (ft_strcmp(line, delimiter) == 0)
-//            {
-//                free(line);
-//                break ;
-//            }
-//            write(ctx->pfd[1], line, ft_strlen(line));
-//            write(ctx->pfd[1], "\n", 1);
-//            free(line);
-//        }
-//        g_heredoc_active = FALSE;
-//        close(ctx->pfd[1]);
-//        exit(0);
-//    }
-//    setsig(&get_ctx()->s_sigint, SIGINT, SIG_IGN, 0);
-//    waitpid(pid, &status, 0);
-//    setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
-//    ctx->exit_status = status;
-//    //close(ctx->pfd[0]);
-//    close(ctx->pfd[1]);
-//    return (ctx->pfd[0]);
-//}
-
 
 int handle_heredoc(t_command *cmd, t_redirection *redir)
 {
     int fd;
-
-    // On ne traite le heredoc que s'il n'a pas déjà été traité
     if (redir->heredoc_fd <= 0)
     {
         fd = here_doc(redir->file, get_ctx());
         if (fd == -1)
+        {
+			if (cmd->in_fd > 0)
+                close(cmd->in_fd);
             return (1);
-        redir->heredoc_fd = fd;  // On sauvegarde le fd
+		}
+        redir->heredoc_fd = fd; 
     }
-
     if (cmd->in_fd > 0)
         close(cmd->in_fd);
-    cmd->in_fd = redir->heredoc_fd;  // On utilise le fd sauvegardé
+    cmd->in_fd = redir->heredoc_fd;
     return (0);
 }
 
@@ -601,6 +564,7 @@ int child_process(t_ctx *ctx, t_command *cmd)
 	char **env_v;
 
 	env_v = NULL;
+	init_child_sig(); 
 	if (set_redirs(cmd))
 		cmd_clean_and_exit(ctx, cmd, env_v, 1);
 	if (is_builtin(cmd->args[0]))
@@ -718,53 +682,75 @@ int exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	return (ret);
 }
 
-// void wait_loop(t_ctx *ctx, t_command *cmd)
-// {
-//	 t_command *tmp;
-// 	int status;
-
-// 	tmp = cmd;
-// 	status = 0;
-//	 while (tmp)
-//	 {
-// 		if (tmp->pid > 0)
-//		 {
-// 			waitpid(tmp->pid, &status, 0);
-// 			set_term_attr();
-// 			if (WIFEXITED(status)) {
-// 				status = WEXITSTATUS(status);
-// 			}
-// 			if (WIFSIGNALED(status)) {
-// 				status = WTERMSIG(status) + 128;
-// 			}
-// 			ctx->exit_status = status;
-// 		}
-// 		tmp = tmp->next;
-//	 }
-// }
-
 void wait_loop(t_ctx *ctx, t_command *cmd)
 {
-	t_command *tmp;
-	int status;
+    t_command *tmp;
+    int status;
+    t_command *head = cmd;
 
-	tmp = cmd;
-	status = 0;
-	while (tmp)
-	{
-		if (tmp->pid > 0)
-		{
-			waitpid(tmp->pid, &status, 0);
-			if (WIFEXITED(status))
-				status = WEXITSTATUS(status);
-			else if (WIFSIGNALED(status))
-				status = WTERMSIG(status) + 128;
-			set_term_attr();
-			ctx->exit_status = status;
-		}
-		tmp = tmp->next;
-	}
+    tmp = cmd;
+    status = 0;
+    sigint_main_ignore();
+    while (tmp)
+    {
+        if (tmp->pid > 0)
+        {
+            waitpid(tmp->pid, &status, 0);
+            if (WIFEXITED(status))
+                status = WEXITSTATUS(status);
+            else if (WIFSIGNALED(status))
+            {
+                status = WTERMSIG(status) + 128;
+                t_command *current = head;
+                while (current)
+                {
+                    close_heredocs(current);
+                    if (current->in_fd > 2)
+                        close(current->in_fd);
+                    if (current->out_fd > 2)
+                        close(current->out_fd);
+                    if (current->pfd[0] > 2)
+                        close(current->pfd[0]);
+                    if (current->pfd[1] > 2)
+                        close(current->pfd[1]);
+                    current = current->next;
+                }
+            }
+            set_term_attr();
+            ctx->exit_status = status;
+        }
+        tmp = tmp->next;
+    }
+    write(1, "\n", 1);
+    set_term_attr();
+    sigint_main_handl();
 }
+
+//void wait_loop(t_ctx *ctx, t_command *cmd)
+//{
+//	t_command *tmp;
+//	int status;
+
+//	tmp = cmd;
+//	status = 0;
+//	sigint_main_ignore();
+//	while (tmp)
+//	{
+//		if (tmp->pid > 0)
+//		{
+//			waitpid(tmp->pid, &status, 0);
+//			if (WIFEXITED(status))
+//				status = WEXITSTATUS(status);
+//			else if (WIFSIGNALED(status))
+//				status = WTERMSIG(status) + 128;
+//			set_term_attr();
+//			ctx->exit_status = status;
+//		}
+//		tmp = tmp->next;
+//	}
+//	write(1, "\n", 1);
+//	sigint_main_handl();
+//}
 
 static int setup_heredocs(t_command *cmd)
 {

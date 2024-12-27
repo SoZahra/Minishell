@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:57:25 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/27 11:21:58 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/27 15:23:17 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,47 +205,116 @@ void close_heredocs(t_command *cmd)
     }
 }
 
+//void free_command(t_command *cmd)
+//{
+//	if (!cmd)
+//        return;
+//	int i;
+
+//	i = 0;
+//    if (cmd->args)
+//    {
+//		while(i < cmd->arg_count)
+//        {
+//            free(cmd->args[i]);
+//            cmd->args[i] = NULL;
+//			i++;
+//        }
+//        free(cmd->args);
+//        cmd->args = NULL;
+//    }
+//    if (cmd->path)
+//    {
+//        free(cmd->path);
+//        cmd->path = NULL;
+//    }
+//    if (cmd->had_spaces)
+//    {
+//        free(cmd->had_spaces);
+//        cmd->had_spaces = NULL;
+//    }
+//    if (cmd->redirs)
+//    {
+//		i = 0;
+//		close_heredocs(cmd);
+//		while(cmd->redirs[i].type != 0)
+//        {
+//            if (cmd->redirs[i].file)
+//                free(cmd->redirs[i].file);
+//            cmd->redirs[i].file = NULL;
+//			i++;
+//        }
+//        free(cmd->redirs);
+//        cmd->redirs = NULL;
+//    }
+//    if (cmd->in_fd > 2)
+//        close(cmd->in_fd);
+//    if (cmd->out_fd > 2)
+//        close(cmd->out_fd);
+//    if (cmd->pfd[0] > 2)
+//        close(cmd->pfd[0]);
+//    if (cmd->pfd[1] > 2)
+//        close(cmd->pfd[1]);
+//    free(cmd);
+//}
+
 void free_command(t_command *cmd)
 {
     if (!cmd)
         return;
-	int i;
 
-	i = 0;
+    // Libérer les arguments
     if (cmd->args)
     {
-		while(i < cmd->arg_count)
+        for (int i = 0; i < cmd->arg_count; i++)
         {
-            free(cmd->args[i]);
-            cmd->args[i] = NULL;
-			i++;
+            if (cmd->args[i])
+            {
+                free(cmd->args[i]);
+                cmd->args[i] = NULL;
+            }
         }
         free(cmd->args);
         cmd->args = NULL;
     }
-    if (cmd->path)
-    {
-        free(cmd->path);
-        cmd->path = NULL;
-    }
+
+    // Libérer les espacements
     if (cmd->had_spaces)
     {
         free(cmd->had_spaces);
         cmd->had_spaces = NULL;
     }
+
+    // Libérer le chemin
+    if (cmd->path)
+    {
+        free(cmd->path);
+        cmd->path = NULL;
+    }
+
+    // Gérer les redirections
     if (cmd->redirs)
     {
-		close_heredocs(cmd);
-		while()
-        for (int i = 0; cmd->redirs[i].type != 0; i++)
+        int i = 0;
+        while (cmd->redirs[i].type)
         {
+            if (cmd->redirs[i].type == 'H' && cmd->redirs[i].heredoc_fd > 0)
+            {
+                close(cmd->redirs[i].heredoc_fd);
+                cmd->redirs[i].heredoc_fd = -1;
+            }
             if (cmd->redirs[i].file)
+            {
                 free(cmd->redirs[i].file);
-            cmd->redirs[i].file = NULL;
+                cmd->redirs[i].file = NULL;
+            }
+            i++;
         }
         free(cmd->redirs);
         cmd->redirs = NULL;
     }
+
+    // Fermer tous les descripteurs de fichiers
     if (cmd->in_fd > 2)
         close(cmd->in_fd);
     if (cmd->out_fd > 2)
@@ -254,12 +323,10 @@ void free_command(t_command *cmd)
         close(cmd->pfd[0]);
     if (cmd->pfd[1] > 2)
         close(cmd->pfd[1]);
+
+    // Libérer la structure elle-même
     free(cmd);
 }
-
-
-
-
 
 void free_tokens(t_token *tokens)
 {
