@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:25:29 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:28:38 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:46:23 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ delimited by end-of-file\n");
 			free(line);
 		}
 		close(ctx->pfd[1]);
-		cmd_clean_and_exit(get_ctx(), NULL, NULL, 0);
+		cmd_clean_and_exit(get_ctx(), get_ctx()->current_command, NULL, 0);
 	}
 	setsig(&get_ctx()->s_sigint, SIGINT, SIG_IGN, 0);
 	waitpid(pid, &status, 0);
@@ -106,6 +106,7 @@ int	setup_heredocs(t_command *cmd)
 				if (tmp->redirs[i].type == 'H'
 					&& tmp->redirs[i].heredoc_fd <= 0)
 				{
+					get_ctx()->current_command = tmp;
 					tmp->redirs[i].heredoc_fd
 						= here_doc(tmp->redirs[i].file, get_ctx());
 					if (tmp->redirs[i].heredoc_fd == -1 || get_ctx()->exit_status == 130)

@@ -6,51 +6,66 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 11:46:05 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:54:27 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:33:03 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	token_insert(t_token **at, t_token *insertion)
+bool	is_token(char c, char *str)
 {
-	t_token	*tmp;
-	t_token	*tmp_prev;
+	int	i;
 
-	if (!insertion || !at || !(*at))
-		return ;
-	tmp = (*at)->next;
-	(*at)->next = insertion;
-	insertion->prev = *at;
-	tmp_prev = insertion;
-	//insertion = insertion->next;
-	while (insertion->next)
+	i = -1;
+	while (str[++i])
 	{
-		insertion = insertion->next;
-		insertion->prev = tmp_prev;
-		tmp_prev = insertion;
-		//insertion = insertion->next;
+		if (str[i] == c)
+			return (true);
 	}
-	insertion->prev = tmp_prev;
-	insertion->next = tmp;
+	return (false);
 }
 
-void	print_tokens(t_token *tokens)
+// result_tmp[0] --> result
+// result_tmp[1] --> tmp
+char	*tokens_to_string(t_token *tokens)
 {
-	t_token	*tmp;
+	t_token	*current;
+	char	*result_tmp[2];
 
 	if (!tokens)
-		return ;
-	tmp = tokens;
-	while (tmp)
+		return (NULL);
+	current = tokens;
+	result_tmp[0] = ft_strdup("");
+	if (!result_tmp[0])
+		return (NULL);
+	while (current)
 	{
-		if (tmp->value)
-			printf("value: [%s] \t type: %c  \t flag: %d\n",
-				tmp->value,
-				tmp->type,
-				tmp->had_space);
-		tmp = tmp->next;
+		if (*result_tmp[0] && !current->had_space)
+		{
+			result_tmp[1] = ft_strfjoin(result_tmp[0], " ");
+			if (!result_tmp[1])
+				return (NULL);
+			result_tmp[0] = result_tmp[1];
+		}
+		result_tmp[1] = ft_strfjoin(result_tmp[0], current->value);
+		if (!result_tmp[1])
+			return (NULL);
+		result_tmp[0] = result_tmp[1];
+		current = current->next;
 	}
+	return (result_tmp[0]);
+}
+
+t_token	*get_last_token(t_token *token_list)
+{
+	t_token	*current;
+
+	if (!token_list)
+		return (NULL);
+	current = token_list;
+	while (current->next)
+		current = current->next;
+	return (current);
 }
 
 t_token	*get_last_node(t_token *tokens)
@@ -65,9 +80,16 @@ t_token	*get_last_node(t_token *tokens)
 	return (tmp);
 }
 
-t_token	*get_next_pipe_token(t_token *start) 
+void	token_del(t_token *token)
 {
-	while (start && start->type != '|')
-		start = start->next;
-	return (start);
+	if (!token)
+		return ;
+
+	if (token->prev)
+		token->prev->next = token->next;
+	if (token->next)
+		token->next->prev = token->prev;
+	free(token->value);
+	free(token->content);
+	free(token);
 }

@@ -1,0 +1,10 @@
+include
+libft
+ls.txt
+Makefile
+minishell
+minishell.sup
+objs
+out
+src
+test

@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 18:25:58 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:59:16 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:15:21 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,14 +163,21 @@ void		setsig(struct sigaction *sa, int signum, void (*f)(int), int flags);
 char		*expand_full_string(const char *str,
 				char quote_type, t_ctx *ctx);
 char		*tokens_to_string(t_token *tokens);
-int			join_proc(t_token **tokens, bool limiter);
+//int			join_proc(t_token **tokens, bool limiter);
+int			token_proc(t_token **tokens, char *input, int *i);
+int			_join_limiter(t_token **tokens);
 int			join_tokens(t_token *prev, t_token *current);
+int			word_proc(t_token **tokens, char *input, int *i);
 void		token_del(t_token *token);
 int			join_str(t_token *token, bool limiter);
 int			expand_proc(t_token **tokens, t_ctx *ctx);
 int			expand_str(t_token *token, t_ctx *ctx);
 t_command	*link_commands(t_command *first_cmd,
 				t_command *new_cmd);
+char		*handle_exit_status(char *result, t_ctx *ctx, int *i);
+int			handle_exit_builtin(const char *input, t_ctx *ctx);
+char		*handle_regular_char(char *result, char c);
+char		*handle_env_var(char *result, const char *str, int *i, t_ctx *ctx);
 
 // commands lst
 
@@ -233,11 +240,11 @@ int			handle_unset_builtin(const char *input, t_ctx *ctx);
 
 int			ft_fprintf(int fd, const char *format, ...);
 size_t		ft_strspn(const char *str, const char *accept);
-int			count_args(char **args);
-void		print_tokens(t_token *tokens);
+//int			count_args(char **args);
+//void		print_tokens(t_token *tokens);
 void		print_command_debug(t_command *cmd);
 int			is_valid_var_name(const char *name);
-int			is_whitespace(char c);
+//int			is_whitespace(char c);
 int			is_numeric_argument(const char *arg);
 
 // convert
@@ -267,7 +274,7 @@ int			save_std(t_ctx *ctx);
 int			restore_std(t_ctx *ctx);
 int			set_pfd(t_command *cmd);
 int			set_fds(t_command *cmd);
-void		cleanup_pipes(t_command *cmd);
+//void		cleanup_pipes(t_command *cmd);
 
 // redirections
 
@@ -313,7 +320,7 @@ void		handle_sigint(int signum);
 t_env_var	*build_env_list(char **envp);
 void		add_env_var_to_list(t_env_var **head,
 				t_env_var *new_var);
-t_env_var	*get_last_env_node(t_env_var **env);
+//t_env_var	*get_last_env_node(t_env_var **env);
 int			create_and_add_var(t_ctx *ctx, char *var,
 				char *value);
 char		**create_env_array(t_env_var *env_vars);
@@ -330,13 +337,13 @@ int			add_token(t_token **token_list, t_token_type type,
 t_token		*create_new_token(t_token_type type, char *value);
 t_token		*tokenize_input(char *line);
 t_token		*create_token_node(char *arg, t_token_type type);
-int			count_tokens(t_token *tokens);
+//int			count_tokens(t_token *tokens);
 bool		is_token(char c, char *str);
 
 // free
 
 void		close_heredocs(t_command *cmd);
-void		free_pipeline_pipes(int **pipes, int num_commands);
+//void		free_pipeline_pipes(int **pipes, int num_commands);
 void		free_ctx(t_ctx *ctx);
 void		free_env(t_env_var *env_var);
 void		free_command_list(t_command *cmd);
@@ -345,12 +352,13 @@ void		*free_tab(char **tab);
 void		clear(pid_t *pids, t_command *cmds, int exit_code);
 void		free_args(char **args);
 void		free_tokens(t_token *tokens);
-void		free_env_copy(char **env_copy);
-void		clear_and_exit(pid_t *pids, t_command *cmds,
-				int exit_code);
-void		free_env_list(t_env_var *head);
+//void		free_env_copy(char **env_copy);
+//void		clear_and_exit(pid_t *pids, t_command *cmds,
+//				int exit_code);
+//void		free_env_list(t_env_var *head);
 void		cleanup_shell(t_ctx *ctx);
 void		free_array(char **array);
+t_token		*get_last_token(t_token *token_list);
 
 // attribut / init
 int			set_term_attr(void);

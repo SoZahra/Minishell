@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:37:16 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:37:36 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:12:14 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,10 @@ int	exec_loop(t_ctx *ctx, t_command *cmd)
 	int			ret;
 
 	if (setup_heredocs(cmd))
+	{
+		cmd_clean_and_exit(ctx, cmd, NULL, 0);
 		return (1);
+	}
 	tmp = cmd;
 	has_child = ((ret = 0));
 	ctx->current_command = cmd;

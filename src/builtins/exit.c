@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 15:55:00 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 15:55:28 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:08:09 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int	handle_exit_with_argument(char **args, t_ctx *ctx)
 
 int	handle_exit_without_argument(t_ctx *ctx)
 {
-	ctx->exit_status = 0;
+	(void)ctx;
 	return (1);
 }
 

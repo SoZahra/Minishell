@@ -6,26 +6,11 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:56:59 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:58:57 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:42:04 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-void	free_env_copy(char **env_copy)
-{
-	int	i;
-
-	if (!env_copy)
-		return ;
-	i = 0;
-	while (env_copy[i])
-	{
-		free(env_copy[i]);
-		i++;
-	}
-	free(env_copy);
-}
 
 void	free_env(t_env_var *env_var)
 {

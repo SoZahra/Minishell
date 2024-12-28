@@ -6,20 +6,11 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:38:54 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:41:28 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:42:23 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-char	*strip_quotes(char *arg)
-{
-	if ((*arg == '"' || *arg == '\'') && arg[strlen(arg) - 1] == *arg)
-	{
-		return (ft_strndup(arg + 1, strlen(arg) - 2));
-	}
-	return (ft_strdup(arg));
-}
 
 int	is_numeric_argument(const char *arg)
 {

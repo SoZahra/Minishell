@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 12:00:43 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:37:33 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:12:09 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,11 @@ int	child_process(t_ctx *ctx, t_command *cmd)
 	char	**env_v;
 
 	env_v = NULL;
+	/*if (setup_heredocs(cmd))
+	{
+		cmd_clean_and_exit(ctx, cmd, NULL, 0);
+		return (1);
+	}*/
 	if (set_redirs(cmd))
 		cmd_clean_and_exit(ctx, cmd, env_v, 1);
 	if (is_builtin(cmd->args[0]))

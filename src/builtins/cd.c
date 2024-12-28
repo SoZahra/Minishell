@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 15:53:21 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 15:54:10 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 15:54:24 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,14 +55,12 @@ int	ft_cd_home(t_ctx *ctx)
 	if (!home)
 	{
 		ft_fprintf(2, "cd: HOME not set\n");
-		ctx->exit_status = 1;
-		return (1);
+		return ((ctx->exit_status = 1));
 	}
 	if (chdir(home) != 0)
 	{
 		perror("cd");
-		ctx->exit_status = 1;
-		return (1);
+		return ((ctx->exit_status = 1));
 	}
 	return (ft_update_pwd(ctx));
 }

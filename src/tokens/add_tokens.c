@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:38:19 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:38:20 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:42:28 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,6 @@ t_token	*create_new_token(t_token_type type, char *value)
 		free(new_token);
 		return (NULL);
 	}
-	// new_token->content = NULL;
-	// new_token->content = new_token->value;  // Même adresse
 	new_token->type = type;
 	return (new_token);
 }

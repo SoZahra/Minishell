@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:47:46 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:49:01 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:43:04 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,27 +33,6 @@ t_command	*init_command_struct(int arg_count, int redir_count)
 	if (!cmd->had_spaces)
 		return (free_command_list(cmd), NULL);
 	return (cmd);
-}
-
-t_command	*allocate_command(int arg_count, int redir_count)
-{
-	t_command	*new_cmd;
-	int			i;
-
-	new_cmd = malloc(sizeof(t_command));
-	*new_cmd = (t_command){0};
-	new_cmd->args = malloc(sizeof(char *) * (arg_count + 1));
-	new_cmd->had_spaces = malloc(sizeof(int) * arg_count);
-	new_cmd->arg_count = arg_count;
-	new_cmd->redirs = malloc(sizeof(t_redirection) * (redir_count + 1));
-	*new_cmd->redirs = (t_redirection){0};
-	i = 0;
-	while (i <= redir_count)
-	{
-		new_cmd->redirs[i].heredoc_fd = -1;
-		i++;
-	}
-	return (new_cmd);
 }
 
 t_command	*link_commands(t_command *first_cmd, t_command *new_cmd)

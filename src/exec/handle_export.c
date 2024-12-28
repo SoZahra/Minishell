@@ -51,7 +51,7 @@ int	export_single_var(const char *arg, t_ctx *ctx)
 	return (result);
 }
 
-int	handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
+/*int	handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
 {
 	char	*temp;
 	char	*temp_equal;
@@ -65,7 +65,7 @@ int	handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
 	result = create_var_with_value(temp, equal_sign + 1, ctx);
 	free(temp);
 	return (result);
-}
+}*/
 
 int	handle_multiple_args(const char *args, t_ctx *ctx)
 {

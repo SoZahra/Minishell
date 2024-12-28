@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:28:05 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:29:41 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:03:10 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int	set_fds(t_command *cmd)
 	return (0);
 }
 
-void	cleanup_pipes(t_command *cmd)
+/*void	cleanup_pipes(t_command *cmd)
 {
 	if (cmd->prev)
 	{
@@ -61,7 +61,7 @@ void	cleanup_pipes(t_command *cmd)
 		close(cmd->pfd[0]);
 	if (cmd->pfd[1] > 2)
 		close(cmd->pfd[1]);
-}
+}*/
 
 int	save_std(t_ctx *ctx)
 {

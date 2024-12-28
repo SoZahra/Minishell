@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/27 14:01:38 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:09:24 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,6 @@ int	main(int argc __attribute__((unused)),
 	get_term_attr();
 	init_sig();
 	get_ctx()->env_vars = build_env_list(envp);
-	if (!get_ctx()->env_vars)
-	{
-		cleanup_shell(get_ctx());
-		return (perror("Failed to build env list"), 1);
-	}
 	get_ctx()->exit_status = process(get_ctx());
 	cleanup_shell(get_ctx());
 	return (get_ctx()->exit_status);

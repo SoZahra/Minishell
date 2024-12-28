@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:31:52 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:18:52 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 13:15:06 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,7 @@ void	handle_sigquit(int signum)
 	(void)signum;
 	write(STDERR_FILENO, "Quit (core dumped)\n", 20);
 	get_ctx()->exit_status = 131;
-	cmd_clean_and_exit(get_ctx(), NULL, NULL, 131);
-	//exit(131);
+	cmd_clean_and_exit(get_ctx(), get_ctx()->current_command, NULL, 131);
 }
 
 void	handle_sigint(int signum)
@@ -45,7 +44,6 @@ void	handle_sigint(int signum)
 	rl_replace_line("", 0);
 	write(STDOUT_FILENO, "\n", 1);
 	if (g_heredoc_active)
-		cmd_clean_and_exit(get_ctx(), NULL, NULL, 130);
-		//exit(130);
+		cmd_clean_and_exit(get_ctx(), get_ctx()->current_command, NULL, 130);
 	rl_redisplay();
 }

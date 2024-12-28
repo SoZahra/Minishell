@@ -6,13 +6,13 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 15:59:08 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:00:18 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:06:19 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-void	free_env_var(t_env_var *var)
+/*void	free_env_var(t_env_var *var)
 {
 	if (var)
 	{
@@ -22,9 +22,9 @@ void	free_env_var(t_env_var *var)
 		var->value = NULL;
 		free(var);
 	}
-}
+}*/
 
-void	free_env_list(t_env_var *head)
+/*void	free_env_list(t_env_var *head)
 {
 	t_env_var	*temp;
 
@@ -34,8 +34,7 @@ void	free_env_list(t_env_var *head)
 		free_env_var(head);
 		head = temp;
 	}
-}
-
+}*/
 
 t_env_var	*create_new_env_var(char *env_str)
 {

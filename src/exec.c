@@ -6,23 +6,11 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:52:13 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 15:00:16 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:41:58 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-char	**create_command_array(const char *cmd_str)
-{
-	char	**cmd_array;
-
-	while (*cmd_str == ' ')
-		cmd_str++;
-	cmd_array = ft_split(cmd_str, ' ');
-	if (!cmd_array)
-		return (NULL);
-	return (cmd_array);
-}
 
 char	*join_path(const char *dir, const char *file)
 {

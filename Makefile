@@ -6,7 +6,7 @@
 #    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/27 15:00:25 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/28 13:35:08 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,25 +68,25 @@ SRCS =	./src/builtins/cd.c					\
 		./src/loop/commands_lst.c			\
 		./src/loop/redirections.c			\
 		./src/loop/utils.c					\
-		\
-		./src/pipe/exec_struct_utils.c		\
-		./src/pipe/pipe_utils_2.c			\
-		./src/pipe/pipe_utils.c				\
+		./src/loop/proc.c					\
+		./src/loop/proc_utils.c				\
+		./src/loop/join_utils.c				\
+		./src/loop/expand.c					\
+		./src/loop/env_utils.c				\
 		\
 		./src/signaux/handle_signal.c		\
 		\
 		./src/tokens/add_tokens.c			\
-		./src/tokens/args.c					\
 		\
 		./src/utils/free.c					\
 		./src/utils/free2.c					\
-		./src/utils/free3.c					\
+		./src/utils/free_ctx.c				\
+		./src/utils/free_cmd.c				\
 		./src/utils/ft_fprintf.c			\
 		./src/utils/init.c					\
 		./src/utils/list.c					\
 		./src/utils/utils.c					\
 		\
-		./src/pipe.c						\
 		./src/exec_utils.c					\
 		./src/exec.c						\
 		./src/main.c

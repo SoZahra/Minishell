@@ -6,13 +6,13 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:00:59 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:01:39 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:43:54 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
-int	handle_invalid_identifier(char *arg, char *var, char *value)
+/*int	handle_invalid_identifier(char *arg, char *var, char *value)
 {
 	if (var)
 		fprintf(stderr, "export: `%s`: not a valid identifier\n", var);
@@ -21,7 +21,7 @@ int	handle_invalid_identifier(char *arg, char *var, char *value)
 	free(var);
 	free(value);
 	return (1);
-}
+}*/
 
 int	create_and_add_var(t_ctx *ctx, char *var, char *value)
 {

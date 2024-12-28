@@ -3,19 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   utils_parse_2.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:13:19 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/17 01:22:11 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/27 16:43:33 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-int	is_whitespace(char c)
-{
-	return (c == ' ' || c == '\t' || c == '\n');
-}
 
 char	*find_env_value(const char *name, t_env_var *env_vars)
 {

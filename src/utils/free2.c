@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:57:38 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:58:45 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/27 16:42:07 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,24 +72,4 @@ void	free_args(char **args)
 	}
 	free(args);
 	args = NULL;
-}
-
-void	free_pipeline_pipes(int **pipes, int num_commands)
-{
-	int	i;
-
-	i = 0;
-	if (!pipes || num_commands <= 1)
-		return ;
-	while (i < num_commands - 1)
-	{
-		if (pipes[i])
-		{
-			free(pipes[i]);
-			pipes[i] = NULL;
-		}
-		++i;
-	}
-	free(pipes);
-	pipes = NULL;
 }
