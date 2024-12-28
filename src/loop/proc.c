@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   proc.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 16:27:41 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:37:05 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 15:04:11 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ int	expand_proc(t_token **tokens, t_ctx *ctx)
 {
 	t_token	*token;
 	t_token	*next;
+	int		ret;
 
 	if (!tokens || !*tokens)
 		return (0);
@@ -23,26 +24,13 @@ int	expand_proc(t_token **tokens, t_ctx *ctx)
 	while (token)
 	{
 		next = token->next;
-		if ((token->type == 'S' || token->type == '"')
-			&& ft_strchr(token->value, '$'))
-		{
-			if (!token->prev || token->prev->type != 'H')
-			{
-				if (expand_str(token, ctx) == -1)
-					return (-1);
-				if (token == *tokens && token->value && !*token->value)
-				{
-					*tokens = token->next;
-					if (token->next)
-						token->next->prev = NULL;
-					free(token->value);
-					free(token);
-					token = *tokens;
-					continue ;
-				}
-			}
-		}
-		token = next;
+		ret = process_expandable_token(tokens, token, ctx);
+		if (ret == -1)
+			return (-1);
+		if (ret == 1)
+			token = *tokens;
+		else
+			token = next;
 	}
 	return (0);
 }
@@ -64,16 +52,11 @@ int	quotes_proc(t_token **tokens, char *input, int *i)
 		return (-1);
 	if (add_token(tokens, type, value) != 0)
 		return (free(value), -1);
-	if (j > 1 && tokens && !ft_isspace(input[j - 2])
-		&& !is_token(input[j - 2], UNJOIN))
+	if (j > 1 && tokens && !ft_isspace(input[j - 2]) && !is_token(input[j - 2],
+			UNJOIN))
 		get_last_token(*tokens)->had_space = 1;
 	free(value);
 	return (0);
-}
-
-void	operators_proc_utils(t_token **tokens)
-{
-	(void)tokens;
 }
 
 int	operators_proc(t_token **tokens, char *input, int *i, int n)
@@ -82,44 +65,27 @@ int	operators_proc(t_token **tokens, char *input, int *i, int n)
 	int		x;
 	int		start;
 	char	*value;
-	int		ret;
-	t_token	*last;
 
 	start = *i;
 	type = input[(*i)++];
 	x = 1;
 	while (input[*i] && input[*i] == type)
 	{
+		x++;
 		(*i)++;
-		if (++x > n)
-			return (printf("error: syntax3\n"), -1);
+		if (x > n)
+			return (printf("error: syntax\n"), -1);
 	}
 	value = ft_substr(input, start, *i - start);
-	if (!value)
-		return (-1);
-	if (*tokens && is_token(get_last_token(*tokens)->type, OPERATORS))
-	{
-		last = get_last_token(*tokens);
-		if (!((last->type == 'H' && type == '|')
-				|| (last->type == '|' && type == '<' && x == 2)))
-			return (free(value), printf("error: syntax2\n"),
-				free_tokens(*tokens), -1);
-	}
-	if (type == '<' && x > 1)
-		type = 'H';
-	else if (type == '>' && x > 1)
-		type = 'A';
-	ret = add_token(tokens, type, value);
-	free(value);
-	if (ret)
-		return (1);
-	return (0);
+	if (!value || check_operator_sequence(tokens, type, x))
+		return (free(value), printf("error: syntax\n"), -1);
+	type = get_final_type(type, x);
+	return (add_token(tokens, type, value), free(value), 0);
 }
-//return (ret ? 1 : 0);
 
 int	token_proc(t_token **tokens, char *input, int *i)
 {
-	if (input[*i] == '<' || input[*i] == '>' )
+	if (input[*i] == '<' || input[*i] == '>')
 	{
 		if (operators_proc(tokens, input, i, 2))
 			return (-1);
@@ -144,8 +110,8 @@ int	word_proc(t_token **tokens, char *input, int *i)
 	int		result;
 
 	j = *i;
-	while (input[(*i)] && !ft_isspace(input[(*i)])
-		&& !is_token(input[*i], TOKENS))
+	while (input[(*i)] && !ft_isspace(input[(*i)]) && !is_token(input[*i],
+			TOKENS))
 		(*i)++;
 	if (j == *i)
 		return (0);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   commands_lst.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:47:46 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 14:36:00 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 15:16:36 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,63 +49,60 @@ t_command	*link_commands(t_command *first_cmd, t_command *new_cmd)
 	return (first_cmd);
 }
 
-t_token	*find_next_command(t_token *current)
+int	process_token(t_command *cmd, t_token **curr, int *arg_i, int *red_i)
 {
-	while (current && current->type != '|')
-		current = current->next;
-	if (!current)
-		return (NULL);
-	return (current->next);
+	if (is_redirection((*curr)->type))
+	{
+		if (!(*curr)->next)
+			return (1);
+		if (add_redir(cmd, *curr, red_i))
+			return (1);
+		*curr = (*curr)->next;
+	}
+	else if (is_argument((*curr)->type))
+	{
+		if (add_argument(cmd, *curr, arg_i))
+			return (1);
+	}
+	return (0);
+}
+
+int	fill_command(t_command *cmd, t_token *curr, t_token *end)
+{
+	int	arg_i;
+	int	red_i;
+
+	arg_i = 0;
+	red_i = 0;
+	while (curr && curr != end && curr->type != '|')
+	{
+		if (process_token(cmd, &curr, &arg_i, &red_i))
+			return (1);
+		if (curr)
+			curr = curr->next;
+	}
+	cmd->args[arg_i] = NULL;
+	cmd->redirs[red_i].type = 0;
+	cmd->arg_count = arg_i;
+	return (0);
 }
 
 t_command	*create_command_from_tokens_range(t_token *start, t_token *end)
 {
 	int			arg_count;
 	int			redir_count;
-	int			arg_i;
-	int			redir_i;
-	t_token		*current;
 	t_command	*cmd;
 
 	if (!start)
 		return (NULL);
-	current = start;
-	arg_count = ((redir_count = arg_i = redir_i = 0));
-	while (current && current != end && current->type != '|')
-	{
-		if (is_redirection(current->type))
-		{
-			redir_count++;
-			if (current->next)
-				current = current->next;
-		}
-		else if (is_argument(current->type))
-			arg_count++;
-		if (current)
-			current = current->next;
-	}
+	count_tokens(start, end, &arg_count, &redir_count);
 	cmd = init_command_struct(arg_count, redir_count);
 	if (!cmd)
 		return (NULL);
-	current = start;
-	while (current && current != end && current->type != '|')
+	if (fill_command(cmd, start, end))
 	{
-		if (is_redirection(current->type))
-		{
-			if (add_redir(cmd, current, &redir_i))
-				return (free_command_list(cmd), NULL);
-			if (current->next)
-				current = current->next;
-		}
-		else if (is_argument(current->type))
-		{
-			if (add_argument(cmd, current, &arg_i))
-				return (free_command_list(cmd), NULL);
-		}
-		current = current->next;
+		free_command(cmd);
+		return (NULL);
 	}
-	cmd->args[arg_i] = NULL;
-	cmd->redirs[redir_i].type = 0;
-	cmd->arg_count = arg_i;
 	return (cmd);
 }

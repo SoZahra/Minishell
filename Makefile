@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
+#    By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/28 14:30:15 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/28 15:17:03 by fzayani          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,6 +70,7 @@ SRCS =	./src/builtins/cd.c					\
 		./src/loop/commands_lst.c			\
 		./src/loop/redirections.c			\
 		./src/loop/utils.c					\
+		./src/loop/command_utils.c			\
 		./src/loop/proc.c					\
 		./src/loop/proc_utils.c				\
 		./src/loop/join_utils.c				\

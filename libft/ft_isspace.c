@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_isspace.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 17:40:42 by fzayani           #+#    #+#             */
-/*   Updated: 2024/11/21 22:00:17 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/28 14:39:00 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,5 +14,5 @@
 
 int	ft_isspace(int c)
 {
-    return (c == ' ' || (c >= 9 && c <= 13));
+	return (c == ' ' || (c >= 9 && c <= 13));
 }
