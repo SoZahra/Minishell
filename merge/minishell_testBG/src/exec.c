@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:24:28 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/24 16:58:19 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/28 12:53:49 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,32 +193,65 @@ char **create_env_array(t_env_var *env_vars)
     return env;
 }
 
+//char *tokens_to_string_from_command(t_command *cmd)
+//{
+//    if (!cmd->args || cmd->arg_count == 0)
+//        return ft_strdup("");
+
+//    char *result = ft_strdup(cmd->args[0]);
+//    if (!result)
+//        return (NULL);
+//    for (int i = 1; i < cmd->arg_count; i++)
+//    {
+//        char *temp;
+//        if (!cmd->had_spaces[i])
+//        {
+//            temp = ft_strjoin(result, " ");
+//             if (!temp)
+//            {
+//				free(result);
+//                free_command_list(cmd);
+//                return NULL;
+//            }
+//            free(result);
+//            result = temp;
+//        }
+//        temp = ft_strjoin(result, cmd->args[i]);
+//        if (!temp)
+//        {
+//            free_command_list(cmd);
+//            return NULL;
+//        }
+//        free(result);
+//        result = temp;
+//    }
+//    return result;
+//}
+
 char *tokens_to_string_from_command(t_command *cmd)
 {
-    if (!cmd->args || cmd->arg_count == 0)
-        return ft_strdup("\0");
+    if (!cmd || !cmd->args || !cmd->arg_count)
+        return ft_strdup("");
 
     char *result = ft_strdup(cmd->args[0]);
     if (!result)
         return (NULL);
-    for (int i = 1; i < cmd->arg_count; i++)
+    for (int i = 1; i < cmd->arg_count && cmd->args[i]; i++)
     {
         char *temp;
-        if (!cmd->had_spaces[i])
+        temp = ft_strjoin(result, " ");
+        if (!temp)
         {
-            temp = ft_strjoin(result, " ");
-             if (!temp)
-            {
-                free_command_list(cmd);
-                return NULL;
-            }
             free(result);
-            result = temp;
+            return NULL;
         }
+        free(result);
+        result = temp;
+
         temp = ft_strjoin(result, cmd->args[i]);
         if (!temp)
         {
-            free_command_list(cmd);
+            free(result);
             return NULL;
         }
         free(result);

@@ -6,7 +6,7 @@
 /*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:40:47 by llarrey           #+#    #+#             */
-/*   Updated: 2024/12/18 10:11:15 by fzayani          ###   ########.fr       */
+/*   Updated: 2024/12/28 11:56:35 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,16 @@ void	handle_redirection(t_token *current)
 
 void	process_redirections(t_token *current)
 {
-	while (current)
+	t_token *tmp;
+
+	tmp = current;
+	while (tmp)
 	{
-		if (ft_strcmp(current->value, ">") == 0 || ft_strcmp(current->value,
-				"<") == 0 || ft_strcmp(current->value, ">>") == 0
-			|| ft_strcmp(current->value, "<<") == 0)
-			handle_redirection(current);
-		current = current->next;
+		if (ft_strcmp(tmp->value, ">") == 0 || ft_strcmp(tmp->value,
+				"<") == 0 || ft_strcmp(tmp->value, ">>") == 0
+			|| ft_strcmp(tmp->value, "<<") == 0)
+			handle_redirection(tmp);
+		tmp = tmp->next;
 	}
 }
 

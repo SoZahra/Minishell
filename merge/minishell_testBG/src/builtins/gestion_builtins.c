@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   gestion_builtins.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fatimazahrazayani <fatimazahrazayani@st    +#+  +:+       +#+        */
+/*   By: fzayani <fzayani@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:49:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/16 23:00:10 by fatimazahra      ###   ########.fr       */
+/*   Updated: 2024/12/28 12:57:34 by fzayani          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,35 @@
 // 	return (0);
 // }
 
+//int is_builtin(const char *str)
+//{
+//    char	*builtins[8];
+//    builtins[0] = "echo";
+//	builtins[1] = "cd";
+//	builtins[2] = "pwd";
+//	builtins[3] = "export";
+//	builtins[4] = "unset";
+//	builtins[5] = "env";
+//	builtins[6] = "exit";
+//	builtins[7] = NULL;
+//	int i;
+
+//	if (!str)
+//		return (0);
+//	i = -1;
+//	while (++i < 8)
+//	{
+//		if (!ft_strcmp(str, builtins[i]))
+//			return (1);
+//	}
+//	return (0);
+//}
+
 int is_builtin(const char *cmd)
 {
     int i;
     if(!cmd)
-        return (1);
+        return (0);
     while (*cmd == ' ')
         cmd++;
     char	*builtins[8];
@@ -56,8 +80,7 @@ int is_builtin(const char *cmd)
     while(builtins[i])
     {
         size_t len = ft_strlen(builtins[i]);
-        if (strncmp(cmd, builtins[i], len) == 0 &&
-            (cmd[len] == ' ' || cmd[len] == '\0'))
+        if (strncmp(cmd, builtins[i], len) == 0 && (cmd[len] == ' ' || cmd[len] == '\0'))
             return i + 1;
         i++;
     }

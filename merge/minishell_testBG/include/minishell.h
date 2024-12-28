@@ -24,14 +24,14 @@
 # define REDIRS "<>HA"
 # define OPERATORS "AH<>|"
 # define UNJOIN "<>|"
-extern int g_heredoc_active;
+extern int					g_heredoc_active;
 # ifndef PATH_MAX
 #  define PATH_MAX 4096
 # endif
 
-# define BOOL	char
-# define TRUE	1
-# define FALSE	0
+# define BOOL char
+# define TRUE 1
+# define FALSE 0
 
 typedef struct s_env_var
 {
@@ -188,8 +188,9 @@ char						*tokens_to_string_from_command(t_command *cmd);
 
 int							exec_loop(t_ctx *ctx, t_command *cmd);
 
-//heredoc
-void close_heredocs(t_command *cmd);
+// heredoc
+int							setup_heredocs(t_command *cmd);
+void						close_heredocs(t_command *cmd);
 
 // loop
 
@@ -199,31 +200,32 @@ t_command					*parse_pipe_sequence(t_token *tokens);
 
 // signaux
 
-//void						handle_sigint(int sig);
-//void						handle_sigquit(int sig);
-//void						sighndl_sigint_main(int sig);
-//void sigset_sigint_main(int sig);
-//void sigset_sigquit_main(int sig);
-//void sigset_sigint_child(int sig);
-//void sigset_sigquit_child(int sig);
-//void sigset_sigint_heredoc(int sig);
-//void sigset_sigquit_heredoc(int sig);
-//void init_heredoc_sig(void);
-//void restore_main_sig(void);
-void init_child_sig(void);
-void    init_sig(void);
-void init_heredoc_sig(void);
-void restore_main_sig(void);
+// void						handle_sigint(int sig);
+// void						handle_sigquit(int sig);
+// void						sighndl_sigint_main(int sig);
+// void sigset_sigint_main(int sig);
+// void sigset_sigquit_main(int sig);
+// void sigset_sigint_child(int sig);
+// void sigset_sigquit_child(int sig);
+// void sigset_sigint_heredoc(int sig);
+// void sigset_sigquit_heredoc(int sig);
+// void init_heredoc_sig(void);
+// void restore_main_sig(void);
+void						init_child_sig(void);
+void						init_sig(void);
+void						init_heredoc_sig(void);
+void						restore_main_sig(void);
 
-void sigint_main_ignore(void);
-void sigint_main_handl(void);
+void						sigint_main_ignore(void);
+void						sigint_main_handl(void);
 
-void    setsig(struct sigaction *sa, int signum, void (*f)(int), int flags);
+void						setsig(struct sigaction *sa, int signum,
+								void (*f)(int), int flags);
 
 // env
 
 t_env_var					*build_env_list(char **envp);
-int						add_env_var_to_list(t_env_var **head,
+int							add_env_var_to_list(t_env_var **head,
 								t_env_var *new_var);
 t_env_var					*get_last_env_node(t_env_var **env);
 int							create_and_add_var(t_ctx *ctx, char *var,
@@ -232,7 +234,7 @@ char						**create_env_array(t_env_var *env_vars);
 char						*find_command_path(const char *cmd, t_ctx *ctx);
 char						*find_env_value(const char *name,
 								t_env_var *env_vars);
-char	*ps_get_env_var(char *var_name, t_ctx *ctx);
+char						*ps_get_env_var(char *var_name, t_ctx *ctx);
 
 // Tokens
 
@@ -242,7 +244,8 @@ int							add_token(t_token **token_list, t_token_type type,
 t_token						*create_new_token(t_token_type type, char *value);
 t_token						*tokenize_input(char *line);
 t_token						*create_token_node(char *arg, t_token_type type);
-void count_tokens(t_token *start, t_token *end, int *arg_c, int *red_c);
+void						count_tokens(t_token *start, t_token *end,
+								int *arg_c, int *red_c);
 bool						is_token(char c, char *str);
 
 // free
