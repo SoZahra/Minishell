@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:02:02 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:15:50 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:03:04 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,21 +36,19 @@ int	validate_args_while(char **args, t_ctx *ctx)
 	i = 1;
 	while (args[i])
 	{
-		// Vérifie le cas "export ="
 		if (ft_strcmp(args[i], "=") == 0)
 		{
 			fprintf(stderr, "MiniBG: export: `=': not a valid identifier\n");
 			ctx->exit_status = 1;
 			return (0);
 		}
-		// Vérifie si commence par un chiffre
 		if (ft_isdigit(args[i][0]))
 		{
-			fprintf(stderr, "MiniBG: export: `%s': not a valid identifier\n", args[i]);
+			fprintf(stderr, "MiniBG: export: `%s':\
+ not a valid identifier\n", args[i]);
 			ctx->exit_status = 1;
 			return (0);
 		}
-		// Vérifie la présence de tirets dans le nom avant le '='
 		if (!check_pos(args[i], ctx))
 			return (0);
 		i++;

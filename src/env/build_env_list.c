@@ -6,35 +6,11 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 15:59:08 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 16:06:19 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:18:15 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-/*void	free_env_var(t_env_var *var)
-{
-	if (var)
-	{
-		free(var->name);
-		var->name = NULL;
-		free(var->value);
-		var->value = NULL;
-		free(var);
-	}
-}*/
-
-/*void	free_env_list(t_env_var *head)
-{
-	t_env_var	*temp;
-
-	while (head)
-	{
-		temp = head->next;
-		free_env_var(head);
-		head = temp;
-	}
-}*/
 
 t_env_var	*create_new_env_var(char *env_str)
 {
@@ -60,43 +36,38 @@ t_env_var	*create_new_env_var(char *env_str)
 	if (!new_var->value)
 	{
 		free(new_var->name);
-		free(new_var);
-		return (NULL);
+		return (free(new_var), NULL);
 	}
 	return (new_var);
 }
 
-void	add_env_var_to_list(t_env_var **head, t_env_var *new_var)
+static int	replace_existing_var(t_env_var *current, t_env_var *new_var)
+{
+	free(current->value);
+	current->value = new_var->value;
+	return (free(new_var->name), free(new_var), 1);
+}
+
+int	add_env_var_to_list(t_env_var **head, t_env_var *new_var)
 {
 	t_env_var	*current;
 	t_env_var	*prev;
 
 	if (!head || !new_var)
-		return ;
+		return (1);
 	if (!*head)
-	{
-		*head = new_var;
-		return ;
-	}
+		return (*head = new_var, 1);
 	current = *head;
 	prev = NULL;
 	while (current)
 	{
 		if (ft_strcmp(current->name, new_var->name) == 0)
-		{
-			free(current->value);
-			current->value = new_var->value;
-			free(new_var->name);
-			free(new_var);
-			return ;
-		}
+			return (replace_existing_var(current, new_var));
 		prev = current;
 		current = current->next;
 	}
-	if (!*head)
-		*head = new_var;
-	else
-		prev->next = new_var;
+	prev->next = new_var;
+	return (0);
 }
 
 t_env_var	*build_env_list(char **envp)

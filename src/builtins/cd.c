@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 15:53:21 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 15:54:24 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:20:33 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 int	handle_cd_builtin(const char *input, t_ctx *ctx)
 {
 	char	**arg_array;
-	int		arg_count;
 
 	while (*input == ' ')
 		input++;
@@ -26,25 +25,19 @@ int	handle_cd_builtin(const char *input, t_ctx *ctx)
 	arg_array = ft_split(input, ' ');
 	if (!arg_array)
 		return (1);
-	arg_count = 0;
-	while (arg_array[arg_count])
-		arg_count++;
-	if (arg_count > 1)
+	if (arg_array[0] && arg_array[1])
 	{
 		ft_fprintf(2, "cd: too many arguments\n");
 		free_array(arg_array);
-		ctx->exit_status = 0;
-		return (1);
+		return (ctx->exit_status = 0, 1);
 	}
 	if (chdir(arg_array[0]) != 0)
 	{
 		ft_fprintf(2, "cd: %s: No such file or directory\n", arg_array[0]);
 		free_array(arg_array);
-		ctx->exit_status = 1;
-		return (1);
+		return (ctx->exit_status = 1, 1);
 	}
-	free_array(arg_array);
-	return (ft_update_pwd(ctx));
+	return (free_array(arg_array), ft_update_pwd(ctx));
 }
 
 int	ft_cd_home(t_ctx *ctx)
@@ -103,13 +96,9 @@ int	ft_update_pwd(t_ctx *ctx)
 		return (1);
 	}
 	if (oldpwd && create_var_with_value("OLDPWD", oldpwd, ctx))
-	{
-		ctx->exit_status = 1;
-		return (1);
-	}
+		return (ctx->exit_status = 1, 1);
 	free(ctx->oldpwd);
 	ctx->oldpwd = oldpwd;
 	ctx->pwd = cwd;
-	ctx->exit_status = 0;
-	return (0);
+	return (ctx->exit_status = 0, 0);
 }

@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:38:04 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/26 16:38:05 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:14:15 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ int	initialize_ctx(t_ctx *ctx)
 {
 	if (!ctx)
 		return (1);
-
 	ctx->env_vars = NULL;
 	ctx->exit_status = 0;
 	ctx->num_pipes = 0;

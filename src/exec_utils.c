@@ -5,19 +5,17 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/27 14:59:51 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 15:00:17 by ymanchon         ###   ########.fr       */
+/*   Created: 2024/12/28 14:27:34 by ymanchon          #+#    #+#             */
+/*   Updated: 2024/12/28 14:28:54 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-char	**create_env_array(t_env_var *env_vars)
+static int	count_env_vars(t_env_var *env_vars)
 {
 	int			count;
 	t_env_var	*current;
-	char		**env;
-	char		*temp;
 
 	count = 0;
 	current = env_vars;
@@ -26,62 +24,49 @@ char	**create_env_array(t_env_var *env_vars)
 		count++;
 		current = current->next;
 	}
+	return (count);
+}
+
+static char	*create_env_string(char *name, char *value)
+{
+	char	*temp;
+	char	*result;
+
+	temp = ft_strjoin(name, "=");
+	if (!temp)
+		return (NULL);
+	result = ft_strjoin(temp, value);
+	free(temp);
+	return (result);
+}
+
+static char	**fill_env_array(t_env_var *env_vars, int count)
+{
+	char		**env;
+	t_env_var	*current;
+	int			i;
+
 	env = malloc(sizeof(char *) * (count + 1));
 	if (!env)
 		return (NULL);
 	current = env_vars;
-	count = 0;
+	i = 0;
 	while (current)
 	{
-		temp = ft_strjoin(current->name, "=");
-		env[count] = ft_strjoin(temp, current->value);
-		free(temp);
-		if (!env[count])
-		{
-			free_array(env);
-			return (NULL);
-		}
+		env[i] = create_env_string(current->name, current->value);
+		if (!env[i])
+			return (free_array(env), NULL);
 		current = current->next;
-		count++;
+		i++;
 	}
-	env[count] = NULL;
+	env[i] = NULL;
 	return (env);
 }
 
-char	*tokens_to_string_from_command(t_command *cmd)
+char	**create_env_array(t_env_var *env_vars)
 {
-	char	*temp;
-	char	*result;
-	int		i;
+	int	count;
 
-	if (!cmd->args || cmd->arg_count == 0)
-		return (ft_strdup("\0"));
-	result = ft_strdup(cmd->args[0]);
-	if (!result)
-		return (NULL);
-	i = 1;
-	while (i < cmd->arg_count)
-	{
-		if (!cmd->had_spaces[i])
-		{
-			temp = ft_strjoin(result, " ");
-			if (!temp)
-			{
-				free_command_list(cmd);
-				return (NULL);
-			}
-			free(result);
-			result = temp;
-		}
-		temp = ft_strjoin(result, cmd->args[i]);
-		if (!temp)
-		{
-			free_command_list(cmd);
-			return (NULL);
-		}
-		free(result);
-		result = temp;
-		++i;
-	}
-	return (result);
+	count = count_env_vars(env_vars);
+	return (fill_env_array(env_vars, count));
 }

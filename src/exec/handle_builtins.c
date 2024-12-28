@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:40:09 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 14:42:31 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:05:08 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,9 +82,7 @@ int	handle_echo_builtin_n(const char *args, t_ctx *ctx)
 	}
 	if (!no_newline)
 		write(STDOUT_FILENO, "\n", 1);
-	free_tokens(tokens);
-	ctx->exit_status = 0;
-	return (0);
+	return (free_tokens(tokens), ctx->exit_status = 0, 0);
 }
 
 int	handle_error(const char *arg, t_ctx *ctx)

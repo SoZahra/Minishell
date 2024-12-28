@@ -54,7 +54,6 @@ int	tokenizer(t_token **tokens, char *input)
 				result = word_proc(tokens, input, &i);
 			if (result != 0)
 			{
-				// free_tokens(*tokens);
 				*tokens = NULL;
 				return (-1);
 			}

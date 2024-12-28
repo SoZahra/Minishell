@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 18:25:58 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:15:21 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:30:50 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,16 +309,19 @@ int			is_redirection(t_token_type type);
 // loop - utils
 
 int			check_syntax_errors(const char *line);
+int			is_executable(const char *path);
+char		*join_path(const char *dir, const char *file);
 
 // signaux
 
 void		handle_sigquit(int signum);
 void		handle_sigint(int signum);
+void		init_sig(void);
 
 // env
 
 t_env_var	*build_env_list(char **envp);
-void		add_env_var_to_list(t_env_var **head,
+int			add_env_var_to_list(t_env_var **head,
 				t_env_var *new_var);
 //t_env_var	*get_last_env_node(t_env_var **env);
 int			create_and_add_var(t_ctx *ctx, char *var,

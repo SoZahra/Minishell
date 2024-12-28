@@ -51,22 +51,6 @@ int	export_single_var(const char *arg, t_ctx *ctx)
 	return (result);
 }
 
-/*int	handle_with_equal(const char *arg, char *equal_sign, t_ctx *ctx)
-{
-	char	*temp;
-	char	*temp_equal;
-	int		result;
-
-	temp = ft_strdup(arg);
-	temp_equal = temp + (equal_sign - arg);
-	*temp_equal = '\0';
-	if (!is_valid_var_name(temp))
-		return (free(temp), handle_error(arg, ctx));
-	result = create_var_with_value(temp, equal_sign + 1, ctx);
-	free(temp);
-	return (result);
-}*/
-
 int	handle_multiple_args(const char *args, t_ctx *ctx)
 {
 	char	**arg_array;
@@ -88,42 +72,43 @@ int	handle_multiple_args(const char *args, t_ctx *ctx)
 	return (result);
 }
 
+static int	handle_export_args(char **split_args, t_ctx *ctx)
+{
+	int	i;
+
+	i = 0;
+	while (split_args[i])
+	{
+		if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0])
+			|| ft_strchr(split_args[i], '-'))
+		{
+			ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
+				split_args[i]);
+			ctx->exit_status = 1;
+		}
+		else
+			handle_multiple_args(split_args[i], ctx);
+		i++;
+	}
+	return (ctx->exit_status);
+}
+
 int	handle_export_builtin(const char *input, t_ctx *ctx)
 {
 	char	**split_args;
-	int		i;
 
 	while (*input == ' ')
 		input++;
 	if (!*input)
 		return (handle_no_args(ctx));
+	if (ft_strchr(input, '='))
+	{
+		handle_single_arg((char *)input, ctx);
+		return (ctx->exit_status);
+	}
 	split_args = ft_split(input, ' ');
 	if (!split_args)
 		return (perror("ft_split"), 1);
-	i = 0;
-	while (split_args[i])
-	{
-		if (ft_strcmp(split_args[i], "=") == 0 || ft_isdigit(split_args[i][0]))
-		{
-			ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
-				split_args[i]);
-			ctx->exit_status = 1;
-			continue ;
-		}
-		if (ft_strchr(split_args[i], '-'))
-		{
-			ft_fprintf(2, "MiniBG: export: `%s': not a valid identifier\n",
-				split_args[i]);
-			ctx->exit_status = 1;
-			continue ;
-		}
-		if (ft_strchr(split_args[i], '='))
-			handle_single_arg(split_args[i], ctx);
-		else
-			handle_multiple_args(split_args[i], ctx);
-		++i;
-	}
-	free_array(split_args);
-	return (ctx->exit_status);
+	handle_export_args(split_args, ctx);
+	return (free_array(split_args), ctx->exit_status);
 }
-

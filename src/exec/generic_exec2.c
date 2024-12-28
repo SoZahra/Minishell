@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:37:16 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:12:14 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:04:24 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ int	exec_builtin_once(t_ctx *ctx, t_command *cmd)
 	if (ft_strncmp(cmd->args[0], "exit", 5))
 		free(cmd_line);
 	ret = restore_std(ctx);
-	// free(cmd_line);
 	return (ret);
 }
 
@@ -60,6 +59,22 @@ void	wait_loop(t_ctx *ctx, t_command *cmd)
 	}
 }
 
+static int	exec_command_type(t_ctx *ctx, t_command *cmd, int *has_child)
+{
+	if (!cmd->prev && !cmd->next && is_builtin(cmd->args[0]))
+	{
+		if (exec_builtin_once(ctx, cmd))
+			return (1);
+	}
+	else
+	{
+		if (exec_child(ctx, cmd))
+			return (1);
+		*has_child = 1;
+	}
+	return (0);
+}
+
 int	exec_loop(t_ctx *ctx, t_command *cmd)
 {
 	t_command	*tmp;
@@ -67,26 +82,14 @@ int	exec_loop(t_ctx *ctx, t_command *cmd)
 	int			ret;
 
 	if (setup_heredocs(cmd))
-	{
-		cmd_clean_and_exit(ctx, cmd, NULL, 0);
 		return (1);
-	}
 	tmp = cmd;
 	has_child = ((ret = 0));
 	ctx->current_command = cmd;
 	while (tmp)
 	{
-		if (!tmp->prev && !tmp->next && is_builtin(tmp->args[0]))
-		{
-			if (exec_builtin_once(ctx, tmp))
-				ret = 1;
-		}
-		else
-		{
-			if (exec_child(ctx, tmp))
-				ret = 1;
-			has_child = 1;
-		}
+		if (exec_command_type(ctx, tmp, &has_child))
+			ret = 1;
 		tmp = tmp->next;
 	}
 	if (has_child)

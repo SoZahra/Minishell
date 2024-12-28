@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 15:21:43 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/27 16:09:24 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:15:11 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,6 @@ int	get_term_attr(void)
 int	set_term_attr(void)
 {
 	return (tcsetattr(STDIN_FILENO, TCSANOW, &get_ctx()->term));
-}
-
-void	init_sig(void)
-{
-	setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
-	setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
 }
 
 void	cleanup_shell(t_ctx *ctx)

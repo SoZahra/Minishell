@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 16:30:48 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 16:31:06 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:36:19 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ int	join_tokens(t_token *prev, t_token *current)
 	free(tmp);
 	if (current->type == '"' || current->type == '\'')
 		prev->type = current->type;
-
 	return (0);
 }
 

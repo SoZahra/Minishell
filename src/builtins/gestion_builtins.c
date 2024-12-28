@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/02 14:49:14 by fzayani           #+#    #+#             */
-/*   Updated: 2024/12/26 15:56:49 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:22:00 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,14 +30,13 @@ int	is_builtin(const char *cmd)
 	builtins[5] = "env";
 	builtins[6] = "exit";
 	builtins[7] = NULL;
-	i = 0;
-	while (builtins[i])
+	i = -1;
+	while (builtins[++i])
 	{
 		len = ft_strlen(builtins[i]);
 		if (strncmp(cmd, builtins[i], len) == 0
 			&& (cmd[len] == ' ' || cmd[len] == '\0'))
 			return (i + 1);
-		i++;
 	}
 	return (0);
 }

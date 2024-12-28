@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/26 16:31:52 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:15:06 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:15:13 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,12 @@ volatile int		g_heredoc_active = false;
 // data->shell.s_sigint.sa_handler = _hndl_sigint;
 // sigaction(SIGINT, &data->shell.s_sigint, NULL);
 /////////////////////////////////////
+
+void	init_sig(void)
+{
+	setsig(&get_ctx()->s_sigint, SIGINT, handle_sigint, 0);
+	setsig(&get_ctx()->s_sigquit, SIGQUIT, SIG_IGN, 0);
+}
 
 void	setsig(struct sigaction *sa, int signum, void (*f)(int), int flags)
 {

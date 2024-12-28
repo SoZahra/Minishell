@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 12:00:43 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:12:09 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:24:38 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,11 @@ void	execute_command(t_ctx *ctx, t_command *cmd, char **env_v)
 {
 	int	error_code;
 
+	if (!cmd->args || !cmd->args[0])
+	{
+		ft_fprintf(2, "MiniBG: : command not found\n");
+		cmd_clean_and_exit(ctx, cmd, env_v, 127);
+	}
 	error_code = check_errors(cmd);
 	if (error_code)
 		cmd_clean_and_exit(ctx, cmd, env_v, error_code);
@@ -57,11 +62,11 @@ int	child_process(t_ctx *ctx, t_command *cmd)
 	char	**env_v;
 
 	env_v = NULL;
-	/*if (setup_heredocs(cmd))
+	if (!cmd->args || !cmd->args[0] || !*cmd->args[0])
 	{
-		cmd_clean_and_exit(ctx, cmd, NULL, 0);
-		return (1);
-	}*/
+		ft_fprintf(2, "MiniBG: : command not found\n");
+		cmd_clean_and_exit(ctx, cmd, env_v, 127);
+	}
 	if (set_redirs(cmd))
 		cmd_clean_and_exit(ctx, cmd, env_v, 1);
 	if (is_builtin(cmd->args[0]))

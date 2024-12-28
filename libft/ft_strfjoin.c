@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 20:10:42 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/22 12:15:43 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:37:25 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,7 @@ char	*ft_strffjoin(char *s1, char *s2)
 	int		n;
 
 	if (!s1)
-	{
-		ret = ft_strdup(s2);
-		return (free(s2), ret);
-	}
+		return (ret = ft_strdup(s2), free(s2), ret);
 	else if (!s2)
 		return (s1);
 	size1 = ft_strlen(s1);

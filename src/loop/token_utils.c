@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 11:46:05 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/28 13:33:03 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:35:00 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,6 @@ void	token_del(t_token *token)
 {
 	if (!token)
 		return ;
-
 	if (token->prev)
 		token->prev->next = token->next;
 	if (token->next)

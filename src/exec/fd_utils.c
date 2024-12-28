@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:28:05 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 16:03:10 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:13:29 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,21 +48,6 @@ int	set_fds(t_command *cmd)
 	return (0);
 }
 
-/*void	cleanup_pipes(t_command *cmd)
-{
-	if (cmd->prev)
-	{
-		if (cmd->prev->pfd[0] > 2)
-			close(cmd->prev->pfd[0]);
-		if (cmd->prev->pfd[1] > 2)
-			close(cmd->prev->pfd[1]);
-	}
-	if (cmd->pfd[0] > 2)
-		close(cmd->pfd[0]);
-	if (cmd->pfd[1] > 2)
-		close(cmd->pfd[1]);
-}*/
-
 int	save_std(t_ctx *ctx)
 {
 	ctx->save_stdin = dup(STDIN_FILENO);
@@ -90,5 +75,3 @@ int	restore_std(t_ctx *ctx)
 	close(ctx->save_stdout);
 	return (ret);
 }
-
-

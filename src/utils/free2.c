@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:57:38 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 16:42:07 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:14:25 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ void	free_tokens(t_token *tokens)
 
 	if (!tokens)
 		return ;
-
 	current = tokens;
 	while (current)
 	{

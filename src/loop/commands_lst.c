@@ -6,7 +6,7 @@
 /*   By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 14:47:46 by ymanchon          #+#    #+#             */
-/*   Updated: 2024/12/27 16:43:04 by ymanchon         ###   ########.fr       */
+/*   Updated: 2024/12/28 14:36:00 by ymanchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,13 +87,13 @@ t_command	*create_command_from_tokens_range(t_token *start, t_token *end)
 	cmd = init_command_struct(arg_count, redir_count);
 	if (!cmd)
 		return (NULL);
-	current = start; 
+	current = start;
 	while (current && current != end && current->type != '|')
 	{
 		if (is_redirection(current->type))
 		{
 			if (add_redir(cmd, current, &redir_i))
-				return (free_command_list(cmd) ,NULL);
+				return (free_command_list(cmd), NULL);
 			if (current->next)
 				current = current->next;
 		}

@@ -6,7 +6,7 @@
 #    By: ymanchon <ymanchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 16:21:19 by ymanchon          #+#    #+#              #
-#    Updated: 2024/12/28 13:35:08 by ymanchon         ###   ########.fr        #
+#    Updated: 2024/12/28 14:30:15 by ymanchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,6 +46,7 @@ SRCS =	./src/builtins/cd.c					\
 		./src/env/build_env_list.c			\
 		\
 		./src/exec/exec_builtins.c			\
+		./src/exec/exec_builtins2.c			\
 		./src/exec/exec_simple.c			\
 		./src/exec/generic_exec.c			\
 		./src/exec/generic_exec2.c			\
@@ -56,6 +57,7 @@ SRCS =	./src/builtins/cd.c					\
 		./src/exec/heredoc.c				\
 		./src/exec/fd_utils.c				\
 		./src/exec/redirections.c			\
+		./src/exec/setup_heredocs_utils.c	\
 		./src/exec/check_and_exit.c			\
 		./src/exec/handle_export.c			\
 		\
@@ -88,6 +90,8 @@ SRCS =	./src/builtins/cd.c					\
 		./src/utils/utils.c					\
 		\
 		./src/exec_utils.c					\
+		./src/exec_utils2.c					\
+		./src/exec_utils3.c					\
 		./src/exec.c						\
 		./src/main.c
 
